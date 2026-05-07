@@ -31,6 +31,9 @@ export async function SiteHeader() {
         <Link href="/residential" className="hover:text-stone-900">
           Residential
         </Link>
+        <Link href="/date-vault" className="hover:text-stone-900">
+          Date Vault
+        </Link>
       </nav>
 
       <div className="flex items-center gap-3">
