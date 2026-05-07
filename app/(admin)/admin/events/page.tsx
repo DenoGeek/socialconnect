@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatEventDate } from "@/lib/utils/format";
+import { completeEvent } from "./actions";
 
 export const metadata = { title: "Events admin · Evermore" };
 
@@ -53,6 +54,13 @@ export default async function AdminEventsPage() {
                   <Button asChild variant="outline" size="sm">
                     <Link href={`/admin/events/${event.id}/scan`}>Check in</Link>
                   </Button>
+                  {event.status !== "completed" && event.status !== "cancelled" && (
+                    <form action={completeEvent.bind(null, event.id)}>
+                      <Button type="submit" variant="outline" size="sm">
+                        Mark completed
+                      </Button>
+                    </form>
+                  )}
                   <Button asChild variant="ghost" size="sm">
                     <Link href={`/events/${event.slug}`} target="_blank">Public page ↗</Link>
                   </Button>

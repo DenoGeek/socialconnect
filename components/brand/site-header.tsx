@@ -17,6 +17,11 @@ export async function SiteHeader() {
         <Link href="/events" className="hover:text-stone-900">
           Events
         </Link>
+        {session && (
+          <Link href="/matches" className="hover:text-stone-900">
+            Matches
+          </Link>
+        )}
         <Link href="/concierge" className="hover:text-stone-900">
           Concierge
         </Link>

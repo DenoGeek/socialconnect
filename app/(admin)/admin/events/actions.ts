@@ -5,9 +5,10 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { events, ticketTiers } from "@/db/schema";
+import { events, ticketTiers, auditLog } from "@/db/schema";
 import { requireRole } from "@/lib/auth/server";
 import { slugify } from "@/lib/utils/format";
+import { inngest } from "@/inngest/client";
 
 const eventSchema = z.object({
   title: z.string().min(3),
@@ -160,5 +161,34 @@ export async function upsertTier(eventId: string, formData: FormData) {
 export async function deleteTier(eventId: string, tierId: string) {
   await requireRole(["admin"]);
   await db.delete(ticketTiers).where(eq(ticketTiers.id, tierId));
+  revalidatePath(`/admin/events/${eventId}/edit`);
+}
+
+/**
+ * Marks an event completed and fires `event.ended`. Inngest takes over from
+ * there: backstop alias assignments and email attendees that impressions
+ * are open. Idempotent — re-running is harmless.
+ */
+export async function completeEvent(eventId: string) {
+  const session = await requireRole(["admin"]);
+
+  await db
+    .update(events)
+    .set({ status: "completed", updatedAt: new Date() })
+    .where(eq(events.id, eventId));
+
+  await inngest.send({
+    name: "event.ended",
+    data: { eventId },
+  });
+
+  await db.insert(auditLog).values({
+    actorUserId: session.user.id,
+    action: "event.complete",
+    resourceType: "event",
+    resourceId: eventId,
+  });
+
+  revalidatePath("/admin/events");
   revalidatePath(`/admin/events/${eventId}/edit`);
 }
