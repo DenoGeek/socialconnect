@@ -71,7 +71,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # `postgres`'s package.json `exports` field can't resolve from a partial
 # trace. Copying the whole packages from the deps stage sidesteps both.
 COPY --from=builder   --chown=nextjs:nodejs /app/db/migrations ./db/migrations
-COPY --from=builder   --chown=nextjs:nodejs /app/scripts/migrate.mjs ./scripts/migrate.mjs
+COPY --from=builder   --chown=nextjs:nodejs /app/scripts ./scripts
 COPY --from=prod-deps --chown=nextjs:nodejs /app/node_modules/drizzle-orm ./node_modules/drizzle-orm
 COPY --from=prod-deps --chown=nextjs:nodejs /app/node_modules/postgres ./node_modules/postgres
 
