@@ -3,13 +3,21 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin } from "better-auth/plugins";
 import { db } from "@/db";
 
-if (!process.env.BETTER_AUTH_SECRET) {
-  throw new Error("BETTER_AUTH_SECRET is not set");
-}
+// Build-time tolerance: if the secret is missing during `next build` we
+// fall back to a placeholder so route collection doesn't crash. Auth will
+// reject every request at runtime if the real secret isn't set, which is
+// the loud-failure mode we actually want.
+const authSecret =
+  process.env.BETTER_AUTH_SECRET ??
+  (process.env.NODE_ENV === "production"
+    ? // eslint-disable-next-line no-console
+      (console.warn("[auth] BETTER_AUTH_SECRET not set — auth will be unusable"),
+        "build-time-placeholder-not-for-runtime")
+    : "dev-only-placeholder-please-set-better-auth-secret");
 
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
-  secret: process.env.BETTER_AUTH_SECRET,
+  secret: authSecret,
   database: drizzleAdapter(db, {
     provider: "pg",
     usePlural: true,

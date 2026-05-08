@@ -1,0 +1,30 @@
+# Build artifacts
+.next
+node_modules
+out
+
+# Local env files. NOTE: .env itself is intentionally NOT excluded — the
+# CI workflow writes secrets into ./.env before docker build, and that file
+# must reach the build context so Next can inline NEXT_PUBLIC_* values and
+# the runner can read DATABASE_URL etc. Local .env.local is excluded so
+# developer secrets never sneak into builds run from a workstation.
+.env.local
+.env.*.local
+
+# VCS + tooling
+.git
+.gitignore
+.github
+.claude
+
+# Editor + OS junk
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+*.log
+*.tsbuildinfo
+.eslintcache
+
+# Documentation that doesn't need to be in the image
+README.md
