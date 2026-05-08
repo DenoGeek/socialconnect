@@ -67,3 +67,5 @@ A clean build hits these before product tracks open:
 - [ ] Admin can hit `/admin`; non-admin redirected to `/`
 - [ ] TinyPesa sandbox STK Push completes; `payments` row written; webhook signature verified
 - [ ] Inngest dev server picks up `assignAliasOnPurchase` and `detectMutualMatch`
+
+# socialconnect
