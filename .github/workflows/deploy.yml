@@ -23,7 +23,7 @@ jobs:
 
 
       - name: Build API Docker image
-        run: docker build -t ghcr.io/nurtura-tech-org/zinga_preorder:zinga_preorder-latest ./
+        run: docker build -t ghcr.io/D/zinga_preorder:zinga_preorder-latest ./
 
       - name: Push API Docker image
         run: docker push ghcr.io/nurtura-tech-org/zinga_preorder:zinga_preorder-latest
