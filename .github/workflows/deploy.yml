@@ -28,5 +28,4 @@ jobs:
       - name: Push API Docker image
         run: docker push ghcr.io/denogeek/socialconnect:socialconnect-latest
 
-      - name: Trigger Dokploy deployment
-        run: curl -fsSL -X POST "https://homedokploy.neverest.co.ke/api/deploy/compose/sZxkfDKj-zmqQJee9xCxl"
+
