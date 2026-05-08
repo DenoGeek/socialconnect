@@ -8,6 +8,7 @@
 // Drizzle tracks applied migrations in the `__drizzle_migrations` table, so
 // re-running on every boot is safe (and a no-op when nothing is pending).
 
+import { existsSync } from "node:fs";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
@@ -16,6 +17,15 @@ const url = process.env.DATABASE_URL;
 if (!url) {
   console.error("[migrate] DATABASE_URL is not set");
   process.exit(1);
+}
+
+// Drizzle creates `_journal.json` when you run `pnpm db:generate`. Until that
+// happens the folder is empty (just a .gitkeep) and the migrator would throw —
+// skip gracefully so first-time deploys can still boot.
+const journal = "./db/migrations/meta/_journal.json";
+if (!existsSync(journal)) {
+  console.log("[migrate] no migrations generated yet — skipping");
+  process.exit(0);
 }
 
 const client = postgres(url, { max: 1, prepare: false });
