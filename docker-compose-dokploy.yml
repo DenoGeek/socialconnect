@@ -6,35 +6,42 @@
 # secrets, API keys) is supplied at start-time so secrets aren't burned into
 # the image.
 #
+# Ingress: Cloudflare Tunnel routes the public hostname
+# (https://socialconnect.neverest.co.ke) to http://localhost:3002 on this
+# host, so this compose binds the container's port 3000 to host port 3002.
+# No Traefik labels needed; the tunnel terminates TLS at Cloudflare.
+#
 # How Dokploy uses this file:
 #   1. Point a Compose service at this path in the Dokploy dashboard.
-#   2. In the project's "Environment" tab, define DOMAIN, plus everything
-#      listed in .env.example. Dokploy materializes those values into a `.env`
-#      file next to this manifest before running `docker compose up`.
-#   3. Set the registry credentials (DEPLOY_ACTOR / DEPLOY_TOKEN) so Dokploy
-#      can pull the private GHCR image. Or make the image public.
+#   2. In the project's "Environment" tab, define every var listed in
+#      .env.example (DATABASE_URL, BETTER_AUTH_SECRET, TINYPESA_*, RESEND_*, …).
+#      Dokploy writes those values into a `.env` file next to this manifest
+#      before running `docker compose up`.
+#   3. Set BETTER_AUTH_URL and NEXT_PUBLIC_BETTER_AUTH_URL to the Cloudflare
+#      hostname (https://socialconnect.neverest.co.ke), NOT localhost:3002.
+#      Better Auth signs cookies against the public origin.
+#   4. Add ghcr.io registry credentials in Dokploy → Settings → Registries
+#      so it can pull the private image. Or make the image public on GHCR.
 #
 # Local sanity check:
 #   docker compose -f docker-compose-dokploy.yml --env-file .env up
+#   curl http://localhost:3002/login
 #
 services:
   web:
     image: ghcr.io/denogeek/socialconnect:socialconnect-latest
-    # Always pull on deploy so re-running with a new tag actually moves forward.
+    # Always pull on deploy so re-running with the same tag actually moves forward.
     pull_policy: always
     restart: unless-stopped
 
-    # Runtime env. Dokploy writes this file from the dashboard's Environment
-    # tab; locally, `docker compose --env-file .env` works too. Server code
-    # reads process.env on every request, so changes here take effect on
-    # container restart — no rebuild needed.
+    # Runtime env. Server code reads process.env on every request, so changes
+    # here take effect on container restart — no rebuild needed.
     env_file:
       - .env
 
-    # Inside the dokploy-network only; Traefik (provided by Dokploy) does the
-    # public binding via the labels below.
-    expose:
-      - "3000"
+    # Cloudflare Tunnel hits this host:port pair.
+    ports:
+      - "3002:3000"
 
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:3000/ >/dev/null 2>&1 || exit 1"]
@@ -45,28 +52,6 @@ services:
 
     networks:
       - dokploy-network
-
-    # Traefik labels — Dokploy ships Traefik as the ingress. ${DOMAIN} is read
-    # from the env file at compose-up time (variable substitution in YAML),
-    # which is separate from the runtime env_file injection above.
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=dokploy-network
-      - traefik.http.services.socialconnect.loadbalancer.server.port=3000
-
-      # HTTPS router with Let's Encrypt
-      - traefik.http.routers.socialconnect.rule=Host(`${DOMAIN}`)
-      - traefik.http.routers.socialconnect.entrypoints=websecure
-      - traefik.http.routers.socialconnect.tls=true
-      - traefik.http.routers.socialconnect.tls.certresolver=letsencrypt
-
-      # HTTP router that redirects to HTTPS (matches Dokploy's default Traefik
-      # config; if your install names the middleware differently, adjust here).
-      - traefik.http.routers.socialconnect-http.rule=Host(`${DOMAIN}`)
-      - traefik.http.routers.socialconnect-http.entrypoints=web
-      - traefik.http.routers.socialconnect-http.middlewares=redirect-to-https
-      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
-      - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
 
 networks:
   # Created by Dokploy on first install. `external: true` means compose won't
