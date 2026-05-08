@@ -39,6 +39,13 @@ services:
     env_file:
       - .env
 
+    # Apply pending Drizzle migrations before starting the Next server.
+    # `migrate.mjs` is idempotent (drizzle records applied migrations in
+    # __drizzle_migrations), so this is a no-op when nothing is pending.
+    # If migrations fail the container exits non-zero and Dokploy keeps the
+    # previous version healthy via `restart: unless-stopped`.
+    command: sh -c "node scripts/migrate.mjs && node server.js"
+
     # Cloudflare Tunnel hits this host:port pair.
     ports:
       - "3002:3000"
