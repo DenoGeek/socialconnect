@@ -13,6 +13,22 @@ RUN corepack enable && \
     pnpm install --frozen-lockfile
 
 # ───────────────────────────────────────────────────────────────────────────
+# 1b) prod-deps — production-only install with a hoisted node_modules layout.
+#     pnpm normally uses a symlinked store (node_modules/postgres ->
+#     .pnpm/postgres@x.y.z/...), and Docker `COPY` preserves symlinks rather
+#     than following them, so copying individual packages from `deps` lands
+#     dangling symlinks in the runner. The hoisted linker writes real
+#     directories, which copy cleanly.
+# ───────────────────────────────────────────────────────────────────────────
+FROM node:22-alpine AS prod-deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+COPY package.json pnpm-lock.yaml ./
+RUN corepack enable && \
+    corepack prepare pnpm@latest --activate && \
+    pnpm install --frozen-lockfile --prod --config.node-linker=hoisted
+
+# ───────────────────────────────────────────────────────────────────────────
 # 2) builder — produce the Next.js standalone output.
 #    The .env baked here is created by the workflow's "Copy the PROD_UI_ENV"
 #    step before docker build runs. NEXT_PUBLIC_* values are inlined at
@@ -49,11 +65,15 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Migration runner: bring in the SQL files, the launcher script, and the
-# drizzle-orm package (the standalone trace doesn't include the migrator
-# submodule because the app itself never imports it).
-COPY --from=builder --chown=nextjs:nodejs /app/db/migrations ./db/migrations
-COPY --from=builder --chown=nextjs:nodejs /app/scripts/migrate.mjs ./scripts/migrate.mjs
-COPY --from=deps    --chown=nextjs:nodejs /app/node_modules/drizzle-orm ./node_modules/drizzle-orm
+# drizzle-orm + postgres packages. The Next standalone trace doesn't lay
+# these out as complete packages at /app/node_modules — drizzle-orm's
+# migrator submodule isn't imported by the app (so it isn't traced), and
+# `postgres`'s package.json `exports` field can't resolve from a partial
+# trace. Copying the whole packages from the deps stage sidesteps both.
+COPY --from=builder   --chown=nextjs:nodejs /app/db/migrations ./db/migrations
+COPY --from=builder   --chown=nextjs:nodejs /app/scripts/migrate.mjs ./scripts/migrate.mjs
+COPY --from=prod-deps --chown=nextjs:nodejs /app/node_modules/drizzle-orm ./node_modules/drizzle-orm
+COPY --from=prod-deps --chown=nextjs:nodejs /app/node_modules/postgres ./node_modules/postgres
 
 USER nextjs
 
