@@ -1,20 +1,28 @@
-// Africa's Talking Node SDK has no official @types package. Minimal shape to
-// satisfy our SMS sender; expand if other modules (Voice, Airtime) come into use.
-
 declare module "africastalking" {
+  interface SmsResult {
+    SMSMessageData?: {
+      Recipients?: Array<{
+        statusCode: number;
+        number: string;
+        cost: string;
+        status: string;
+        messageId: string;
+      }>;
+    };
+  }
   interface SmsService {
     send(opts: {
-      to: string[];
+      to: string | string[];
       message: string;
       from?: string;
-    }): Promise<unknown>;
+    }): Promise<SmsResult>;
   }
   interface AfricasTalkingClient {
     SMS: SmsService;
   }
-  function AfricasTalking(opts: {
-    apiKey: string;
-    username: string;
-  }): AfricasTalkingClient;
+  interface AfricasTalkingFactory {
+    (opts: { apiKey: string; username: string }): AfricasTalkingClient;
+  }
+  const AfricasTalking: AfricasTalkingFactory;
   export default AfricasTalking;
 }

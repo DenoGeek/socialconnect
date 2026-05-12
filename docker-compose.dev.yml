@@ -1,0 +1,53 @@
+# docker-compose.dev.yml
+#
+# Local development stack: Postgres + Next.js (dev mode) + Inngest dev server.
+# Use this for local verification and Playwright runs. The production deploy
+# uses docker-compose-dokploy.yml which pulls a prebuilt GHCR image.
+#
+# Usage:
+#   cp .env.example .env
+#   docker compose -f docker-compose.dev.yml up --build
+#
+# The web service mounts the repo so edits trigger Next HMR. The first run
+# applies all Drizzle migrations against the bundled Postgres.
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: evermore
+      POSTGRES_PASSWORD: evermore
+      POSTGRES_DB: evermore
+    ports:
+      - "5433:5432"
+    volumes:
+      - evermore-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U evermore -d evermore"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    image: node:22-alpine
+    working_dir: /app
+    environment:
+      DATABASE_URL: postgresql://evermore:evermore@postgres:5432/evermore
+      BETTER_AUTH_SECRET: dev-secret-replace-with-openssl-rand-base64-32
+      BETTER_AUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_BETTER_AUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_APP_NAME: Evermore
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/app
+      - evermore-node-modules:/app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && pnpm install && node scripts/migrate.mjs && pnpm dev"
+
+volumes:
+  evermore-pgdata:
+  evermore-node-modules:

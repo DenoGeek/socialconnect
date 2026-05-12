@@ -1,11 +1,9 @@
-"use client";
-
 import { createAuthClient } from "better-auth/react";
-import { adminClient } from "better-auth/client/plugins";
 
+// Default to same-origin so the client works regardless of which port the
+// dev server actually chose. Only override when explicitly configured.
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL ?? "http://localhost:3000",
-  plugins: [adminClient()],
+  baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || undefined,
 });
 
-export const { signIn, signOut, signUp, useSession } = authClient;
+export const { signIn, signUp, signOut, useSession } = authClient;

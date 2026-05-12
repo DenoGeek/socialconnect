@@ -1,3 +1,4 @@
+export * from "./enums";
 export * from "./identity";
 export * from "./alias";
 export * from "./events";
@@ -5,6 +6,8 @@ export * from "./matches";
 export * from "./concierge";
 export * from "./programs";
 export * from "./residential";
+export * from "./dateVault";
 export * from "./professionals";
 export * from "./payments";
+export * from "./duo";
 export * from "./audit";

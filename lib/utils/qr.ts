@@ -1,19 +1,24 @@
 import jwt from "jsonwebtoken";
 
-const SECRET = process.env.QR_TOKEN_SECRET ?? process.env.BETTER_AUTH_SECRET;
+const SECRET =
+  process.env.QR_TOKEN_SECRET ??
+  process.env.BETTER_AUTH_SECRET ??
+  "dev-qr-secret";
 
-export interface TicketTokenPayload {
-  ticketId: string;
+export function signTicketToken(payload: {
+  ticketCode: string;
   userId: string;
   eventId: string;
+  jti: string;
+}) {
+  return jwt.sign(payload, SECRET, { expiresIn: "30d" });
 }
 
-export function signTicketToken(payload: TicketTokenPayload, expiresInSec = 60 * 60 * 24 * 30) {
-  if (!SECRET) throw new Error("QR_TOKEN_SECRET / BETTER_AUTH_SECRET is not set");
-  return jwt.sign(payload, SECRET, { expiresIn: expiresInSec });
-}
-
-export function verifyTicketToken(token: string): TicketTokenPayload {
-  if (!SECRET) throw new Error("QR_TOKEN_SECRET / BETTER_AUTH_SECRET is not set");
-  return jwt.verify(token, SECRET) as TicketTokenPayload;
+export function verifyTicketToken(token: string) {
+  return jwt.verify(token, SECRET) as {
+    ticketCode: string;
+    userId: string;
+    eventId: string;
+    jti: string;
+  };
 }

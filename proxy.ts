@@ -5,16 +5,22 @@ const PROTECTED_PREFIXES = [
   "/profile",
   "/events/me",
   "/matches",
-  "/concierge/me",
-  "/programs/me",
-  "/residential/me",
+  "/concierge",
+  "/programs",
+  "/residential",
+  "/professionals",
+  "/trips",
+  "/duo",
+  "/date-vault",
   "/admin",
-  "/partner",
+  "/facilitator",
 ];
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
+  const isProtected = PROTECTED_PREFIXES.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
+  );
   if (!isProtected) return NextResponse.next();
 
   const sessionCookie = getSessionCookie(req);
@@ -25,11 +31,11 @@ export function proxy(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Role gating happens server-side in layout.tsx via requireRole(),
-  // since the edge runtime cannot read from the DB.
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/((?!_next|api/webhooks|api/auth|favicon.ico|.*\\..*).*)"],
+  matcher: [
+    "/((?!_next|api/webhooks|api/auth|api/inngest|favicon.ico|.*\\..*).*)",
+  ],
 };

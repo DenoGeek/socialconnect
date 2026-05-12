@@ -1,21 +1,25 @@
-import { inngest, type AppEvents } from "../client";
+import { eq } from "drizzle-orm";
+import { db, schema } from "@/db";
+import { inngest } from "../client";
 import { assignAlias } from "@/lib/alias/assign";
+import { notifyTicketConfirmed } from "@/lib/notifications";
 
-/**
- * When a ticket is purchased, give the buyer their per-event alias.
- * Idempotent — if the user already has one, the helper returns it.
- */
 export const assignAliasOnPurchase = inngest.createFunction(
   {
     id: "assign-alias-on-purchase",
-    name: "Assign per-event alias on ticket purchase",
     triggers: [{ event: "ticket.purchased" }],
   },
-  async ({ event, step }) => {
-    const data = event.data as AppEvents["ticket.purchased"];
-    const assignment = await step.run("assign-alias", async () =>
-      assignAlias(data.eventId, data.userId),
-    );
-    return { assignmentId: assignment.id, aliasId: assignment.aliasId };
+  async ({ event }) => {
+    const data = (event as unknown as { data: { ticketPurchaseId: string; userId: string; eventId: string } }).data;
+    const { ticketPurchaseId, userId, eventId } = data;
+    await assignAlias({ userId, eventId });
+    const [tp] = await db
+      .select()
+      .from(schema.ticketPurchases)
+      .where(eq(schema.ticketPurchases.id, ticketPurchaseId))
+      .limit(1);
+    if (tp) {
+      await notifyTicketConfirmed({ userId, ticketCode: tp.code });
+    }
   },
 );

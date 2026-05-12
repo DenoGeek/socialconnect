@@ -1,173 +1,151 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { and, eq, inArray } from "drizzle-orm";
-import { db } from "@/db";
-import { events, ticketPurchases, ticketTiers } from "@/db/schema";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { and, eq } from "drizzle-orm";
+import { db, schema } from "@/db";
+import { requireUser } from "@/lib/auth";
+import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { formatEventDate, formatKes } from "@/lib/utils/format";
-import { getSession } from "@/lib/auth/server";
+import { Badge } from "@/components/ui/badge";
+import { formatDateRange, formatMoney } from "@/lib/utils/format";
 
-interface PageProps {
+export default async function EventPage({
+  params,
+}: {
   params: Promise<{ slug: string }>;
-}
-
-export default async function EventDetailPage({ params }: PageProps) {
+}) {
   const { slug } = await params;
-  const session = await getSession();
-
-  const [event] = await db.select().from(events).where(eq(events.slug, slug)).limit(1);
+  await requireUser();
+  const [event] = await db
+    .select()
+    .from(schema.events)
+    .where(eq(schema.events.slug, slug))
+    .limit(1);
   if (!event) notFound();
 
-  const tiers = await db
+  const tickets = await db
     .select()
-    .from(ticketTiers)
-    .where(eq(ticketTiers.eventId, event.id));
-
-  const userTicket = session
-    ? (
-        await db
-          .select()
-          .from(ticketPurchases)
-          .where(
-            and(
-              eq(ticketPurchases.userId, session.user.id),
-              eq(ticketPurchases.eventId, event.id),
-              inArray(ticketPurchases.status, ["paid", "checked_in"] as const),
-            ),
-          )
-          .limit(1)
-      )[0]
-    : null;
-
-  const itineraryItems =
-    Array.isArray(event.itinerary) ? (event.itinerary as Array<{ time: string; title: string; detail?: string }>) : [];
+    .from(schema.eventTickets)
+    .where(
+      and(
+        eq(schema.eventTickets.eventId, event.id),
+        eq(schema.eventTickets.active, true),
+      ),
+    );
 
   return (
-    <main className="mx-auto flex max-w-5xl flex-col gap-10 px-6 py-12">
-      <Link href="/events" className="text-xs uppercase tracking-[0.2em] text-stone-500 hover:text-stone-900">
-        ← Back to events
-      </Link>
-
-      <header className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <Badge variant="muted">{event.tier.replace("_", " ")}</Badge>
-          {event.status === "sold_out" && <Badge variant="warning">Sold out</Badge>}
-          <span className="text-sm text-stone-500">{event.city}</span>
+    <article className="space-y-8">
+      <div
+        className="rounded-3xl h-72 bg-cover bg-center bg-plum-900"
+        style={{
+          backgroundImage: event.heroImageUrl
+            ? `url(${event.heroImageUrl})`
+            : undefined,
+        }}
+      />
+      <div className="flex items-start justify-between flex-wrap gap-3">
+        <div>
+          <Badge tone="plum">{event.city ?? "TBA"}</Badge>
+          {event.eliteOnly && (
+            <Badge tone="amber" className="ml-2">
+              Elite-Only
+            </Badge>
+          )}
+          <h1 className="text-display text-4xl text-plum-900 mt-3">
+            {event.title}
+          </h1>
+          {event.subtitle && (
+            <p className="text-plum-900/60 mt-1">{event.subtitle}</p>
+          )}
+          <p className="mt-3 text-xs uppercase tracking-widest text-plum-900/50">
+            {formatDateRange(event.startsAt, event.endsAt)} · {event.venue}
+          </p>
         </div>
-        <h1 className="text-4xl font-semibold tracking-tight">{event.title}</h1>
-        <p className="text-sm text-stone-600">
-          {formatEventDate(event.startsAt, event.endsAt)}
-          {event.venueName ? ` · ${event.venueName}` : ""}
-        </p>
-      </header>
+      </div>
 
-      {event.coverImageUrl && (
-        <div
-          className="aspect-[16/9] w-full overflow-hidden rounded-2xl bg-stone-200 bg-cover bg-center"
-          style={{ backgroundImage: `url("${event.coverImageUrl}")` }}
-        />
+      {event.description && (
+        <Card>
+          <p className="text-sm text-plum-900/80 whitespace-pre-line">
+            {event.description}
+          </p>
+        </Card>
       )}
 
-      <section className="grid gap-8 md:grid-cols-[1.5fr_1fr]">
-        <article className="flex flex-col gap-6">
-          {event.description && (
-            <p className="whitespace-pre-line text-base leading-relaxed text-stone-700">
-              {event.description}
-            </p>
-          )}
-
-          {userTicket ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Your itinerary</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {itineraryItems.length === 0 ? (
-                  <p className="text-sm text-stone-500">Itinerary will be posted closer to the date.</p>
-                ) : (
-                  <ol className="flex flex-col gap-4">
-                    {itineraryItems.map((item, i) => (
-                      <li key={i} className="flex gap-4">
-                        <span className="w-20 shrink-0 text-xs uppercase tracking-wide text-stone-500">
-                          {item.time}
-                        </span>
-                        <div>
-                          <p className="text-sm font-medium">{item.title}</p>
-                          {item.detail && <p className="text-sm text-stone-600">{item.detail}</p>}
-                        </div>
-                      </li>
-                    ))}
-                  </ol>
-                )}
-              </CardContent>
-            </Card>
+      <section>
+        <h2 className="text-display text-2xl text-plum-900 mb-4">Itinerary</h2>
+        <Card>
+          {Array.isArray(event.itinerary) && event.itinerary.length > 0 ? (
+            <ol className="divide-y divide-plum-900/8">
+              {event.itinerary.map((i, idx) => (
+                <li
+                  key={idx}
+                  className="flex gap-4 py-3 text-sm"
+                  data-testid="itinerary-row"
+                >
+                  <span className="font-mono text-plum-900/60 w-20 shrink-0">
+                    {i.time}
+                  </span>
+                  <span className="text-plum-900">
+                    <span className="font-medium">{i.label}</span>
+                    {i.detail && (
+                      <span className="block text-plum-900/60">{i.detail}</span>
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ol>
           ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>Itinerary unlocks at purchase</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-stone-600">
-                  We share the full schedule, venue address, and partner details once your ticket
-                  is confirmed. Mystery is part of the design.
-                </p>
-              </CardContent>
-            </Card>
+            <CardSubtitle>Itinerary published on ticket purchase.</CardSubtitle>
           )}
-        </article>
-
-        <aside className="flex flex-col gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Tickets</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              {tiers.length === 0 ? (
-                <p className="text-sm text-stone-500">Ticket tiers coming soon.</p>
-              ) : (
-                tiers.map((tier) => {
-                  const remaining = tier.maxQty - tier.soldQty;
-                  const soldOut = remaining <= 0 || event.status === "sold_out";
-                  return (
-                    <div
-                      key={tier.id}
-                      className="flex items-start justify-between gap-4 border-b border-stone-100 pb-4 last:border-b-0 last:pb-0"
-                    >
-                      <div>
-                        <p className="text-sm font-medium">{tier.name}</p>
-                        {tier.description && (
-                          <p className="text-xs text-stone-500">{tier.description}</p>
-                        )}
-                        <p className="mt-1 text-xs text-stone-500">
-                          {soldOut ? "Sold out" : `${remaining} left`}
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-end gap-2">
-                        <span className="text-base font-medium">{formatKes(tier.priceKes)}</span>
-                        {userTicket ? (
-                          <Badge variant="success">You're in</Badge>
-                        ) : !session ? (
-                          <Button asChild size="sm" disabled={soldOut}>
-                            <Link href={`/login?redirect=/events/${event.slug}`}>Sign in to buy</Link>
-                          </Button>
-                        ) : (
-                          <Button asChild size="sm" disabled={soldOut}>
-                            <Link href={`/events/${event.slug}/buy?tier=${tier.id}`}>
-                              {soldOut ? "Sold out" : "Buy ticket"}
-                            </Link>
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </CardContent>
-          </Card>
-        </aside>
+        </Card>
       </section>
-    </main>
+
+      <section>
+        <h2 className="text-display text-2xl text-plum-900 mb-4">Tickets</h2>
+        <div className="grid gap-4 md:grid-cols-2">
+          {tickets.map((t) => {
+            const remaining = Math.max(t.capacity - t.sold, 0);
+            const last3 = remaining <= 3 && remaining > 0;
+            return (
+              <Card key={t.id}>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle>{t.label}</CardTitle>
+                    <CardSubtitle>
+                      {formatMoney(t.priceKsh, "KSH")} ·{" "}
+                      {formatMoney(t.priceUsd, "USD")}
+                    </CardSubtitle>
+                  </div>
+                  {last3 && <Badge tone="amber">Only {remaining} left</Badge>}
+                </div>
+                <Link
+                  href={`/events/${event.slug}/buy?ticketId=${t.id}`}
+                  className="block mt-4"
+                >
+                  <Button className="w-full">Purchase</Button>
+                </Link>
+              </Card>
+            );
+          })}
+          {tickets.length === 0 && (
+            <CardSubtitle>Tickets not yet on sale.</CardSubtitle>
+          )}
+        </div>
+      </section>
+
+      {Array.isArray(event.gallery) && event.gallery.length > 0 && (
+        <section>
+          <h2 className="text-display text-2xl text-plum-900 mb-4">Gallery</h2>
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-3">
+            {event.gallery.map((src, i) => (
+              <div
+                key={i}
+                className="aspect-square rounded-2xl bg-cover bg-center bg-plum-900/10"
+                style={{ backgroundImage: `url(${src})` }}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+    </article>
   );
 }

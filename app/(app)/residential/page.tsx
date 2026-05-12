@@ -1,154 +1,143 @@
 import Link from "next/link";
-import { and, asc, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { properties, tripPackages } from "@/db/schema";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { and, eq, ilike, gte, sql } from "drizzle-orm";
+import { db, schema } from "@/db";
+import { requireUser } from "@/lib/auth";
+import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatKes } from "@/lib/utils/format";
+import { formatMoney } from "@/lib/utils/format";
 
-export const metadata = {
-  title: "Residential · Evermore",
-  description: "Modern-rustic stays and trip packages — for retreats and quiet weekends.",
-};
-
-export default async function ResidentialPage({
+export default async function ResidentialIndex({
   searchParams,
 }: {
-  searchParams: Promise<{ city?: string }>;
+  searchParams: Promise<{
+    region?: string;
+    type?: string;
+    certified?: string;
+    landmark?: string;
+    radiusKm?: string;
+    minRooms?: string;
+  }>;
 }) {
   const sp = await searchParams;
+  const user = await requireUser();
 
-  const where = sp.city
-    ? and(eq(properties.status, "published"), eq(properties.city, sp.city))
-    : eq(properties.status, "published");
+  const filters = [eq(schema.hearthProperties.active, true)];
+  if (sp.region) {
+    filters.push(ilike(schema.hearthProperties.region, `%${sp.region}%`));
+  }
+  if (sp.type) {
+    filters.push(
+      eq(schema.hearthProperties.propertyType, sp.type as never),
+    );
+  }
+  if (sp.certified === "1") {
+    filters.push(eq(schema.hearthProperties.aganoCertified, true));
+  }
+  if (sp.landmark) {
+    filters.push(
+      sql`${schema.hearthProperties.landmarkTags} @> ${JSON.stringify([sp.landmark])}::jsonb`,
+    );
+  }
+  if (sp.minRooms) {
+    filters.push(
+      gte(schema.hearthProperties.maxOccupancy, Number(sp.minRooms) * 2),
+    );
+  }
+  // Hide elite-only properties from non-elite users.
+  if (user.tier !== "elite") {
+    filters.push(eq(schema.hearthProperties.isElitePrivate, false));
+  }
 
-  const props = await db.select().from(properties).where(where).orderBy(asc(properties.title));
-
-  const trips = await db
+  const rows = await db
     .select()
-    .from(tripPackages)
-    .where(eq(tripPackages.published, true))
-    .orderBy(asc(tripPackages.title));
-
-  const cities = Array.from(new Set(props.map((p) => p.city))).sort();
+    .from(schema.hearthProperties)
+    .where(and(...filters))
+    .limit(60);
 
   return (
-    <main className="mx-auto flex max-w-6xl flex-col gap-12 px-6 py-12">
-      <header className="flex max-w-2xl flex-col gap-3">
-        <span className="text-xs uppercase tracking-[0.2em] text-stone-500">Residential</span>
-        <h1 className="text-4xl font-semibold tracking-tight">
-          Quiet places, hand-picked.
-        </h1>
-        <p className="text-base leading-relaxed text-stone-600">
-          A small portfolio of modern-rustic homes and curated weekend itineraries. Some are ours,
-          some belong to verified hosts who&apos;ve earned the Agano mark. All are built for
-          presence — fewer screens, better light, more time.
+    <div className="space-y-6">
+      <header>
+        <h1 className="text-display text-3xl text-plum-900">Agano Hearth</h1>
+        <p className="text-sm text-plum-900/60">
+          Modern-Rustic stays. Curated for couples. Some include the Connection
+          Box.
         </p>
       </header>
 
-      <section className="flex flex-col gap-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-2xl font-medium tracking-tight">Stays</h2>
-          {cities.length > 1 && (
-            <nav className="flex flex-wrap gap-2 text-xs">
-              <Link
-                href="/residential"
-                className={`rounded-full border px-3 py-1 transition-colors ${
-                  !sp.city
-                    ? "border-stone-900 bg-stone-900 text-stone-50"
-                    : "border-stone-300 text-stone-700 hover:border-stone-500"
-                }`}
-              >
-                All
-              </Link>
-              {cities.map((c) => (
-                <Link
-                  key={c}
-                  href={`/residential?city=${encodeURIComponent(c)}`}
-                  className={`rounded-full border px-3 py-1 transition-colors ${
-                    sp.city === c
-                      ? "border-stone-900 bg-stone-900 text-stone-50"
-                      : "border-stone-300 text-stone-700 hover:border-stone-500"
-                  }`}
-                >
-                  {c}
-                </Link>
-              ))}
-            </nav>
-          )}
-        </div>
-        {props.length === 0 ? (
-          <Card>
-            <CardContent className="py-16 text-center text-sm text-stone-500">
-              <p>No published properties yet.</p>
-              <p className="mt-2 text-xs text-stone-400">
-                Hosts: apply for Agano certification through the partner portal.
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {props.map((p) => (
-              <li key={p.id}>
-                <Link
-                  href={`/residential/${p.slug}`}
-                  className="group block overflow-hidden rounded-2xl border border-stone-200 bg-white transition-colors hover:border-stone-400"
-                >
-                  <div
-                    className="aspect-[4/3] bg-stone-200 bg-cover bg-center"
-                    style={{
-                      backgroundImage: p.photos[0] ? `url("${p.photos[0]}")` : undefined,
-                    }}
-                  />
-                  <div className="flex flex-col gap-2 p-5">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs uppercase tracking-wide text-stone-500">{p.city}</span>
-                      {p.aganoCertified && <Badge variant="success">Agano</Badge>}
-                    </div>
-                    <h3 className="text-lg font-medium tracking-tight group-hover:text-stone-700">
-                      {p.title}
-                    </h3>
-                    <p className="text-sm text-stone-600">
-                      Sleeps {p.maxGuests} · {p.bedrooms} bedroom{p.bedrooms === 1 ? "" : "s"}
-                    </p>
-                    <p className="mt-2 text-sm">
-                      <span className="font-medium">{formatKes(p.basePriceKes)}</span>
-                      <span className="text-xs text-stone-500"> / night</span>
-                    </p>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <form className="flex flex-wrap gap-2 text-sm">
+        <FilterPill name="region" value={sp.region} placeholder="Region" />
+        <FilterPill name="type" value={sp.type} placeholder="Type" />
+        <FilterPill name="landmark" value={sp.landmark} placeholder="Near…" />
+        <select
+          name="certified"
+          defaultValue={sp.certified ?? ""}
+          className="rounded-full bg-plum-900/5 px-3 py-1.5"
+        >
+          <option value="">Any badge</option>
+          <option value="1">Agano Certified only</option>
+        </select>
+        <button className="rounded-full bg-plum-900 text-plum-100 px-4 py-1.5">
+          Apply
+        </button>
+      </form>
 
-      {trips.length > 0 && (
-        <section className="flex flex-col gap-5">
-          <h2 className="text-2xl font-medium tracking-tight">Trip packages</h2>
-          <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {trips.map((trip) => (
-              <li key={trip.id}>
-                <Card>
-                  <div
-                    className="aspect-[16/10] rounded-t-2xl bg-stone-200 bg-cover bg-center"
-                    style={{
-                      backgroundImage: trip.coverImageUrl ? `url("${trip.coverImageUrl}")` : undefined,
-                    }}
-                  />
-                  <CardHeader>
-                    <CardTitle>{trip.title}</CardTitle>
-                    <CardDescription>{trip.durationDays} days · from {formatKes(trip.priceKes)}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {trip.description && <p className="text-sm text-stone-600">{trip.description}</p>}
-                  </CardContent>
-                </Card>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-    </main>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {rows.map((p) => (
+          <Link key={p.id} href={`/residential/${p.slug}`} className="group block">
+            <article className="rounded-3xl overflow-hidden bg-white border border-plum-900/8 shadow-sm hover:shadow-md transition">
+              <div
+                className="h-44 bg-cover bg-center bg-plum-900"
+                style={{
+                  backgroundImage: p.gallery?.[0]
+                    ? `url(${p.gallery[0]})`
+                    : undefined,
+                }}
+              />
+              <div className="p-4">
+                <div className="flex items-center gap-2 flex-wrap mb-2">
+                  <Badge tone="neutral">{p.propertyType.replaceAll("_", " ")}</Badge>
+                  {p.aganoCertified && <Badge tone="mint">Agano Certified</Badge>}
+                  {p.isElitePrivate && <Badge tone="amber">Elite</Badge>}
+                </div>
+                <h3 className="text-display text-lg text-plum-900 group-hover:underline">
+                  {p.title}
+                </h3>
+                <p className="text-xs text-plum-900/60 mt-1">
+                  {p.region} · {p.city}
+                </p>
+                <p className="text-sm text-plum-900 mt-3">
+                  {formatMoney(p.nightlyRateKsh, "KSH")} /night
+                </p>
+              </div>
+            </article>
+          </Link>
+        ))}
+        {rows.length === 0 && (
+          <Card>
+            <CardTitle>No properties matched.</CardTitle>
+            <CardSubtitle>Try widening your filters.</CardSubtitle>
+          </Card>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FilterPill({
+  name,
+  value,
+  placeholder,
+}: {
+  name: string;
+  value?: string;
+  placeholder: string;
+}) {
+  return (
+    <input
+      name={name}
+      defaultValue={value ?? ""}
+      placeholder={placeholder}
+      className="rounded-full bg-plum-900/5 px-3 py-1.5 outline-none focus:bg-white focus:border focus:border-plum-900/20"
+    />
   );
 }

@@ -1,84 +1,84 @@
 import Link from "next/link";
 import { desc } from "drizzle-orm";
-import { db } from "@/db";
-import { events } from "@/db/schema";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { db, schema } from "@/db";
+import { requireAdmin } from "@/lib/auth";
+import { Card, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { formatEventDate } from "@/lib/utils/format";
-import { completeEvent } from "./actions";
 
-export const metadata = { title: "Events admin · Evermore" };
-
-export default async function AdminEventsPage() {
-  const all = await db.select().from(events).orderBy(desc(events.startsAt));
+export default async function AdminEvents() {
+  await requireAdmin();
+  const events = await db
+    .select()
+    .from(schema.events)
+    .orderBy(desc(schema.events.startsAt));
 
   return (
-    <section className="flex flex-col gap-6 p-8">
-      <header className="flex items-center justify-between gap-3">
+    <div className="space-y-6">
+      <header className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Events</h1>
-          <p className="text-sm text-stone-500">Create, edit, and check people in.</p>
+          <h1 className="text-display text-3xl text-plum-900">Events</h1>
+          <p className="text-sm text-plum-900/60">CMS for Pulse retreats.</p>
         </div>
-        <Button asChild>
-          <Link href="/admin/events/new">New event</Link>
-        </Button>
+        <Link href="/admin/events/new">
+          <Button>New event</Button>
+        </Link>
       </header>
 
-      {all.length === 0 ? (
-        <Card>
-          <CardContent className="py-16 text-center text-stone-500">
-            No events yet. Create one to get started.
-          </CardContent>
-        </Card>
-      ) : (
-        <ul className="grid gap-4">
-          {all.map((event) => (
-            <li key={event.id}>
-              <Card>
-                <CardHeader>
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <CardTitle>{event.title}</CardTitle>
-                      <p className="text-xs text-stone-500">
-                        {formatEventDate(event.startsAt, event.endsAt)} · {event.city}
-                      </p>
-                    </div>
-                    <StatusPill status={event.status} />
-                  </div>
-                </CardHeader>
-                <CardContent className="flex flex-wrap items-center gap-2">
-                  <Button asChild variant="outline" size="sm">
-                    <Link href={`/admin/events/${event.id}/edit`}>Edit</Link>
-                  </Button>
-                  <Button asChild variant="outline" size="sm">
-                    <Link href={`/admin/events/${event.id}/scan`}>Check in</Link>
-                  </Button>
-                  {event.status !== "completed" && event.status !== "cancelled" && (
-                    <form action={completeEvent.bind(null, event.id)}>
-                      <Button type="submit" variant="outline" size="sm">
-                        Mark completed
-                      </Button>
-                    </form>
+      <Card>
+        <table className="w-full text-sm">
+          <thead className="text-xs uppercase tracking-widest text-plum-900/50 text-left">
+            <tr>
+              <th className="py-2">Title</th>
+              <th>When</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-plum-900/8">
+            {events.map((e) => (
+              <tr key={e.id}>
+                <td className="py-3">
+                  <p className="text-plum-900">{e.title}</p>
+                  <p className="text-xs text-plum-900/50">{e.city}</p>
+                </td>
+                <td>
+                  {new Date(e.startsAt).toLocaleDateString("en-GB", {
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </td>
+                <td>
+                  <Badge
+                    tone={e.status === "published" ? "mint" : "neutral"}
+                  >
+                    {e.status}
+                  </Badge>
+                  {e.eliteOnly && (
+                    <Badge tone="amber" className="ml-1">
+                      Elite
+                    </Badge>
                   )}
-                  <Button asChild variant="ghost" size="sm">
-                    <Link href={`/events/${event.slug}`} target="_blank">Public page ↗</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+                </td>
+                <td className="space-x-2">
+                  <Link
+                    href={`/admin/events/${e.id}/edit`}
+                    className="text-xs underline text-plum-900"
+                  >
+                    Edit
+                  </Link>
+                  <Link
+                    href={`/admin/events/${e.id}/scan`}
+                    className="text-xs underline text-plum-900"
+                  >
+                    Check-in
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Card>
+    </div>
   );
-}
-
-function StatusPill({ status }: { status: string }) {
-  if (status === "published") return <Badge variant="success">Published</Badge>;
-  if (status === "draft") return <Badge variant="muted">Draft</Badge>;
-  if (status === "sold_out") return <Badge variant="warning">Sold out</Badge>;
-  if (status === "completed") return <Badge variant="muted">Completed</Badge>;
-  if (status === "cancelled") return <Badge variant="muted">Cancelled</Badge>;
-  return <Badge variant="muted">{status}</Badge>;
 }

@@ -1,88 +1,142 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
-import { z } from "zod";
-import { db } from "@/db";
-import { profiles, psychometricResponses } from "@/db/schema";
-import { requireSession } from "@/lib/auth/server";
+import { redirect } from "next/navigation";
+import { eq, sql } from "drizzle-orm";
+import { db, schema } from "@/db";
+import { requireUser } from "@/lib/auth";
+import { detectContradictions } from "@/lib/intent/badges";
 
-const profileSchema = z.object({
-  displayName: z.string().min(1).max(80),
-  city: z.string().min(2).max(80),
-  phone: z.string().max(40).optional(),
-  bio: z.string().max(2000).optional(),
-  interests: z.string().max(500).optional(),
-});
+export async function saveStep(form: FormData) {
+  const user = await requireUser();
+  const step = Number(form.get("step") ?? 0);
+  const totalSteps = Number(form.get("totalSteps") ?? 0);
+  const finalize = form.get("finalize") === "1";
 
-export async function saveProfileBasics(formData: FormData) {
-  const session = await requireSession();
-  const parsed = profileSchema.parse({
-    displayName: formData.get("displayName"),
-    city: formData.get("city"),
-    phone: (formData.get("phone") as string) || undefined,
-    bio: (formData.get("bio") as string) || undefined,
-    interests: (formData.get("interests") as string) || undefined,
-  });
+  // Persist answers for this step.
+  const answers = JSON.parse(String(form.get("answers") ?? "[]")) as Array<{
+    questionId: string;
+    answer: unknown;
+  }>;
+  for (const a of answers) {
+    await db
+      .insert(schema.psychometricResponses)
+      .values({
+        userId: user.id,
+        questionId: a.questionId,
+        answer: a.answer as Record<string, unknown>,
+      })
+      .onConflictDoUpdate({
+        target: [
+          schema.psychometricResponses.userId,
+          schema.psychometricResponses.questionId,
+        ],
+        set: { answer: a.answer as Record<string, unknown>, answeredAt: new Date() },
+      });
+  }
 
-  const interests = parsed.interests
-    ? parsed.interests
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean)
-    : [];
+  // Persist profile bits if present.
+  const profileUpdates: Record<string, unknown> = {};
+  for (const f of [
+    "displayName",
+    "city",
+    "bio",
+    "dreamDate",
+    "spendingTier",
+  ] as const) {
+    const v = form.get(f);
+    if (typeof v === "string" && v.length > 0) profileUpdates[f] = v;
+  }
+  for (const f of [
+    "intentBadges",
+    "dealBreakers",
+    "interests",
+    "theologicalAlignment",
+  ] as const) {
+    const raw = form.get(f);
+    if (typeof raw === "string" && raw.length > 0) {
+      profileUpdates[f] = JSON.parse(raw);
+    }
+  }
 
+  // Detect contradictions on intent badges and flag for admin.
+  if (
+    Array.isArray(profileUpdates.intentBadges) &&
+    detectContradictions(profileUpdates.intentBadges as string[]).length > 0
+  ) {
+    profileUpdates.flaggedForReview = true;
+  }
+
+  const existing = await db
+    .select()
+    .from(schema.profiles)
+    .where(eq(schema.profiles.userId, user.id))
+    .limit(1);
+
+  if (existing[0]) {
+    await db
+      .update(schema.profiles)
+      .set({
+        ...profileUpdates,
+        onboardingProgress: step,
+        ...(finalize ? { onboardingCompletedAt: new Date() } : {}),
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.profiles.userId, user.id));
+  } else {
+    await db.insert(schema.profiles).values({
+      userId: user.id,
+      ...profileUpdates,
+      onboardingProgress: step,
+      ...(finalize ? { onboardingCompletedAt: new Date() } : {}),
+    });
+  }
+
+  // Resume tracking.
   await db
-    .update(profiles)
-    .set({
-      displayName: parsed.displayName,
-      city: parsed.city,
-      phone: parsed.phone,
-      bio: parsed.bio,
-      interests,
-      updatedAt: new Date(),
-    })
-    .where(eq(profiles.userId, session.user.id));
-
-  revalidatePath("/profile");
-  revalidatePath("/profile/onboarding");
-  redirect("/profile/onboarding?step=questions");
-}
-
-const responseSchema = z.object({
-  questionId: z.string().uuid(),
-  answer: z.string().max(2000),
-});
-
-export async function saveAnswer(formData: FormData) {
-  const session = await requireSession();
-  const parsed = responseSchema.parse({
-    questionId: formData.get("questionId"),
-    answer: formData.get("answer"),
-  });
-
-  await db
-    .insert(psychometricResponses)
+    .insert(schema.onboardingProgress)
     .values({
-      userId: session.user.id,
-      questionId: parsed.questionId,
-      answer: parsed.answer,
+      userId: user.id,
+      currentStep: step,
+      totalSteps,
+      lastTouchedAt: new Date(),
+      ...(finalize ? { completedAt: new Date() } : {}),
     })
     .onConflictDoUpdate({
-      target: [psychometricResponses.userId, psychometricResponses.questionId],
-      set: { answer: parsed.answer, answeredAt: new Date() },
+      target: schema.onboardingProgress.userId,
+      set: {
+        currentStep: step,
+        totalSteps,
+        lastTouchedAt: new Date(),
+        ...(finalize ? { completedAt: new Date() } : {}),
+      },
     });
 
-  revalidatePath("/profile/onboarding");
+  if (finalize) {
+    revalidatePath("/profile");
+    redirect("/profile?onboarded=1");
+  }
 }
 
-export async function markOnboardingComplete() {
-  const session = await requireSession();
+export async function switchMode(form: FormData) {
+  const user = await requireUser();
+  const mode = String(form.get("mode") ?? "explorer") as
+    | "explorer"
+    | "couple"
+    | "elite";
+
   await db
-    .update(profiles)
-    .set({ onboardingCompletedAt: new Date(), updatedAt: new Date() })
-    .where(eq(profiles.userId, session.user.id));
+    .update(schema.users)
+    .set({ mode, updatedAt: new Date() })
+    .where(eq(schema.users.id, user.id));
+
+  // Log the switch so private match history is preserved on tier change.
+  await db.insert(schema.auditLog).values({
+    actorUserId: user.id,
+    action: "user.mode.switch",
+    target: user.id,
+    diff: sql`${JSON.stringify({ to: mode })}::jsonb`,
+  });
+
   revalidatePath("/profile");
-  redirect("/profile?onboarded=1");
 }

@@ -1,26 +1,50 @@
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import { auth } from "./index";
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { db } from "@/db";
+import { schema } from "@/db";
 
-export type Role = "user" | "concierge" | "admin" | "partner" | "host" | "professional";
+export const auth = betterAuth({
+  database: drizzleAdapter(db, {
+    provider: "pg",
+    schema: {
+      user: schema.users,
+      session: schema.sessions,
+      account: schema.accounts,
+      verification: schema.verifications,
+    },
+  }),
+  secret: process.env.BETTER_AUTH_SECRET || "dev-secret-replace-with-openssl-rand-base64-32",
+  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+  emailAndPassword: {
+    enabled: true,
+    autoSignIn: true,
+    minPasswordLength: 8,
+    sendResetPassword: async ({ user, url }) => {
+      // Hook into notification layer.
+      // eslint-disable-next-line no-console
+      console.log(`[auth] reset password for ${user.email}: ${url}`);
+    },
+  },
+  socialProviders:
+    process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? {
+          google: {
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          },
+        }
+      : undefined,
+  session: {
+    expiresIn: 60 * 60 * 24 * 30,
+    updateAge: 60 * 60 * 24,
+  },
+  user: {
+    additionalFields: {
+      role: { type: "string", required: false, defaultValue: "user" },
+      tier: { type: "string", required: false, defaultValue: "free" },
+      mode: { type: "string", required: false, defaultValue: "explorer" },
+    },
+  },
+});
 
-export async function getSession() {
-  return auth.api.getSession({ headers: await headers() });
-}
-
-export async function requireSession() {
-  const session = await getSession();
-  if (!session) {
-    redirect("/login");
-  }
-  return session;
-}
-
-export async function requireRole(allowed: Role[]) {
-  const session = await requireSession();
-  const role = (session.user.role ?? "user") as Role;
-  if (!allowed.includes(role)) {
-    redirect("/");
-  }
-  return session;
-}
+export type Session = typeof auth.$Infer.Session;

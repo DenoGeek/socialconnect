@@ -1,66 +1,99 @@
 import {
   pgTable,
-  pgEnum,
   text,
   timestamp,
-  jsonb,
   uuid,
-  integer,
+  boolean,
+  jsonb,
   index,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { users } from "./identity";
+import { concierge_priority, messageVisibilityEnum } from "./enums";
 
-export const intakeStatusEnum = pgEnum("intake_status", [
-  "submitted",
-  "in_review",
-  "approved",
-  "declined",
-  "matched",
-  "archived",
-]);
-
-export const subscriptionStatusEnum = pgEnum("subscription_status", [
-  "active",
-  "past_due",
-  "cancelled",
-  "trialing",
-]);
-
-// Long-form private intake for Elite ("Silent Match") clients.
+// Pre-onboarding consultation reservation: name + phone + email.
 export const conciergeIntakes = pgTable(
   "concierge_intakes",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-    status: intakeStatusEnum("status").notNull().default("submitted"),
-    requirements: jsonb("requirements"), // structured form payload
-    budgetKes: integer("budget_kes"),
-    timeline: text("timeline"),
-    privateNotes: text("private_notes"), // concierge-only notes
-    reviewedBy: text("reviewed_by").references(() => users.id, { onDelete: "set null" }),
-    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    fullName: text("full_name").notNull(),
+    email: text("email").notNull(),
+    phone: text("phone").notNull(),
+    requirements: text("requirements"),
+    assignedToUserId: text("assigned_to_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    convertedUserId: text("converted_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    priority: concierge_priority("priority").notNull().default("high"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
-  (t) => [index("intake_status_idx").on(t.status)],
+  (t) => [index("intake_priority_idx").on(t.priority)],
 );
 
-export const conciergeSubscriptions = pgTable(
-  "concierge_subscriptions",
+// Elite ↔ Concierge thread (1:1, persistent).
+export const conciergeThreads = pgTable("concierge_threads", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" })
+    .unique(),
+  assignedConciergeId: text("assigned_concierge_id").references(
+    () => users.id,
+    { onDelete: "set null" },
+  ),
+  conciergeOnDuty: boolean("concierge_on_duty").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const conciergeMessages = pgTable(
+  "concierge_messages",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-    packageName: text("package_name").notNull(), // "Silent Match", "Curated", "Concierge+"
-    priceKes: integer("price_kes").notNull(),
-    status: subscriptionStatusEnum("status").notNull().default("active"),
-    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
-    nextBillingAt: timestamp("next_billing_at", { withTimezone: true }),
-    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    threadId: uuid("thread_id")
+      .notNull()
+      .references(() => conciergeThreads.id, { onDelete: "cascade" }),
+    senderUserId: text("sender_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    attachments: jsonb("attachments")
+      .$type<Array<{ name: string; url: string; ephemeral?: boolean }>>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    visibility: messageVisibilityEnum("visibility").notNull().default("user"),
+    priority: concierge_priority("priority").notNull().default("normal"),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
-  (t) => [index("sub_user_status_idx").on(t.userId, t.status)],
+  (t) => [
+    index("msg_thread_idx").on(t.threadId),
+    index("msg_priority_idx").on(t.priority),
+  ],
 );
 
+// Concierge can pre-stage "shadow matches" for elite users without notifying.
+export const shadowMatchSuggestions = pgTable("shadow_match_suggestions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  eliteUserId: text("elite_user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  candidateUserId: text("candidate_user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  rationale: text("rationale"),
+  silent: boolean("silent").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export type ConciergeIntake = typeof conciergeIntakes.$inferSelect;
-export type ConciergeSubscription = typeof conciergeSubscriptions.$inferSelect;
+export type ConciergeMessage = typeof conciergeMessages.$inferSelect;

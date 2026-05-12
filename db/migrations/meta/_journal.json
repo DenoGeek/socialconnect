@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1778265437679,
-      "tag": "0000_previous_gargoyle",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1778266463200,
-      "tag": "0001_seed_alias_pool",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1778266471104,
-      "tag": "0002_seed_psychometric_questions",
+      "when": 1778604346603,
+      "tag": "0000_puzzling_stepford_cuckoos",
       "breakpoints": true
     }
   ]

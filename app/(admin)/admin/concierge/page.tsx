@@ -1,145 +1,77 @@
 import Link from "next/link";
-import { desc, eq, inArray, or } from "drizzle-orm";
-import { db } from "@/db";
-import {
-  events,
-  matches,
-  profiles,
-  users,
-} from "@/db/schema";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { desc, eq } from "drizzle-orm";
+import { db, schema } from "@/db";
+import { requireAdmin } from "@/lib/auth";
+import { Card, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatEventDate } from "@/lib/utils/format";
 
-export const metadata = { title: "Concierge queue · Admin" };
-
-export default async function ConciergeQueuePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ status?: string }>;
-}) {
-  const sp = await searchParams;
-  const status = (sp.status as "pending_concierge" | "introduced" | "declined" | "ghosted") ?? "pending_concierge";
-
-  const rows = await db
+export default async function ConciergeInbox() {
+  await requireAdmin();
+  const threads = await db
     .select({
-      match: matches,
-      event: events,
+      thread: schema.conciergeThreads,
+      user: schema.users,
     })
-    .from(matches)
-    .leftJoin(events, eq(events.id, matches.eventId))
-    .where(eq(matches.status, status))
-    .orderBy(desc(matches.createdAt));
-
-  const userIds = Array.from(new Set(rows.flatMap((r) => [r.match.userAId, r.match.userBId])));
-  const userMap = new Map(
-    (
-      await (userIds.length
-        ? db
-            .select({
-              userId: users.id,
-              name: users.name,
-              email: users.email,
-              city: profiles.city,
-              tier: profiles.tier,
-            })
-            .from(users)
-            .leftJoin(profiles, eq(profiles.userId, users.id))
-            .where(inArray(users.id, userIds))
-        : Promise.resolve([]))
-    ).map((u) => [u.userId, u]),
-  );
+    .from(schema.conciergeThreads)
+    .innerJoin(
+      schema.users,
+      eq(schema.users.id, schema.conciergeThreads.userId),
+    );
+  const intakes = await db
+    .select()
+    .from(schema.conciergeIntakes)
+    .orderBy(desc(schema.conciergeIntakes.createdAt));
 
   return (
-    <section className="flex flex-col gap-6 p-8">
-      <header className="flex flex-col gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Concierge queue</h1>
-          <p className="text-sm text-stone-500">
-            Mutual matches awaiting a thoughtful introduction.
-          </p>
-        </div>
-        <nav className="flex flex-wrap gap-2 text-xs">
-          <FilterLink current={status} value="pending_concierge" label="Pending" />
-          <FilterLink current={status} value="introduced" label="Introduced" />
-          <FilterLink current={status} value="declined" label="Declined" />
-          <FilterLink current={status} value="ghosted" label="Quiet" />
-        </nav>
+    <div className="space-y-6">
+      <header>
+        <h1 className="text-display text-3xl text-plum-900">Concierge inbox</h1>
+        <p className="text-sm text-plum-900/60">
+          Elite threads + intake requests. High priority alerts on Elite.
+        </p>
       </header>
 
-      {rows.length === 0 ? (
-        <Card>
-          <CardContent className="py-16 text-center text-sm text-stone-500">
-            Nothing in this state.
-          </CardContent>
-        </Card>
-      ) : (
-        <ul className="flex flex-col gap-3">
-          {rows.map(({ match, event }) => {
-            const a = userMap.get(match.userAId);
-            const b = userMap.get(match.userBId);
-            return (
-              <li key={match.id}>
+      <Card>
+        <CardTitle>Elite threads</CardTitle>
+        <ul className="mt-3 divide-y divide-plum-900/8 text-sm">
+          {threads.map((t) => (
+            <li key={t.thread.id} className="flex justify-between py-2">
+              <div>
+                <p className="text-plum-900">{t.user.name}</p>
+                <p className="text-xs text-plum-900/50">{t.user.email}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                {t.user.tier === "elite" && <Badge tone="amber">High</Badge>}
                 <Link
-                  href={`/admin/concierge/${match.id}`}
-                  className="block rounded-2xl border border-stone-200 bg-white transition-colors hover:border-stone-400"
+                  href={`/admin/concierge/${t.thread.id}`}
+                  className="text-xs underline text-plum-900"
                 >
-                  <Card className="border-0 shadow-none">
-                    <CardHeader>
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                          <CardTitle className="text-base">
-                            {a?.name ?? "—"} <span className="text-stone-400">×</span>{" "}
-                            {b?.name ?? "—"}
-                          </CardTitle>
-                          <p className="text-xs text-stone-500">
-                            {event ? `${event.title} · ${formatEventDate(event.startsAt, event.endsAt)}` : "Concierge-direct"}
-                          </p>
-                        </div>
-                        <Badge variant="muted">
-                          {new Date(match.createdAt).toLocaleDateString("en-KE", {
-                            month: "short",
-                            day: "numeric",
-                          })}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="flex gap-6 text-xs text-stone-500">
-                      <span>{a?.email}</span>
-                      <span>{b?.email}</span>
-                      <span className="ml-auto text-stone-400">View →</span>
-                    </CardContent>
-                  </Card>
+                  Open →
                 </Link>
-              </li>
-            );
-          })}
+              </div>
+            </li>
+          ))}
         </ul>
-      )}
-    </section>
-  );
-}
+      </Card>
 
-function FilterLink({
-  current,
-  value,
-  label,
-}: {
-  current: string;
-  value: string;
-  label: string;
-}) {
-  const active = current === value;
-  return (
-    <Link
-      href={`/admin/concierge?status=${value}`}
-      className={`rounded-full border px-3 py-1 transition-colors ${
-        active
-          ? "border-stone-900 bg-stone-900 text-stone-50"
-          : "border-stone-300 text-stone-700 hover:border-stone-500"
-      }`}
-    >
-      {label}
-    </Link>
+      <Card>
+        <CardTitle>Intake requests</CardTitle>
+        <ul className="mt-3 divide-y divide-plum-900/8 text-sm">
+          {intakes.map((i) => (
+            <li key={i.id} className="py-2">
+              <p className="text-plum-900">{i.fullName}</p>
+              <p className="text-xs text-plum-900/50">
+                {i.email} · {i.phone}
+              </p>
+              {i.requirements && (
+                <p className="text-xs text-plum-900/70 mt-1">
+                  {i.requirements}
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
+      </Card>
+    </div>
   );
 }

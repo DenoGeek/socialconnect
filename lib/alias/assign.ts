@@ -1,57 +1,134 @@
-import { and, eq, notInArray, sql } from "drizzle-orm";
-import { db } from "@/db";
-import { aliasAssignments, aliasPool } from "@/db/schema";
+import { and, eq, isNull, notInArray, sql } from "drizzle-orm";
+import { db, schema } from "@/db";
 
 /**
- * Assign a per-event Alias to a user. Idempotent and concurrency-safe.
+ * Assign a unique alias to a user for a specific event.
  *
- * Algorithm:
- *  1) If (eventId, userId) already has an assignment, return it.
- *  2) Otherwise, pick an active pool entry NOT yet used at this event.
- *  3) Insert into alias_assignments inside a transaction; the unique index
- *     on (eventId, aliasId) makes a colliding insert fail, in which case we
- *     retry up to N times.
- *
- * Returns the assignment row.
+ * Guarantees:
+ * - No two users at the same event share an alias (unique partial across event).
+ * - If the user already has an alias for this event, returns it (idempotent).
+ * - If the user has been pinned (manual override), reuses it across events.
  */
-export async function assignAlias(eventId: string, userId: string, attempts = 5) {
-  const existing = await db
+export async function assignAlias(opts: {
+  userId: string;
+  eventId: string | null;
+  forceAliasId?: string;
+}) {
+  const { userId, eventId, forceAliasId } = opts;
+
+  // Idempotency: existing assignment for this (user, event).
+  const [existing] = await db
     .select()
-    .from(aliasAssignments)
-    .where(and(eq(aliasAssignments.eventId, eventId), eq(aliasAssignments.userId, userId)))
+    .from(schema.aliasAssignments)
+    .where(
+      and(
+        eq(schema.aliasAssignments.userId, userId),
+        eventId
+          ? eq(schema.aliasAssignments.eventId, eventId)
+          : isNull(schema.aliasAssignments.eventId),
+      ),
+    )
     .limit(1);
-  if (existing.length > 0) return existing[0];
+  if (existing) return existing;
 
-  for (let i = 0; i < attempts; i++) {
-    // Pick a random active alias not yet taken at this event.
-    const taken = db
-      .select({ id: aliasAssignments.aliasId })
-      .from(aliasAssignments)
-      .where(eq(aliasAssignments.eventId, eventId));
-
-    const candidates = await db
+  // Pinned alias for this user → reuse across events.
+  if (!forceAliasId) {
+    const [pinned] = await db
       .select()
-      .from(aliasPool)
-      .where(and(eq(aliasPool.active, true), notInArray(aliasPool.id, taken)))
-      .orderBy(sql`random()`)
+      .from(schema.aliasAssignments)
+      .where(
+        and(
+          eq(schema.aliasAssignments.userId, userId),
+          eq(schema.aliasAssignments.pinned, true),
+        ),
+      )
       .limit(1);
-
-    if (candidates.length === 0) {
-      throw new Error(`Alias pool exhausted for event ${eventId}`);
-    }
-
-    try {
-      const [row] = await db
-        .insert(aliasAssignments)
-        .values({ eventId, userId, aliasId: candidates[0].id })
-        .returning();
-      return row;
-    } catch (err) {
-      // Unique constraint race — another concurrent assignment took the same alias.
-      // Retry with a fresh pick.
-      if (i === attempts - 1) throw err;
+    if (pinned && eventId) {
+      // Confirm not already taken at this event.
+      const [conflict] = await db
+        .select()
+        .from(schema.aliasAssignments)
+        .where(
+          and(
+            eq(schema.aliasAssignments.eventId, eventId),
+            eq(schema.aliasAssignments.aliasId, pinned.aliasId),
+          ),
+        )
+        .limit(1);
+      if (!conflict) {
+        const [row] = await db
+          .insert(schema.aliasAssignments)
+          .values({
+            userId,
+            eventId,
+            aliasId: pinned.aliasId,
+            mode: "auto",
+            pinned: false,
+          })
+          .returning();
+        return row;
+      }
     }
   }
 
-  throw new Error(`Could not assign alias after ${attempts} attempts`);
+  let aliasId = forceAliasId ?? null;
+
+  if (!aliasId) {
+    // Find a free alias not already used at this event.
+    const takenForEvent = eventId
+      ? db
+          .select({ id: schema.aliasAssignments.aliasId })
+          .from(schema.aliasAssignments)
+          .where(eq(schema.aliasAssignments.eventId, eventId))
+      : db
+          .select({ id: schema.aliasAssignments.aliasId })
+          .from(schema.aliasAssignments)
+          .where(sql`false`);
+    const candidates = await db
+      .select()
+      .from(schema.aliasPool)
+      .where(
+        and(
+          eq(schema.aliasPool.active, true),
+          notInArray(schema.aliasPool.id, takenForEvent),
+        ),
+      )
+      .orderBy(sql`random()`)
+      .limit(1);
+    if (!candidates[0]) {
+      throw new Error(
+        "Alias pool exhausted for this event — admin must add more aliases.",
+      );
+    }
+    aliasId = candidates[0].id;
+  }
+
+  const [row] = await db
+    .insert(schema.aliasAssignments)
+    .values({ userId, eventId, aliasId, mode: "auto" })
+    .returning();
+  return row;
+}
+
+export async function getAlias(userId: string, eventId: string | null) {
+  const rows = await db
+    .select({
+      assignment: schema.aliasAssignments,
+      alias: schema.aliasPool,
+    })
+    .from(schema.aliasAssignments)
+    .innerJoin(
+      schema.aliasPool,
+      eq(schema.aliasPool.id, schema.aliasAssignments.aliasId),
+    )
+    .where(
+      and(
+        eq(schema.aliasAssignments.userId, userId),
+        eventId
+          ? eq(schema.aliasAssignments.eventId, eventId)
+          : isNull(schema.aliasAssignments.eventId),
+      ),
+    )
+    .limit(1);
+  return rows[0] ?? null;
 }

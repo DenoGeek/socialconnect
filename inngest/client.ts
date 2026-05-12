@@ -1,23 +1,14 @@
 import { Inngest } from "inngest";
 
-// Event payload types for handlers. Cast at send-site via `inngest.send({ name, data })`.
-export type AppEvents = {
-  "ticket.purchased": { userId: string; eventId: string; ticketPurchaseId: string };
-  "event.ended": { eventId: string };
-  "impression.submitted": {
-    eventId: string;
-    fromUserId: string;
-    toUserId: string;
-    impressionId: string;
-  };
-  "match.created": { matchId: string };
-  "payment.settled": {
-    paymentId: string;
-    purpose: string;
-    purposeRef: string | null;
-  };
-};
-
 export const inngest = new Inngest({
-  id: "relationship-platform",
+  id: "evermore",
+  eventKey: process.env.INNGEST_EVENT_KEY,
 });
+
+export type EvermoreEvents = {
+  "ticket.purchased": { data: { ticketPurchaseId: string; userId: string; eventId: string } };
+  "match.created": { data: { matchId: string } };
+  "match.stale": { data: { matchId: string } };
+  "installment.due-soon": { data: { installmentId: string } };
+  "event.ended": { data: { eventId: string } };
+};
