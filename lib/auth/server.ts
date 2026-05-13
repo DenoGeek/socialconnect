@@ -14,7 +14,7 @@ export const auth = betterAuth({
     },
   }),
   secret: process.env.BETTER_AUTH_SECRET || "dev-secret-replace-with-openssl-rand-base64-32",
-  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3003",
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,

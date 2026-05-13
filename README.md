@@ -24,7 +24,7 @@ pnpm db:push       # creates tables on the Neon database
 pnpm dev
 ```
 
-Open http://localhost:3000.
+Open http://localhost:3003.
 
 ## Scripts
 
