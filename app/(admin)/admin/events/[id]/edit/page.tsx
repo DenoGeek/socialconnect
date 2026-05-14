@@ -1,179 +1,190 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { eq } from "drizzle-orm";
-import { db } from "@/db";
-import { events, ticketTiers } from "@/db/schema";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { asc, eq } from "drizzle-orm";
+import { db, schema } from "@/db";
+import { requireAdmin } from "@/lib/auth";
+import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { deleteTier, updateEvent, upsertTier } from "../../actions";
-
-interface PageProps {
-  params: Promise<{ id: string }>;
-}
+import { addTicket, updateEvent } from "../../actions";
 
 function toLocalInput(d: Date) {
-  // datetime-local needs YYYY-MM-DDTHH:mm in the user's local zone.
-  const tzOffsetMs = d.getTimezoneOffset() * 60_000;
-  return new Date(d.getTime() - tzOffsetMs).toISOString().slice(0, 16);
+  const z = new Date(d);
+  z.setMinutes(z.getMinutes() - z.getTimezoneOffset());
+  return z.toISOString().slice(0, 16);
 }
 
-export default async function EditEventPage({ params }: PageProps) {
-  const { id } = await params;
-  const [event] = await db.select().from(events).where(eq(events.id, id)).limit(1);
-  if (!event) notFound();
-  const tiers = await db.select().from(ticketTiers).where(eq(ticketTiers.eventId, id));
-
-  const updateBound = updateEvent.bind(null, id);
-
-  return (
-    <section className="flex flex-col gap-6 p-8">
-      <Link
-        href="/admin/events"
-        className="text-xs uppercase tracking-[0.2em] text-stone-500 hover:text-stone-900"
-      >
-        ← Events
-      </Link>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Edit · {event.title}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form action={updateBound} className="flex flex-col gap-5">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Title">
-                <Input name="title" required defaultValue={event.title} />
-              </Field>
-              <Field label="City">
-                <Input name="city" required defaultValue={event.city} />
-              </Field>
-              <Field label="Venue">
-                <Input name="venueName" defaultValue={event.venueName ?? ""} />
-              </Field>
-              <Field label="Cover image URL">
-                <Input name="coverImageUrl" type="url" defaultValue={event.coverImageUrl ?? ""} />
-              </Field>
-              <Field label="Starts at">
-                <Input name="startsAt" type="datetime-local" required defaultValue={toLocalInput(event.startsAt)} />
-              </Field>
-              <Field label="Ends at">
-                <Input name="endsAt" type="datetime-local" required defaultValue={toLocalInput(event.endsAt)} />
-              </Field>
-              <Field label="Tier kind">
-                <select
-                  name="tier"
-                  defaultValue={event.tier}
-                  className="h-11 rounded-lg border border-stone-300 bg-white px-3 text-sm"
-                >
-                  <option value="one_day">One day</option>
-                  <option value="two_day">Two day</option>
-                  <option value="retreat">Retreat</option>
-                </select>
-              </Field>
-              <Field label="Status">
-                <select
-                  name="status"
-                  defaultValue={event.status}
-                  className="h-11 rounded-lg border border-stone-300 bg-white px-3 text-sm"
-                >
-                  <option value="draft">Draft</option>
-                  <option value="published">Published</option>
-                  <option value="sold_out">Sold out</option>
-                  <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
-              </Field>
-              <Field label="Capacity">
-                <Input name="capacity" type="number" min={1} required defaultValue={event.capacity} />
-              </Field>
-            </div>
-
-            <Field label="Description">
-              <Textarea name="description" rows={5} defaultValue={event.description ?? ""} />
-            </Field>
-
-            <Button type="submit">Save changes</Button>
-          </form>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Ticket tiers</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-6">
-          {tiers.length === 0 && <p className="text-sm text-stone-500">No tiers yet.</p>}
-          {tiers.map((tier) => (
-            <TierRow key={tier.id} eventId={id} tier={tier} />
-          ))}
-
-          <form action={upsertTier.bind(null, id)} className="grid gap-3 rounded-2xl border border-dashed border-stone-300 p-4 sm:grid-cols-4 sm:items-end">
-            <Field label="New tier">
-              <Input name="name" placeholder="Couple" required />
-            </Field>
-            <Field label="Price (KES)">
-              <Input name="priceKes" type="number" min={0} required />
-            </Field>
-            <Field label="Max qty">
-              <Input name="maxQty" type="number" min={1} required />
-            </Field>
-            <Button type="submit" size="sm">Add tier</Button>
-          </form>
-        </CardContent>
-      </Card>
-    </section>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-2">
-      <Label>{label}</Label>
-      {children}
-    </div>
-  );
-}
-
-function TierRow({
-  eventId,
-  tier,
+export default async function EditEvent({
+  params,
 }: {
-  eventId: string;
-  tier: { id: string; name: string; priceKes: number; maxQty: number; soldQty: number; description: string | null };
+  params: Promise<{ id: string }>;
 }) {
-  const upsertBound = upsertTier.bind(null, eventId);
-  const deleteBound = deleteTier.bind(null, eventId, tier.id);
+  const { id } = await params;
+  await requireAdmin();
+  const [e] = await db
+    .select()
+    .from(schema.events)
+    .where(eq(schema.events.id, id))
+    .limit(1);
+  if (!e) notFound();
+
+  const tickets = await db
+    .select()
+    .from(schema.eventTickets)
+    .where(eq(schema.eventTickets.eventId, e.id))
+    .orderBy(asc(schema.eventTickets.tier));
 
   return (
-    <div className="rounded-2xl border border-stone-200 p-4">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <p className="text-sm font-medium">{tier.name}</p>
-        <Badge variant="muted">
-          {tier.soldQty} / {tier.maxQty} sold
+    <div className="max-w-2xl space-y-6">
+      <header>
+        <h1 className="text-display text-3xl text-plum-900">{e.title}</h1>
+        <Badge tone={e.status === "published" ? "mint" : "neutral"}>
+          {e.status}
         </Badge>
-      </div>
-      <form action={upsertBound} className="grid gap-3 sm:grid-cols-4 sm:items-end">
-        <input type="hidden" name="id" value={tier.id} />
-        <Field label="Name">
-          <Input name="name" required defaultValue={tier.name} />
-        </Field>
-        <Field label="Price (KES)">
-          <Input name="priceKes" type="number" min={0} required defaultValue={tier.priceKes} />
-        </Field>
-        <Field label="Max qty">
-          <Input name="maxQty" type="number" min={1} required defaultValue={tier.maxQty} />
-        </Field>
-        <div className="flex gap-2">
-          <Button type="submit" size="sm" variant="outline">Save</Button>
-          <Button formAction={deleteBound} type="submit" size="sm" variant="destructive">
-            Delete
+      </header>
+
+      <Card>
+        <form action={updateEvent} className="space-y-3">
+          <input type="hidden" name="id" value={e.id} />
+          <div>
+            <Label>Title</Label>
+            <Input name="title" defaultValue={e.title} required />
+          </div>
+          <div>
+            <Label>Subtitle</Label>
+            <Input name="subtitle" defaultValue={e.subtitle ?? ""} />
+          </div>
+          <div>
+            <Label>City</Label>
+            <Input name="city" defaultValue={e.city ?? ""} />
+          </div>
+          <div>
+            <Label>Venue</Label>
+            <Input name="venue" defaultValue={e.venue ?? ""} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Starts at</Label>
+              <Input
+                type="datetime-local"
+                name="startsAt"
+                defaultValue={toLocalInput(e.startsAt)}
+              />
+            </div>
+            <div>
+              <Label>Ends at</Label>
+              <Input
+                type="datetime-local"
+                name="endsAt"
+                defaultValue={toLocalInput(e.endsAt)}
+              />
+            </div>
+          </div>
+          <div>
+            <Label>Description</Label>
+            <Textarea
+              name="description"
+              rows={5}
+              defaultValue={e.description ?? ""}
+            />
+          </div>
+          <div>
+            <Label>Hero image URL</Label>
+            <Input name="heroImageUrl" defaultValue={e.heroImageUrl ?? ""} />
+          </div>
+          <div>
+            <Label>Itinerary (JSON)</Label>
+            <Textarea
+              name="itinerary"
+              rows={6}
+              defaultValue={JSON.stringify(e.itinerary ?? [], null, 2)}
+              className="font-mono text-xs"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Capacity</Label>
+              <Input
+                type="number"
+                name="capacity"
+                defaultValue={e.capacity}
+              />
+            </div>
+            <div>
+              <Label>
+                <input
+                  type="checkbox"
+                  name="eliteOnly"
+                  defaultChecked={e.eliteOnly}
+                />{" "}
+                Elite-only
+              </Label>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button type="submit">Save draft</Button>
+            <Button type="submit" variant="outline" name="publish" value="1">
+              Save & publish
+            </Button>
+          </div>
+        </form>
+      </Card>
+
+      <Card>
+        <CardTitle>Tickets</CardTitle>
+        <CardSubtitle>
+          Tier prices in KSh and USD. Capacity defines availability.
+        </CardSubtitle>
+        <ul className="mt-3 divide-y divide-plum-900/8 text-sm">
+          {tickets.map((t) => (
+            <li key={t.id} className="flex justify-between py-2">
+              <span>
+                {t.label} ·{" "}
+                <span className="opacity-60">
+                  KSh {Number(t.priceKsh).toLocaleString()} / $
+                  {Number(t.priceUsd).toLocaleString()}
+                </span>
+              </span>
+              <span>
+                {t.sold}/{t.capacity}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <form action={addTicket} className="mt-4 space-y-2 grid grid-cols-2 gap-2">
+          <input type="hidden" name="eventId" value={e.id} />
+          <select
+            name="tier"
+            className="rounded-2xl border border-plum-900/15 bg-white px-3 py-2 text-sm"
+            required
+          >
+            <option value="one_day">One day</option>
+            <option value="two_day">Two day</option>
+            <option value="member_exclusive">Member exclusive</option>
+            <option value="elite_only">Elite only</option>
+          </select>
+          <Input name="label" placeholder="Label" required />
+          <Input name="priceKsh" placeholder="Price KSh" required />
+          <Input name="priceUsd" placeholder="Price USD" required />
+          <Input
+            name="capacity"
+            type="number"
+            placeholder="Capacity"
+            required
+          />
+          <Input
+            name="memberDiscountPct"
+            type="number"
+            placeholder="Member discount %"
+            defaultValue={0}
+          />
+          <Button type="submit" className="col-span-2">
+            Add ticket
           </Button>
-        </div>
-      </form>
+        </form>
+      </Card>
     </div>
   );
 }

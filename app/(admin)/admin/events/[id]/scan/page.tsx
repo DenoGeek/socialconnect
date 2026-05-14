@@ -1,43 +1,65 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { eq } from "drizzle-orm";
-import { db } from "@/db";
-import { events } from "@/db/schema";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { eq, sql } from "drizzle-orm";
+import { db, schema } from "@/db";
+import { requireAdmin } from "@/lib/auth";
+import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Scanner } from "./scanner";
-import { formatEventDate } from "@/lib/utils/format";
+import { checkInTicket } from "../../actions";
 
-interface PageProps {
+export default async function ScanPage({
+  params,
+}: {
   params: Promise<{ id: string }>;
-}
-
-export const metadata = { title: "Check in · Admin" };
-
-export default async function ScanPage({ params }: PageProps) {
+}) {
   const { id } = await params;
-  const [event] = await db.select().from(events).where(eq(events.id, id)).limit(1);
-  if (!event) notFound();
+  await requireAdmin();
+  const [e] = await db
+    .select()
+    .from(schema.events)
+    .where(eq(schema.events.id, id))
+    .limit(1);
+  if (!e) notFound();
+
+  const purchases = await db
+    .select()
+    .from(schema.ticketPurchases)
+    .where(eq(schema.ticketPurchases.eventId, e.id));
+  const total = purchases.length;
+  const checkedIn = purchases.filter((p) => p.status === "checked_in").length;
+  const noShow = purchases.filter((p) => p.status === "no_show").length;
 
   return (
-    <section className="flex flex-col gap-6 p-8">
-      <Link
-        href="/admin/events"
-        className="text-xs uppercase tracking-[0.2em] text-stone-500 hover:text-stone-900"
-      >
-        ← Events
-      </Link>
+    <div className="space-y-6 max-w-xl">
+      <header>
+        <h1 className="text-display text-3xl text-plum-900">{e.title}</h1>
+        <CardSubtitle>Live check-in</CardSubtitle>
+        <div className="mt-3 flex gap-3 flex-wrap">
+          <Badge tone="mint">{checkedIn} in</Badge>
+          <Badge tone="neutral">{total - checkedIn} pending</Badge>
+          {noShow > 0 && <Badge tone="amber">{noShow} no-show</Badge>}
+        </div>
+      </header>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Check in · {event.title}</CardTitle>
-          <p className="text-xs text-stone-500">
-            {formatEventDate(event.startsAt, event.endsAt)} · {event.city}
-          </p>
-        </CardHeader>
-        <CardContent>
-          <Scanner />
-        </CardContent>
+        <CardTitle>Scanner</CardTitle>
+        <Scanner />
       </Card>
-    </section>
+
+      <Card>
+        <CardTitle>Manual check-in</CardTitle>
+        <form action={checkInTicket} className="mt-2 flex gap-2">
+          <input
+            name="code"
+            placeholder="EVR-XXXXX"
+            required
+            className="flex-1 rounded-2xl border border-plum-900/15 bg-white px-3 py-2 text-sm uppercase"
+          />
+          <button className="rounded-full bg-plum-900 text-plum-100 px-4 py-2 text-sm">
+            Check in
+          </button>
+        </form>
+      </Card>
+    </div>
   );
 }

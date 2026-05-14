@@ -1,40 +1,31 @@
-// Africa's Talking SMS adapter. Lazily-imported because the SDK pulls in
-// crypto modules that fail to bundle on the Edge runtime.
+import AfricasTalking from "africastalking";
 
-export interface SendSmsInput {
-  to: string | string[];
-  message: string;
-  from?: string;
+const KEY = process.env.AT_API_KEY;
+const USERNAME = process.env.AT_USERNAME ?? "sandbox";
+const SENDER = process.env.AT_SENDER_ID;
+
+let client: ReturnType<typeof AfricasTalking> | null = null;
+function getClient() {
+  if (!KEY) return null;
+  if (!client) client = AfricasTalking({ apiKey: KEY, username: USERNAME });
+  return client;
 }
 
-export interface SendSmsResult {
-  delivered: boolean;
-  recipients: number;
-  raw?: unknown;
-}
-
-export async function sendSms(input: SendSmsInput): Promise<SendSmsResult> {
-  const apiKey = process.env.AT_API_KEY;
-  const username = process.env.AT_USERNAME ?? "sandbox";
-  const senderId = input.from ?? process.env.AT_SENDER_ID;
-
-  if (!apiKey) {
-    if (process.env.NODE_ENV !== "production") {
-      console.info("[sms:dev]", input.to, "→", input.message);
-      return { delivered: false, recipients: Array.isArray(input.to) ? input.to.length : 1 };
-    }
-    throw new Error("AT_API_KEY is not set");
+export async function sendSms(opts: { to: string; body: string }) {
+  const c = getClient();
+  if (!c) {
+    // eslint-disable-next-line no-console
+    console.log("[sms][dev]", opts.to, opts.body);
+    return { ok: true, sandbox: true };
   }
-
-  const at = (await import("africastalking")).default({ apiKey, username });
-  const result = await at.SMS.send({
-    to: Array.isArray(input.to) ? input.to : [input.to],
-    message: input.message,
-    from: senderId,
-  });
-  return {
-    delivered: true,
-    recipients: Array.isArray(input.to) ? input.to.length : 1,
-    raw: result,
-  };
+  try {
+    await c.SMS.send({
+      to: [opts.to],
+      message: opts.body,
+      from: SENDER,
+    });
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
 }

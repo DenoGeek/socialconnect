@@ -1,143 +1,176 @@
-import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { partners } from "@/db/schema";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { db, schema } from "@/db";
+import { requireAdmin } from "@/lib/auth";
+import { Card, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { setPartnerStatus } from "./actions";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import {
+  addPartner,
+  addDeal,
+  togglePartner,
+  toggleDeal,
+} from "./actions";
 
-export const metadata = { title: "Partners · Admin" };
-
-const STATUSES = ["pending", "approved", "suspended"] as const;
-type Status = (typeof STATUSES)[number];
-
-export default async function PartnersAdminPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ status?: string }>;
-}) {
-  const sp = await searchParams;
-  const status: Status = STATUSES.includes(sp.status as Status)
-    ? (sp.status as Status)
-    : "pending";
-
-  const rows = await db
+export default async function PartnersAdmin() {
+  await requireAdmin();
+  const partners = await db
     .select()
-    .from(partners)
-    .where(eq(partners.status, status))
-    .orderBy(desc(partners.createdAt));
+    .from(schema.datePartners)
+    .orderBy(desc(schema.datePartners.createdAt));
+  const deals = await db
+    .select({
+      deal: schema.dateVaultDeals,
+      partner: schema.datePartners,
+    })
+    .from(schema.dateVaultDeals)
+    .innerJoin(
+      schema.datePartners,
+      eq(schema.datePartners.id, schema.dateVaultDeals.partnerId),
+    )
+    .orderBy(desc(schema.dateVaultDeals.createdAt));
 
   return (
-    <section className="flex flex-col gap-6 p-8">
-      <header className="flex flex-col gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Partners</h1>
-          <p className="text-sm text-stone-500">
-            Churches, counsellors, retreat hosts. Approve a partner before their programs and
-            properties go live.
-          </p>
-        </div>
-        <nav className="flex flex-wrap gap-2 text-xs">
-          {STATUSES.map((s) => (
-            <Link
-              key={s}
-              href={`/admin/partners?status=${s}`}
-              className={`rounded-full border px-3 py-1 capitalize transition-colors ${
-                status === s
-                  ? "border-stone-900 bg-stone-900 text-stone-50"
-                  : "border-stone-300 text-stone-700 hover:border-stone-500"
-              }`}
-            >
-              {s}
-            </Link>
-          ))}
-        </nav>
+    <div className="space-y-6">
+      <header>
+        <h1 className="text-display text-3xl text-plum-900">
+          Partners & Date Vault
+        </h1>
+        <p className="text-sm text-plum-900/60">
+          Toggle a partner inactive to instantly pull all their deals from the
+          rotation.
+        </p>
       </header>
 
-      {rows.length === 0 ? (
-        <Card>
-          <CardContent className="py-16 text-center text-sm text-stone-500">
-            Nothing in this state.
-          </CardContent>
-        </Card>
-      ) : (
-        <ul className="flex flex-col gap-3">
-          {rows.map((partner) => (
-            <li key={partner.id}>
-              <Card>
-                <CardHeader>
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <CardTitle>{partner.name}</CardTitle>
-                      <p className="text-xs text-stone-500">
-                        {partner.contactEmail ?? "No contact email"}
-                        {partner.city ? ` · ${partner.city}` : ""}
-                      </p>
-                    </div>
-                    <Badge variant={status === "approved" ? "success" : "muted"}>
-                      {partner.status}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="flex flex-wrap items-center gap-2">
-                  {partner.description && (
-                    <p className="basis-full text-sm text-stone-700">{partner.description}</p>
-                  )}
-                  <div className="ml-auto flex gap-2">
-                    {partner.status !== "approved" && (
-                      <ActionForm
-                        partnerId={partner.id}
-                        nextStatus="approved"
-                        label="Approve"
-                        variant="default"
-                      />
-                    )}
-                    {partner.status !== "suspended" && (
-                      <ActionForm
-                        partnerId={partner.id}
-                        nextStatus="suspended"
-                        label="Suspend"
-                        variant="destructive"
-                      />
-                    )}
-                    {partner.status === "suspended" && (
-                      <ActionForm
-                        partnerId={partner.id}
-                        nextStatus="pending"
-                        label="Move to pending"
-                        variant="outline"
-                      />
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  );
-}
+      <Card>
+        <CardTitle>Add partner</CardTitle>
+        <form action={addPartner} className="mt-3 grid grid-cols-2 gap-2">
+          <Input name="name" placeholder="Partner name" required />
+          <Input name="category" placeholder="restaurant / spa / chef" required />
+          <Input name="city" placeholder="City" />
+          <Input name="contactEmail" placeholder="Contact email" />
+          <Button type="submit" className="col-span-2">
+            Add partner
+          </Button>
+        </form>
+      </Card>
 
-function ActionForm({
-  partnerId,
-  nextStatus,
-  label,
-  variant,
-}: {
-  partnerId: string;
-  nextStatus: "pending" | "approved" | "suspended";
-  label: string;
-  variant: "default" | "outline" | "destructive";
-}) {
-  const action = setPartnerStatus.bind(null, partnerId);
-  return (
-    <form action={action}>
-      <input type="hidden" name="status" value={nextStatus} />
-      <Button type="submit" size="sm" variant={variant}>
-        {label}
-      </Button>
-    </form>
+      <Card>
+        <CardTitle>Partners</CardTitle>
+        <table className="w-full text-sm mt-3">
+          <thead className="text-xs uppercase tracking-widest text-plum-900/50 text-left">
+            <tr>
+              <th className="py-2">Name</th>
+              <th>Category</th>
+              <th>City</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-plum-900/8">
+            {partners.map((p) => (
+              <tr key={p.id}>
+                <td className="py-2">{p.name}</td>
+                <td>{p.category}</td>
+                <td>{p.city ?? "—"}</td>
+                <td>
+                  <Badge tone={p.active ? "mint" : "neutral"}>
+                    {p.active ? "active" : "inactive"}
+                  </Badge>
+                </td>
+                <td>
+                  <form action={togglePartner}>
+                    <input type="hidden" name="id" value={p.id} />
+                    <button className="text-xs underline text-plum-900">
+                      Toggle
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Card>
+
+      <Card>
+        <CardTitle>Add deal</CardTitle>
+        <form action={addDeal} className="mt-3 space-y-3">
+          <select
+            name="partnerId"
+            required
+            className="w-full rounded-2xl border border-plum-900/15 bg-white px-3 py-2 text-sm"
+          >
+            <option value="">Pick a partner…</option>
+            {partners.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+          <Input name="title" placeholder="Deal title" required />
+          <Input name="description" placeholder="Short description" />
+          <div className="grid grid-cols-2 gap-2">
+            <Input name="originalPriceKsh" placeholder="Original KSh" />
+            <Input name="memberPriceKsh" placeholder="Member KSh" />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Input name="discountCode" placeholder="Discount code" />
+            <Input name="thumbnail" placeholder="Image URL" />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Input name="vibeTags" placeholder="Tags (comma-separated)" />
+            <select
+              name="spendingTier"
+              className="rounded-2xl border border-plum-900/15 bg-white px-3 py-2 text-sm"
+            >
+              <option value="standard">standard</option>
+              <option value="premium">premium</option>
+              <option value="elite">elite</option>
+            </select>
+          </div>
+          <Label>Expires at</Label>
+          <Input name="expiresAt" type="date" />
+          <Button type="submit">Add deal</Button>
+        </form>
+      </Card>
+
+      <Card>
+        <CardTitle>Deals</CardTitle>
+        <table className="w-full text-sm mt-3">
+          <thead className="text-xs uppercase tracking-widest text-plum-900/50 text-left">
+            <tr>
+              <th className="py-2">Deal</th>
+              <th>Partner</th>
+              <th>Tier</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-plum-900/8">
+            {deals.map(({ deal, partner }) => (
+              <tr key={deal.id}>
+                <td className="py-2">{deal.title}</td>
+                <td>{partner.name}</td>
+                <td>{deal.spendingTier}</td>
+                <td>
+                  <Badge tone={deal.active ? "mint" : "neutral"}>
+                    {deal.active ? "active" : "inactive"}
+                  </Badge>
+                </td>
+                <td>
+                  <form action={toggleDeal}>
+                    <input type="hidden" name="id" value={deal.id} />
+                    <button className="text-xs underline text-plum-900">
+                      Toggle
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Card>
+    </div>
   );
 }

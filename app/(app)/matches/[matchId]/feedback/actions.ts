@@ -1,47 +1,28 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
-import { and, eq, or } from "drizzle-orm";
-import { z } from "zod";
-import { db } from "@/db";
-import { dateFeedback, matches } from "@/db/schema";
-import { requireSession } from "@/lib/auth/server";
+import { eq } from "drizzle-orm";
+import { db, schema } from "@/db";
+import { requireUser } from "@/lib/auth";
 
-const schema = z.object({
-  rating: z.enum(["great", "ok", "no_chemistry", "not_my_pace", "other"]),
-  notes: z.string().max(2000).optional(),
-});
+export async function saveFeedback(form: FormData) {
+  const user = await requireUser();
+  const matchId = String(form.get("matchId"));
+  const rating = Number(form.get("rating") ?? 0) || null;
+  const body = String(form.get("body") ?? "").trim();
 
-export async function submitFeedback(matchId: string, formData: FormData) {
-  const session = await requireSession();
-  const userId = session.user.id;
-
-  const parsed = schema.parse({
-    rating: formData.get("rating"),
-    notes: (formData.get("notes") as string) || undefined,
+  await db.insert(schema.matchFeedback).values({
+    matchId,
+    authorUserId: user.id,
+    rating: rating ?? undefined,
+    body: body || undefined,
   });
 
-  // Verify the user is part of this match (RLS-style check at the app layer).
-  const [match] = await db
-    .select()
-    .from(matches)
-    .where(
-      and(
-        eq(matches.id, matchId),
-        or(eq(matches.userAId, userId), eq(matches.userBId, userId)),
-      ),
-    )
-    .limit(1);
-  if (!match) throw new Error("Match not found");
+  // Mark first-conversation timestamp so Ghosting Mitigation knows.
+  await db
+    .update(schema.matches)
+    .set({ firstConversationAt: new Date() })
+    .where(eq(schema.matches.id, matchId));
 
-  await db.insert(dateFeedback).values({
-    matchId: match.id,
-    fromUserId: userId,
-    rating: parsed.rating,
-    notes: parsed.notes,
-  });
-
-  revalidatePath(`/matches/${matchId}/feedback`);
-  redirect(`/matches/${matchId}/feedback?saved=1`);
+  redirect(`/matches/${matchId}?feedback=saved`);
 }

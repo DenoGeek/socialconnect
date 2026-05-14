@@ -1,111 +1,44 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-import { and, eq, inArray } from "drizzle-orm";
-import { z } from "zod";
-import { db } from "@/db";
-import {
-  aliasAssignments,
-  events,
-  impressions,
-  ticketPurchases,
-} from "@/db/schema";
-import { requireSession } from "@/lib/auth/server";
-import { inngest } from "@/inngest/client";
+import { and, eq } from "drizzle-orm";
+import { db, schema } from "@/db";
+import { requireUser } from "@/lib/auth";
+import { detectMutualMatch } from "@/lib/matching/match-loop";
 
-const submitSchema = z.object({
-  whatILiked: z.string().max(500).optional(),
-  dreamDate: z.string().max(300).optional(),
-  notes: z.string().max(1000).optional(),
-});
+export async function submitImpression(form: FormData) {
+  const user = await requireUser();
+  const eventId = String(form.get("eventId"));
+  const toUserId = String(form.get("toUserId"));
+  const likedReason = String(form.get("likedReason") ?? "") || null;
 
-export interface SubmitImpressionInput {
-  eventSlug: string;
-  aliasId: string;
-}
+  if (toUserId === user.id) throw new Error("Cannot opt in on yourself");
 
-/**
- * Records an impression from the current user toward another attendee
- * (identified by their per-event alias) and fires `impression.submitted`
- * so Inngest can detect a mutual match.
- *
- * Privacy: the request never includes the target's user ID. We resolve it
- * server-side from `aliasAssignments(eventId, aliasId)`.
- */
-export async function submitImpression(
-  input: SubmitImpressionInput,
-  formData: FormData,
-): Promise<void> {
-  const session = await requireSession();
-  const fromUserId = session.user.id;
-
-  const parsed = submitSchema.parse({
-    whatILiked: (formData.get("whatILiked") as string) || undefined,
-    dreamDate: (formData.get("dreamDate") as string) || undefined,
-    notes: (formData.get("notes") as string) || undefined,
-  });
-
-  const [event] = await db.select().from(events).where(eq(events.slug, input.eventSlug)).limit(1);
-  if (!event) throw new Error("Event not found.");
-
-  // Confirm the submitter actually attended.
-  const [own] = await db
+  // Exclusion check: e.g. ex-partners or de-synced couples.
+  const excluded = await db
     .select()
-    .from(ticketPurchases)
+    .from(schema.matchExclusions)
     .where(
       and(
-        eq(ticketPurchases.userId, fromUserId),
-        eq(ticketPurchases.eventId, event.id),
-        inArray(ticketPurchases.status, ["paid", "checked_in"] as const),
+        eq(schema.matchExclusions.userAId, user.id),
+        eq(schema.matchExclusions.userBId, toUserId),
       ),
     )
     .limit(1);
-  if (!own) throw new Error("You can only leave impressions for events you attended.");
+  if (excluded[0]) throw new Error("Match unavailable");
 
-  // Resolve the alias → attendee user.
-  const [target] = await db
-    .select()
-    .from(aliasAssignments)
-    .where(
-      and(eq(aliasAssignments.eventId, event.id), eq(aliasAssignments.aliasId, input.aliasId)),
-    )
-    .limit(1);
-  if (!target) throw new Error("Alias not found for this event.");
-  if (target.userId === fromUserId) {
-    throw new Error("You can't leave an impression about yourself.");
-  }
-
-  // Insert the impression. Unique index on (eventId, fromUserId, toUserId)
-  // prevents duplicates — DO NOTHING handles re-submits.
-  const [row] = await db
-    .insert(impressions)
+  await db
+    .insert(schema.impressions)
     .values({
-      eventId: event.id,
-      fromUserId,
-      toUserId: target.userId,
-      whatILiked: parsed.whatILiked,
-      dreamDate: parsed.dreamDate,
-      notes: parsed.notes,
+      eventId,
+      fromUserId: user.id,
+      toUserId,
+      likedReason: likedReason ?? undefined,
     })
-    .onConflictDoNothing({
-      target: [impressions.eventId, impressions.fromUserId, impressions.toUserId],
-    })
-    .returning();
+    .onConflictDoNothing();
 
-  if (row) {
-    await inngest.send({
-      name: "impression.submitted",
-      data: {
-        eventId: event.id,
-        fromUserId,
-        toUserId: target.userId,
-        impressionId: row.id,
-      },
-    });
-  }
+  // Compute mutual match.
+  await detectMutualMatch({ eventId, userAId: user.id, userBId: toUserId });
 
-  revalidatePath(`/matches/impressions/${event.slug}`);
-  revalidatePath("/matches");
-  redirect(`/matches/impressions/${event.slug}?just=${encodeURIComponent(input.aliasId)}`);
+  revalidatePath(`/matches`);
 }

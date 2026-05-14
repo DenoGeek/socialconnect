@@ -1,34 +1,56 @@
 import Link from "next/link";
-import { requireRole } from "@/lib/auth/server";
+import { requireAdmin } from "@/lib/auth";
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  await requireRole(["admin", "concierge"]);
+const NAV = [
+  { href: "/admin", label: "Command" },
+  { href: "/admin/users", label: "Users" },
+  { href: "/admin/events", label: "Events" },
+  { href: "/admin/matching", label: "Matching" },
+  { href: "/admin/aliases", label: "Aliases" },
+  { href: "/admin/partners", label: "Partners" },
+  { href: "/admin/properties", label: "Hearth" },
+  { href: "/admin/concierge", label: "Concierge" },
+  { href: "/admin/payments", label: "Payments" },
+  { href: "/admin/flags", label: "Safety" },
+  { href: "/admin/kill-switch", label: "Kill switch" },
+];
 
+export default async function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const user = await requireAdmin();
   return (
-    <div className="flex min-h-screen flex-col bg-stone-100 sm:flex-row">
-      <aside className="flex shrink-0 flex-col gap-1 border-b border-stone-200 bg-stone-50 p-6 sm:w-56 sm:border-b-0 sm:border-r">
-        <Link href="/" className="mb-6 text-[11px] uppercase tracking-[0.2em] text-stone-500 hover:text-stone-900">
-          ← Back to site
-        </Link>
-        <span className="text-xs uppercase tracking-wide text-stone-500">Admin</span>
-        <NavLink href="/admin">Overview</NavLink>
-        <NavLink href="/admin/events">Events</NavLink>
-        <NavLink href="/admin/concierge">Concierge queue</NavLink>
-        <NavLink href="/admin/concierge/intakes">Intakes</NavLink>
-        <NavLink href="/admin/partners">Partners</NavLink>
-      </aside>
-      <main className="flex-1 overflow-x-hidden">{children}</main>
+    <div className="min-h-screen bg-plum-50">
+      <div className="mx-auto flex max-w-7xl gap-8 px-4 py-6">
+        <aside className="hidden md:block w-56 shrink-0">
+          <Link href="/admin" className="block text-display text-2xl text-plum-900 mb-2">
+            Evermore
+          </Link>
+          <p className="text-xs uppercase tracking-widest text-plum-900/50 mb-6">
+            {user.role.replace("_", " ")}
+          </p>
+          <nav className="space-y-1">
+            {NAV.map((n) => (
+              <Link
+                key={n.href}
+                href={n.href}
+                className="block rounded-xl px-3 py-2 text-sm text-plum-900/80 hover:bg-plum-900/5 hover:text-plum-900"
+              >
+                {n.label}
+              </Link>
+            ))}
+            <Link
+              href="/logout"
+              className="mt-4 block rounded-xl px-3 py-2 text-sm text-plum-900/50 hover:text-plum-900"
+            >
+              Sign out
+            </Link>
+          </nav>
+        </aside>
+        <main className="flex-1 min-w-0">{children}</main>
+      </div>
     </div>
-  );
-}
-
-function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <Link
-      href={href}
-      className="rounded-md px-2 py-1.5 text-sm text-stone-700 transition-colors hover:bg-stone-200 hover:text-stone-900"
-    >
-      {children}
-    </Link>
   );
 }

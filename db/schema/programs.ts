@@ -1,134 +1,168 @@
 import {
   pgTable,
-  pgEnum,
   text,
   timestamp,
-  jsonb,
   uuid,
   integer,
   boolean,
+  jsonb,
   uniqueIndex,
   index,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { users } from "./identity";
+import { programTypeEnum, enrollmentStatusEnum } from "./enums";
 
-export const partnerStatusEnum = pgEnum("partner_status", [
-  "pending",
-  "approved",
-  "suspended",
-]);
+// Institutions / churches that run programs.
+export const institutions = pgTable("institutions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  city: text("city"),
+  country: text("country").notNull().default("KE"),
+  logoUrl: text("logo_url"),
+  publicShowcase: boolean("public_showcase").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
 
-export const programKindEnum = pgEnum("program_kind", [
-  "premarital",
-  "marital",
-  "parental",
-  "counseling",
-  "other",
-]);
-
-export const enrollmentStatusEnum = pgEnum("enrollment_status", [
-  "pending",
-  "active",
-  "completed",
-  "dropped",
-]);
-
-// Churches, institutions, retreat centers — facilitators with a B2B login.
-export const partners = pgTable(
-  "partners",
+// Facilitators belong to an institution.
+export const institutionMembers = pgTable(
+  "institution_members",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    ownerUserId: text("owner_user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
-    name: text("name").notNull(),
-    slug: text("slug").notNull().unique(),
-    description: text("description"),
-    logoUrl: text("logo_url"),
-    websiteUrl: text("website_url"),
-    contactEmail: text("contact_email"),
-    contactPhone: text("contact_phone"),
-    city: text("city"),
-    status: partnerStatusEnum("status").notNull().default("pending"),
-    approvedAt: timestamp("approved_at", { withTimezone: true }),
-    approvedBy: text("approved_by").references(() => users.id, { onDelete: "set null" }),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    institutionId: uuid("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role").notNull().default("facilitator"),
   },
-  (t) => [index("partner_status_idx").on(t.status)],
+  (t) => [uniqueIndex("inst_user_uniq").on(t.institutionId, t.userId)],
 );
 
-export const programs = pgTable(
-  "programs",
+// Program catalogue.
+export const programs = pgTable("programs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  institutionId: uuid("institution_id").references(() => institutions.id, {
+    onDelete: "set null",
+  }),
+  kind: programTypeEnum("kind").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  durationWeeks: integer("duration_weeks").notNull().default(10),
+  unlocksProgramId: uuid("unlocks_program_id"),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+// Lessons / modules.
+export const programLessons = pgTable(
+  "program_lessons",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    partnerId: uuid("partner_id").notNull().references(() => partners.id, { onDelete: "cascade" }),
-    kind: programKindEnum("kind").notNull(),
+    programId: uuid("program_id")
+      .notNull()
+      .references(() => programs.id, { onDelete: "cascade" }),
+    week: integer("week").notNull(),
     title: text("title").notNull(),
-    summary: text("summary"),
-    curriculum: jsonb("curriculum"), // milestone definitions
-    feeKes: integer("fee_kes").notNull().default(0),
-    durationWeeks: integer("duration_weeks"),
-    location: text("location"),
-    published: boolean("published").notNull().default(false),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    body: text("body"),
+    videoUrl: text("video_url"),
+    connectionBoxUrl: text("connection_box_url"),
   },
-  (t) => [
-    index("program_partner_idx").on(t.partnerId),
-    index("program_kind_published_idx").on(t.kind, t.published),
-  ],
+  (t) => [uniqueIndex("lesson_program_week_uniq").on(t.programId, t.week)],
 );
 
-export const cohorts = pgTable(
-  "cohorts",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    programId: uuid("program_id").notNull().references(() => programs.id, { onDelete: "cascade" }),
-    name: text("name").notNull(),
-    startsOn: timestamp("starts_on", { withTimezone: true }).notNull(),
-    endsOn: timestamp("ends_on", { withTimezone: true }),
-    capacity: integer("capacity").notNull().default(20),
-    enrolledCount: integer("enrolled_count").notNull().default(0),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  },
-  (t) => [index("cohort_program_idx").on(t.programId)],
-);
+// Cohort run of a program.
+export const cohorts = pgTable("cohorts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  programId: uuid("program_id")
+    .notNull()
+    .references(() => programs.id, { onDelete: "cascade" }),
+  facilitatorUserId: text("facilitator_user_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  name: text("name").notNull(),
+  startsOn: timestamp("starts_on", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
 
-// A couple is two users sharing the same enrollment via a shared invite token.
+// Enrollment is per couple (or solo for pre-marital intake).
 export const enrollments = pgTable(
   "enrollments",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    cohortId: uuid("cohort_id").notNull().references(() => cohorts.id, { onDelete: "cascade" }),
-    primaryUserId: text("primary_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-    partnerUserId: text("partner_user_id").references(() => users.id, { onDelete: "set null" }),
-    inviteToken: text("invite_token").unique(),
-    status: enrollmentStatusEnum("status").notNull().default("pending"),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    cohortId: uuid("cohort_id")
+      .notNull()
+      .references(() => cohorts.id, { onDelete: "cascade" }),
+    primaryUserId: text("primary_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    partnerUserId: text("partner_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    status: enrollmentStatusEnum("status").notNull().default("active"),
+    graduatedAt: timestamp("graduated_at", { withTimezone: true }),
+    verifiedByFacilitatorId: text("verified_by_facilitator_id").references(
+      () => users.id,
+      { onDelete: "set null" },
+    ),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [
-    index("enrollment_cohort_idx").on(t.cohortId),
-    index("enrollment_primary_idx").on(t.primaryUserId),
+    index("enroll_status_idx").on(t.status),
+    index("enroll_primary_idx").on(t.primaryUserId),
   ],
 );
 
-// Facilitator-updated milestones; couple sees their own progress only.
-export const labProgress = pgTable(
-  "lab_progress",
+// Per-lesson completion (couple-synced: completing on User A flips it for User B too).
+export const lessonCompletions = pgTable(
+  "lesson_completions",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    enrollmentId: uuid("enrollment_id").notNull().references(() => enrollments.id, { onDelete: "cascade" }),
-    milestoneKey: text("milestone_key").notNull(), // matches a curriculum entry
-    completedAt: timestamp("completed_at", { withTimezone: true }),
-    notes: text("notes"),
-    updatedBy: text("updated_by").references(() => users.id, { onDelete: "set null" }),
+    enrollmentId: uuid("enrollment_id")
+      .notNull()
+      .references(() => enrollments.id, { onDelete: "cascade" }),
+    lessonId: uuid("lesson_id")
+      .notNull()
+      .references(() => programLessons.id, { onDelete: "cascade" }),
+    completedByUserId: text("completed_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    reflection: text("reflection"),
+    photoUrls: jsonb("photo_urls")
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    completedAt: timestamp("completed_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
-  (t) => [
-    uniqueIndex("lab_progress_uniq").on(t.enrollmentId, t.milestoneKey),
-  ],
+  (t) => [uniqueIndex("lc_enroll_lesson_uniq").on(t.enrollmentId, t.lessonId)],
 );
 
-export type Partner = typeof partners.$inferSelect;
+// Private facilitator coaching note visible to the enrolled couple but not other cohort members.
+export const coachingNotes = pgTable("coaching_notes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  enrollmentId: uuid("enrollment_id")
+    .notNull()
+    .references(() => enrollments.id, { onDelete: "cascade" }),
+  authorUserId: text("author_user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  body: text("body").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export type Program = typeof programs.$inferSelect;
-export type Cohort = typeof cohorts.$inferSelect;
 export type Enrollment = typeof enrollments.$inferSelect;
+export type Institution = typeof institutions.$inferSelect;

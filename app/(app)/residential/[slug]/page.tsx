@@ -1,99 +1,118 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { eq } from "drizzle-orm";
-import { db } from "@/db";
-import { properties } from "@/db/schema";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { and, eq, gte, ne } from "drizzle-orm";
+import { db, schema } from "@/db";
+import { requireUser } from "@/lib/auth";
+import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { formatKes } from "@/lib/utils/format";
+import { formatMoney } from "@/lib/utils/format";
+import { BookingForm } from "./booking-form";
 
-interface PageProps {
+export default async function PropertyPage({
+  params,
+}: {
   params: Promise<{ slug: string }>;
-}
-
-export default async function PropertyDetailPage({ params }: PageProps) {
+}) {
   const { slug } = await params;
-  const [p] = await db.select().from(properties).where(eq(properties.slug, slug)).limit(1);
-  if (!p || p.status !== "published") notFound();
+  await requireUser();
+  const [p] = await db
+    .select()
+    .from(schema.hearthProperties)
+    .where(eq(schema.hearthProperties.slug, slug))
+    .limit(1);
+  if (!p) notFound();
+
+  const addOns = await db
+    .select()
+    .from(schema.propertyAddOns)
+    .where(eq(schema.propertyAddOns.propertyId, p.id));
+
+  // Future bookings blocking dates.
+  const now = new Date();
+  const upcoming = await db
+    .select({
+      checkIn: schema.hearthBookings.checkIn,
+      checkOut: schema.hearthBookings.checkOut,
+    })
+    .from(schema.hearthBookings)
+    .where(
+      and(
+        eq(schema.hearthBookings.propertyId, p.id),
+        gte(schema.hearthBookings.checkOut, now),
+        ne(schema.hearthBookings.status, "cancelled"),
+      ),
+    );
 
   return (
-    <main className="mx-auto flex max-w-5xl flex-col gap-10 px-6 py-12">
-      <Link
-        href="/residential"
-        className="text-xs uppercase tracking-[0.2em] text-stone-500 hover:text-stone-900"
-      >
-        ← Residential
-      </Link>
-
-      <header className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="text-xs uppercase tracking-wide text-stone-500">{p.city}</span>
-          {p.aganoCertified && <Badge variant="success">Agano-certified</Badge>}
-          <Badge variant="muted">{p.type}</Badge>
+    <article className="space-y-6">
+      <div
+        className="rounded-3xl h-72 bg-cover bg-center bg-plum-900"
+        style={{
+          backgroundImage: p.gallery?.[0] ? `url(${p.gallery[0]})` : undefined,
+        }}
+      />
+      <header>
+        <div className="flex flex-wrap gap-2 mb-2">
+          <Badge tone="plum">{p.region}</Badge>
+          {p.aganoCertified && <Badge tone="mint">Agano Certified</Badge>}
+          {p.connectionBoxIncluded && (
+            <Badge tone="teal">Connection Box included</Badge>
+          )}
         </div>
-        <h1 className="text-4xl font-semibold tracking-tight">{p.title}</h1>
-        {p.address && <p className="text-sm text-stone-500">{p.address}</p>}
+        <h1 className="text-display text-4xl text-plum-900">{p.title}</h1>
+        <p className="text-sm text-plum-900/60 mt-1">{p.city}</p>
       </header>
 
-      {p.photos.length > 0 && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-          {p.photos.slice(0, 8).map((url, i) => (
-            <div
-              key={i}
-              className="aspect-square overflow-hidden rounded-2xl bg-stone-200 bg-cover bg-center"
-              style={{ backgroundImage: `url("${url}")` }}
-            />
-          ))}
-        </div>
+      {p.description && (
+        <Card>
+          <p className="text-sm text-plum-900/80 whitespace-pre-line">
+            {p.description}
+          </p>
+        </Card>
       )}
 
-      <section className="grid gap-6 md:grid-cols-[2fr_1fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle>About this stay</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-5 text-sm leading-relaxed text-stone-700">
-            {p.description && <p className="whitespace-pre-line">{p.description}</p>}
-            <div>
-              <p className="text-[11px] uppercase tracking-wide text-stone-400">Sleeps</p>
-              <p className="mt-1">
-                Up to {p.maxGuests} guests · {p.bedrooms} bedroom{p.bedrooms === 1 ? "" : "s"}
-              </p>
-            </div>
-            {p.amenities.length > 0 && (
-              <div>
-                <p className="text-[11px] uppercase tracking-wide text-stone-400">Amenities</p>
-                <p className="mt-1">{p.amenities.join(" · ")}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      <Card>
+        <CardTitle>Amenities</CardTitle>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {(p.amenities ?? []).map((a) => (
+            <Badge key={a} tone="neutral">
+              {a}
+            </Badge>
+          ))}
+        </div>
+      </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Stay here</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <p className="text-2xl font-semibold tracking-tight">
-              {formatKes(p.basePriceKes)}
-              <span className="ml-1 text-xs font-normal text-stone-500">/ night</span>
-            </p>
-            {p.cleaningFeeKes > 0 && (
-              <p className="text-xs text-stone-500">
-                + {formatKes(p.cleaningFeeKes)} cleaning fee
-              </p>
-            )}
-            <Button asChild size="lg">
-              <Link href="/concierge">Request dates</Link>
-            </Button>
-            <p className="text-xs text-stone-500">
-              The full booking calendar with M-Pesa payment is coming soon. For now, the Concierge
-              handles bookings to make sure dates and the host are aligned.
-            </p>
-          </CardContent>
-        </Card>
-      </section>
-    </main>
+      <BookingForm
+        property={{
+          id: p.id,
+          slug: p.slug,
+          title: p.title,
+          nightlyKsh: Number(p.nightlyRateKsh),
+          nightlyUsd: Number(p.nightlyRateUsd),
+          minNights: p.minNights,
+          maxOccupancy: p.maxOccupancy,
+        }}
+        addOns={addOns.map((a) => ({
+          id: a.id,
+          name: a.name,
+          priceKsh: Number(a.priceKsh),
+          priceUsd: Number(a.priceUsd),
+        }))}
+        bookedRanges={upcoming.map((b) => ({
+          from: b.checkIn.toISOString(),
+          to: b.checkOut.toISOString(),
+        }))}
+      />
+
+      <Card>
+        <CardTitle>House notes</CardTitle>
+        <CardSubtitle>
+          Sleeps {p.maxOccupancy}. {p.minNights}-night minimum.
+        </CardSubtitle>
+        <p className="text-sm text-plum-900/70 mt-2">
+          Once booked, your digital key code is issued 24 hours before
+          check-in.
+        </p>
+      </Card>
+    </article>
   );
 }

@@ -1,16 +1,23 @@
 import Link from "next/link";
 
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default function AuthLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <main className="flex min-h-screen flex-col bg-stone-50">
-      <header className="border-b border-stone-200/60 px-6 py-5">
-        <Link href="/" className="text-xs uppercase tracking-[0.2em] text-stone-500 hover:text-stone-900">
-          Evermore · Agano
+    <main className="min-h-screen brand-bg flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <Link
+          href="/"
+          className="block text-center text-display text-3xl text-plum-100 mb-10"
+        >
+          Evermore
         </Link>
-      </header>
-      <section className="flex flex-1 items-center justify-center px-6 py-16">
-        <div className="w-full max-w-sm">{children}</div>
-      </section>
+        <div className="rounded-3xl bg-white/95 p-8 shadow-2xl">
+          {children}
+        </div>
+      </div>
     </main>
   );
 }

@@ -1,149 +1,149 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { and, eq, inArray, ne } from "drizzle-orm";
-import { db } from "@/db";
-import {
-  aliasAssignments,
-  aliasPool,
-  events,
-  impressions,
-  ticketPurchases,
-} from "@/db/schema";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { and, eq, not } from "drizzle-orm";
+import { db, schema } from "@/db";
+import { requireUser } from "@/lib/auth";
+import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatEventDate } from "@/lib/utils/format";
-import { requireSession } from "@/lib/auth/server";
+import { Button } from "@/components/ui/button";
+import { submitImpression } from "../actions";
 
-interface PageProps {
+export default async function ImpressionsPage({
+  params,
+}: {
   params: Promise<{ eventSlug: string }>;
-}
-
-export default async function ImpressionsListPage({ params }: PageProps) {
+}) {
   const { eventSlug } = await params;
-  const session = await requireSession();
-  const userId = session.user.id;
-
-  const [event] = await db.select().from(events).where(eq(events.slug, eventSlug)).limit(1);
+  const user = await requireUser();
+  const [event] = await db
+    .select()
+    .from(schema.events)
+    .where(eq(schema.events.slug, eventSlug))
+    .limit(1);
   if (!event) notFound();
 
-  // Confirm the user actually attended this event.
-  const [own] = await db
-    .select()
-    .from(ticketPurchases)
-    .where(
-      and(
-        eq(ticketPurchases.userId, userId),
-        eq(ticketPurchases.eventId, event.id),
-        inArray(ticketPurchases.status, ["paid", "checked_in"] as const),
-      ),
-    )
-    .limit(1);
-  if (!own) notFound();
+  // Window: closes N hours after event end.
+  const closesAt = new Date(
+    new Date(event.endsAt).getTime() +
+      event.impressionDeadlineHours * 60 * 60 * 1000,
+  );
+  const windowOpen = new Date() < closesAt;
 
-  // Other attendees, by their alias for this event.
-  const others = await db
+  // Aliases at the event (excluding mine).
+  const attendees = await db
     .select({
-      otherUserId: ticketPurchases.userId,
-      aliasId: aliasAssignments.aliasId,
-      aliasName: aliasPool.name,
+      assignment: schema.aliasAssignments,
+      alias: schema.aliasPool,
     })
-    .from(ticketPurchases)
+    .from(schema.aliasAssignments)
     .innerJoin(
-      aliasAssignments,
-      and(
-        eq(aliasAssignments.userId, ticketPurchases.userId),
-        eq(aliasAssignments.eventId, event.id),
-      ),
+      schema.aliasPool,
+      eq(schema.aliasPool.id, schema.aliasAssignments.aliasId),
     )
-    .innerJoin(aliasPool, eq(aliasPool.id, aliasAssignments.aliasId))
     .where(
       and(
-        eq(ticketPurchases.eventId, event.id),
-        inArray(ticketPurchases.status, ["paid", "checked_in"] as const),
-        ne(ticketPurchases.userId, userId),
+        eq(schema.aliasAssignments.eventId, event.id),
+        not(eq(schema.aliasAssignments.userId, user.id)),
       ),
     );
 
-  // Which of these have you already left an impression about?
-  const submitted = others.length
-    ? await db
-        .select({ toUserId: impressions.toUserId })
-        .from(impressions)
-        .where(
-          and(
-            eq(impressions.eventId, event.id),
-            eq(impressions.fromUserId, userId),
-            inArray(
-              impressions.toUserId,
-              others.map((o) => o.otherUserId),
-            ),
-          ),
-        )
-    : [];
-  const submittedSet = new Set(submitted.map((r) => r.toUserId));
+  // What I've already opted-in on.
+  const myImpressions = await db
+    .select()
+    .from(schema.impressions)
+    .where(
+      and(
+        eq(schema.impressions.eventId, event.id),
+        eq(schema.impressions.fromUserId, user.id),
+      ),
+    );
+
+  const optedInIds = new Set(myImpressions.map((i) => i.toUserId));
 
   return (
-    <main className="mx-auto flex max-w-4xl flex-col gap-10 px-6 py-12">
-      <Link
-        href="/matches"
-        className="text-xs uppercase tracking-[0.2em] text-stone-500 hover:text-stone-900"
-      >
-        ← Matches
-      </Link>
-
-      <header className="flex flex-col gap-2">
-        <span className="text-xs uppercase tracking-[0.2em] text-stone-500">Impressions</span>
-        <h1 className="text-3xl font-semibold tracking-tight">{event.title}</h1>
-        <p className="text-sm text-stone-600">
-          {formatEventDate(event.startsAt, event.endsAt)} · {event.city}
+    <div className="space-y-6">
+      <header>
+        <h1 className="text-display text-3xl text-plum-900">
+          Impressions: {event.title}
+        </h1>
+        <p className="text-sm text-plum-900/60">
+          Tap aliases you&rsquo;d like to connect with. We notify only on mutual
+          opt-in.
+        </p>
+        <p className="mt-2 text-xs text-plum-900/50">
+          Window closes{" "}
+          <span className="font-medium">
+            {closesAt.toLocaleString("en-GB", {
+              dateStyle: "medium",
+              timeStyle: "short",
+            })}
+          </span>
+          .
         </p>
       </header>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>How this works</CardTitle>
-          <CardDescription>
-            Pick anyone you&apos;d like to know more. Your notes go to the Concierge — never to the
-            other person. If they leave impressions about you, we&apos;ll connect you.
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
-      {others.length === 0 ? (
+      {!windowOpen ? (
         <Card>
-          <CardContent className="py-10 text-center text-sm text-stone-500">
-            No other attendees yet. (Aliases assign once tickets are paid.)
-          </CardContent>
+          <CardTitle>The impression window has closed.</CardTitle>
+          <CardSubtitle>
+            You&rsquo;ll see any matches in the matches page.
+          </CardSubtitle>
+          <Link
+            href="/matches"
+            className="mt-3 inline-block underline text-plum-900"
+          >
+            View my matches →
+          </Link>
         </Card>
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {others.map((o) => {
-            const done = submittedSet.has(o.otherUserId);
+        <div className="grid gap-4 md:grid-cols-2">
+          {attendees.map((a) => {
+            const id = a.assignment.userId;
+            const already = optedInIds.has(id);
             return (
-              <li key={o.otherUserId}>
-                <Link
-                  href={`/matches/impressions/${event.slug}/about/${o.aliasId}`}
-                  className="group flex h-full flex-col justify-between gap-4 rounded-2xl border border-stone-200 bg-white p-5 transition-colors hover:border-stone-400"
-                >
+              <Card key={a.assignment.id}>
+                <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-[11px] uppercase tracking-[0.2em] text-stone-400">
-                      Alias
-                    </span>
-                    <p className="mt-2 text-xl font-medium tracking-tight group-hover:text-stone-700">
-                      {o.aliasName}
-                    </p>
+                    <CardTitle>{a.alias.name}</CardTitle>
+                    {already && <Badge tone="mint">Submitted</Badge>}
                   </div>
-                  {done ? (
-                    <Badge variant="success">Submitted</Badge>
-                  ) : (
-                    <span className="text-xs text-stone-500">Leave impression →</span>
-                  )}
+                </div>
+                <form action={submitImpression} className="mt-3 space-y-2">
+                  <input type="hidden" name="eventId" value={event.id} />
+                  <input type="hidden" name="toUserId" value={id} />
+                  <textarea
+                    name="likedReason"
+                    placeholder="What stood out about them? (optional)"
+                    rows={2}
+                    className="w-full rounded-2xl border border-plum-900/15 bg-white px-3 py-2 text-sm"
+                  />
+                  <Button
+                    type="submit"
+                    variant={already ? "outline" : "primary"}
+                    disabled={already}
+                  >
+                    {already ? "Opted in" : "Opt in"}
+                  </Button>
+                </form>
+                <Link
+                  href={`/matches/impressions/${event.slug}/about/${a.assignment.id}`}
+                  className="mt-2 inline-block text-xs underline text-plum-900/70"
+                >
+                  See what they&rsquo;re about →
                 </Link>
-              </li>
+              </Card>
             );
           })}
-        </ul>
+          {attendees.length === 0 && (
+            <Card>
+              <CardTitle>No attendees yet</CardTitle>
+              <CardSubtitle>
+                Once others purchase tickets you&rsquo;ll see them here.
+              </CardSubtitle>
+            </Card>
+          )}
+        </div>
       )}
-    </main>
+    </div>
   );
 }

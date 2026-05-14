@@ -1,17 +1,15 @@
-"use client";
-
 import * as React from "react";
-import * as LabelPrimitive from "@radix-ui/react-label";
 import { cn } from "@/lib/utils/cn";
 
-export const Label = React.forwardRef<
-  React.ElementRef<typeof LabelPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
->(({ className, ...props }, ref) => (
-  <LabelPrimitive.Root
-    ref={ref}
-    className={cn("text-xs font-medium uppercase tracking-wide text-stone-600", className)}
-    {...props}
-  />
-));
-Label.displayName = LabelPrimitive.Root.displayName;
+export function Label(props: React.LabelHTMLAttributes<HTMLLabelElement>) {
+  const { className, ...rest } = props;
+  return (
+    <label
+      {...rest}
+      className={cn(
+        "block text-xs font-medium uppercase tracking-wider text-plum-900/70 mb-1.5",
+        className,
+      )}
+    />
+  );
+}

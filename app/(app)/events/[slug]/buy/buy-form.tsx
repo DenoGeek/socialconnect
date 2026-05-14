@@ -1,92 +1,119 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { initiatePurchase } from "./actions";
+import { useState } from "react";
+import type { Event, EventTicket } from "@/db/schema";
+import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert } from "@/components/ui/alert";
-import { formatKes } from "@/lib/utils/format";
+import { formatMoney } from "@/lib/utils/format";
+import { purchaseTicket } from "./actions";
 
-type Phase = "idle" | "submitting" | "polling" | "settled" | "failed";
-
-const POLL_INTERVAL_MS = 3500;
-const POLL_TIMEOUT_MS = 90_000;
-
-export function BuyForm({ tierId, amountKes }: { tierId: string; amountKes: number }) {
-  const router = useRouter();
-  const [phase, setPhase] = useState<Phase>("idle");
-  const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
-
-  function handleSubmit(formData: FormData) {
-    setError(null);
-    const msisdn = String(formData.get("msisdn") ?? "");
-    setPhase("submitting");
-
-    startTransition(async () => {
-      const result = await initiatePurchase({ tierId, msisdn });
-      if (!result.ok || !result.paymentId) {
-        setPhase("failed");
-        setError(result.error ?? "We couldn't start the payment. Try again.");
-        return;
-      }
-
-      setPhase("polling");
-      const started = Date.now();
-      while (Date.now() - started < POLL_TIMEOUT_MS) {
-        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
-        const res = await fetch(`/api/payments/${result.paymentId}/status`, { cache: "no-store" });
-        if (!res.ok) continue;
-        const data = (await res.json()) as { status: string; ticketSlug?: string };
-        if (data.status === "succeeded") {
-          setPhase("settled");
-          router.replace("/events/me?just=" + result.ticketPurchaseId);
-          router.refresh();
-          return;
-        }
-        if (data.status === "failed") {
-          setPhase("failed");
-          setError("M-Pesa rejected the request. The seat has been released.");
-          return;
-        }
-      }
-      setPhase("failed");
-      setError("We didn't hear back from M-Pesa in time. If you completed the payment, your ticket will appear in 'My tickets' shortly.");
-    });
-  }
-
-  if (phase === "polling" || phase === "submitting") {
-    return (
-      <div className="flex flex-col items-center gap-4 py-8 text-center">
-        <div className="h-9 w-9 animate-spin rounded-full border-2 border-stone-200 border-t-stone-900" />
-        <p className="text-sm text-stone-700">
-          {phase === "submitting" ? "Sending you the M-Pesa prompt…" : "Waiting for confirmation. Enter your PIN on your phone."}
-        </p>
-        <p className="text-xs text-stone-500">{formatKes(amountKes)} · keep this tab open</p>
-      </div>
-    );
-  }
+export function BuyForm({
+  event,
+  ticket,
+  userId,
+}: {
+  event: Event;
+  ticket: EventTicket;
+  userId: string;
+}) {
+  const [currency, setCurrency] = useState<"KSH" | "USD">("KSH");
+  const [provider, setProvider] = useState<"tinypesa" | "mpesa" | "card">(
+    "tinypesa",
+  );
+  const [phone, setPhone] = useState("");
 
   return (
-    <form action={handleSubmit} className="flex flex-col gap-5">
-      {error && <Alert variant="destructive">{error}</Alert>}
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="msisdn">M-Pesa phone number</Label>
-        <Input
-          id="msisdn"
-          name="msisdn"
-          type="tel"
-          placeholder="07XX XXX XXX"
-          autoComplete="tel"
-          required
-        />
-        <p className="text-xs text-stone-500">We send the STK push to this number.</p>
-      </div>
-      <Button type="submit" disabled={pending} size="lg">
-        Pay {formatKes(amountKes)} via M-Pesa
-      </Button>
-    </form>
+    <div className="max-w-xl space-y-6">
+      <header>
+        <h1 className="text-display text-3xl text-plum-900">
+          Purchase: {ticket.label}
+        </h1>
+        <p className="text-sm text-plum-900/60">{event.title}</p>
+      </header>
+
+      <Card>
+        <CardTitle>Choose your currency</CardTitle>
+        <CardSubtitle>
+          Pay in KSh via M-Pesa or in USD via card. Toggle to see your price.
+        </CardSubtitle>
+        <div className="mt-4 flex gap-2">
+          {(["KSH", "USD"] as const).map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => setCurrency(c)}
+              className={`rounded-full px-4 py-2 text-sm transition ${
+                currency === c
+                  ? "bg-plum-900 text-plum-100"
+                  : "bg-plum-900/5 text-plum-900"
+              }`}
+              data-testid={`currency-${c}`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+        <p className="mt-4 text-display text-3xl text-plum-900">
+          {formatMoney(
+            currency === "KSH" ? ticket.priceKsh : ticket.priceUsd,
+            currency,
+          )}
+        </p>
+      </Card>
+
+      <form action={purchaseTicket} className="space-y-4">
+        <input type="hidden" name="ticketId" value={ticket.id} />
+        <input type="hidden" name="eventId" value={event.id} />
+        <input type="hidden" name="currency" value={currency} />
+        <input type="hidden" name="userId" value={userId} />
+
+        <Card>
+          <CardTitle>Payment method</CardTitle>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {(currency === "KSH"
+              ? (["tinypesa", "mpesa"] as const)
+              : (["card"] as const)
+            ).map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setProvider(p)}
+                className={`rounded-full px-4 py-2 text-sm uppercase tracking-widest text-xs transition ${
+                  provider === p
+                    ? "bg-plum-900 text-plum-100"
+                    : "bg-plum-900/5 text-plum-900"
+                }`}
+              >
+                {p === "tinypesa" ? "M-Pesa (TinyPesa)" : p}
+              </button>
+            ))}
+          </div>
+          <input type="hidden" name="provider" value={provider} />
+
+          {currency === "KSH" && (
+            <div className="mt-4">
+              <Label>M-Pesa number</Label>
+              <Input
+                name="phone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="07XX XXX XXX"
+                required={currency === "KSH"}
+              />
+            </div>
+          )}
+        </Card>
+
+        <Button type="submit" className="w-full" size="lg">
+          Confirm purchase
+        </Button>
+        <p className="text-xs text-plum-900/50">
+          The charge will appear from <strong>Evermore Events</strong> — never
+          a personal name.
+        </p>
+      </form>
+    </div>
   );
 }

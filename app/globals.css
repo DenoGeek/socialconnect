@@ -1,18 +1,73 @@
 @import "tailwindcss";
 
-@theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@theme {
+  --color-plum-50: #fbf3fb;
+  --color-plum-100: #f3bbef;
+  --color-plum-200: #d989d3;
+  --color-plum-500: #7b2877;
+  --color-plum-700: #4c1148;
+  --color-plum-900: #380b38;
+  --color-mint: #6cbaa1;
+  --color-teal: #00adab;
+  --color-amber-ascent: #f6b754;
+  --color-ink: #1a0d1a;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Playfair Display", ui-serif, Georgia, serif;
 }
 
 html,
 body {
-  background: #fafaf9; /* stone-50 */
-  color: #1c1917; /* stone-900 */
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  background: var(--color-plum-50);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
 }
 
-::selection {
-  background: #1c1917;
-  color: #fafaf9;
+.brand-bg {
+  background: linear-gradient(135deg, #380b38 0%, #4c1148 100%);
+  color: var(--color-plum-100);
 }
+
+.brand-card {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(56, 11, 56, 0.08);
+}
+
+.brand-card-dark {
+  background: rgba(56, 11, 56, 0.92);
+  color: var(--color-plum-100);
+  border: 1px solid rgba(243, 187, 239, 0.18);
+}
+
+.elite-bg {
+  background: linear-gradient(135deg, #1a0d1a 0%, #2a1828 100%);
+  color: #d4af37;
+}
+
+.elite-card {
+  background: rgba(26, 13, 26, 0.95);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  color: #d4af37;
+}
+
+.text-display {
+  font-family: var(--font-display);
+}
+
+/* Named utility helpers — avoid arbitrary `[color:var(--...)]` strings that
+ * confuse Turbopack's PostCSS in dev. */
+.bg-mint { background-color: var(--color-mint); }
+.bg-teal { background-color: var(--color-teal); }
+.bg-amber { background-color: var(--color-amber-ascent); }
+.text-amber { color: var(--color-amber-ascent); }
+.text-mint { color: var(--color-mint); }
+.text-teal { color: var(--color-teal); }
+.from-mint { --tw-gradient-from: var(--color-mint); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, transparent); }
+.to-teal { --tw-gradient-to: var(--color-teal); }
+.from-amber { --tw-gradient-from: var(--color-amber-ascent); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, transparent); }
+.bg-amber-soft { background-color: color-mix(in srgb, var(--color-amber-ascent) 15%, transparent); }
+.bg-mint-soft { background-color: color-mix(in srgb, var(--color-mint) 15%, transparent); }
+.border-amber { border-color: color-mix(in srgb, var(--color-amber-ascent) 40%, transparent); }
+.border-mint { border-color: color-mix(in srgb, var(--color-mint) 40%, transparent); }
+.text-plum-on-amber { color: var(--color-plum-900); }
+
