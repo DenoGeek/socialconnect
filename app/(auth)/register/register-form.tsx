@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Alert } from "@/components/ui/alert";
 
 export function RegisterForm() {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,8 +32,9 @@ export function RegisterForm() {
       setErr(error.message ?? "Could not create account.");
       return;
     }
-    router.push("/profile/onboarding");
-    router.refresh();
+    // Full navigation so the session cookie is on the next document request
+    // (client router.push can race ahead of Set-Cookie from sign-up).
+    window.location.assign("/profile/onboarding");
   }
 
   return (

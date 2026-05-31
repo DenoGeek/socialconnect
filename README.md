@@ -38,6 +38,8 @@ Open http://localhost:3003.
 | `pnpm db:migrate` | Apply migrations |
 | `pnpm db:push` | Push schema directly (dev shortcut, no migration files) |
 | `pnpm db:studio` | Drizzle Studio |
+| `pnpm db:seed` | Hydrate alias pool, questions, sample events, etc. |
+| `pnpm db:seed-users` | Bootstrap admin if none; dev-only fixed test accounts |
 
 ## Repository layout
 

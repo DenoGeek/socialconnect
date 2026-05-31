@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, use } from "react";
-import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +13,6 @@ export function LoginForm({
   searchParamsPromise: Promise<{ redirect?: string }>;
 }) {
   const sp = use(searchParamsPromise);
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
@@ -33,8 +31,7 @@ export function LoginForm({
       setErr(error.message ?? "Invalid email or password.");
       return;
     }
-    router.push(sp.redirect ?? "/profile");
-    router.refresh();
+    window.location.assign(sp.redirect ?? "/profile");
   }
 
   return (

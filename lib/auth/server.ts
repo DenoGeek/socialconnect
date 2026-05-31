@@ -1,7 +1,15 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { nextCookies } from "better-auth/next-js";
 import { db } from "@/db";
 import { schema } from "@/db";
+
+const devTrustedOrigins = [
+  process.env.BETTER_AUTH_URL,
+  process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
+  "http://localhost:3003",
+  "http://127.0.0.1:3003",
+].filter((o): o is string => Boolean(o));
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -15,6 +23,8 @@ export const auth = betterAuth({
   }),
   secret: process.env.BETTER_AUTH_SECRET || "dev-secret-replace-with-openssl-rand-base64-32",
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3003",
+  trustedOrigins: devTrustedOrigins,
+  plugins: [nextCookies()],
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,
