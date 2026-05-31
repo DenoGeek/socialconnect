@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { eq, and } from "drizzle-orm";
 import { db, schema } from "@/db";
@@ -22,7 +23,15 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) {
+    const h = await headers();
+    const pathname = h.get("x-pathname");
+    redirect(
+      pathname
+        ? `/login?redirect=${encodeURIComponent(pathname)}`
+        : "/login",
+    );
+  }
 
   // Regional kill switch.
   const userCountry = "KE";
