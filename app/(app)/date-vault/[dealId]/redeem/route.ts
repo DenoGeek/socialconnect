@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
+import { getPublicOrigin } from "@/lib/utils/public-origin";
 
 export async function POST(
   req: Request,
@@ -26,5 +27,7 @@ export async function POST(
       .where(eq(schema.matchBridgeUpsells.dealId, dealId));
   }
 
-  return NextResponse.redirect(new URL(`/date-vault/${dealId}/redeemed`, req.url));
+  return NextResponse.redirect(
+    `${getPublicOrigin(req)}/date-vault/${dealId}/redeemed`,
+  );
 }

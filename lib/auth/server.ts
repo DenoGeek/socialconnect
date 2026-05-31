@@ -4,12 +4,25 @@ import { nextCookies } from "better-auth/next-js";
 import { db } from "@/db";
 import { schema } from "@/db";
 
-const devTrustedOrigins = [
-  process.env.BETTER_AUTH_URL,
-  process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
-  "http://localhost:3003",
-  "http://127.0.0.1:3003",
-].filter((o): o is string => Boolean(o));
+function buildTrustedOrigins(): string[] {
+  const origins = new Set<string>();
+  for (const raw of [
+    process.env.BETTER_AUTH_URL,
+    process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
+  ]) {
+    if (!raw) continue;
+    try {
+      origins.add(new URL(raw).origin);
+    } catch {
+      origins.add(raw);
+    }
+  }
+  if (process.env.NODE_ENV !== "production") {
+    origins.add("http://localhost:3003");
+    origins.add("http://127.0.0.1:3003");
+  }
+  return [...origins];
+}
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -23,7 +36,10 @@ export const auth = betterAuth({
   }),
   secret: process.env.BETTER_AUTH_SECRET || "dev-secret-replace-with-openssl-rand-base64-32",
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3003",
-  trustedOrigins: devTrustedOrigins,
+  trustedOrigins: buildTrustedOrigins(),
+  advanced: {
+    trustedProxyHeaders: true,
+  },
   plugins: [nextCookies()],
   emailAndPassword: {
     enabled: true,

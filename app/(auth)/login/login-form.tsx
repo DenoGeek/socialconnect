@@ -2,6 +2,7 @@
 
 import { useState, use } from "react";
 import { authClient } from "@/lib/auth/client";
+import { formatAuthError } from "@/lib/auth/format-auth-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,7 +29,7 @@ export function LoginForm({
     });
     setLoading(false);
     if (error) {
-      setErr(error.message ?? "Invalid email or password.");
+      setErr(formatAuthError(error.message));
       return;
     }
     window.location.assign(sp.redirect ?? "/profile");
