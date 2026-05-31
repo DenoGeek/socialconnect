@@ -29,7 +29,7 @@ export async function startMembershipUpgrade(form: FormData) {
     subjectKind: "subscription",
     subjectId: plan.slug,
     provider: "tinypesa",
-    currency: "KES",
+    currency: "KSH",
     amount: plan.priceKsh,
     phone,
     senderDisplayName: "Evermore",
