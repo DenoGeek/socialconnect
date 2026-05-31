@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { authClient } from "@/lib/auth/client";
+import { formatAuthError } from "@/lib/auth/format-auth-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +22,11 @@ export function RegisterForm() {
       setErr("Password must be at least 8 characters.");
       return;
     }
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+    if (!emailOk) {
+      setErr("Enter a valid email address (e.g. name@example.com).");
+      return;
+    }
     setLoading(true);
     const { error } = await authClient.signUp.email({
       name,
@@ -29,7 +35,7 @@ export function RegisterForm() {
     });
     setLoading(false);
     if (error) {
-      setErr(error.message ?? "Could not create account.");
+      setErr(formatAuthError(error.message));
       return;
     }
     // Full navigation so the session cookie is on the next document request

@@ -6,6 +6,7 @@ import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { INTENT_BADGES } from "@/lib/intent/badges";
+import { tierDisplayName } from "@/lib/membership/plans";
 import { getAlias } from "@/lib/alias/assign";
 
 export default async function ProfilePage() {
@@ -86,8 +87,14 @@ export default async function ProfilePage() {
           <dd className="text-plum-900 capitalize">
             {profile?.spendingTier ?? "standard"}
           </dd>
-          <dt className="text-plum-900/50">Tier</dt>
-          <dd className="text-plum-900 capitalize">{user.tier}</dd>
+          <dt className="text-plum-900/50">Membership</dt>
+          <dd className="text-plum-900">
+            {tierDisplayName(user.tier)}
+            {" · "}
+            <Link href="/profile/membership" className="underline text-sm">
+              Upgrade
+            </Link>
+          </dd>
           <dt className="text-plum-900/50">Mode</dt>
           <dd className="text-plum-900 capitalize">{user.mode}</dd>
         </dl>

@@ -1,13 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { detectContradictions } from "@/lib/intent/badges";
 
-export async function saveStep(form: FormData) {
+export type SaveStepResult = { ok: true; finalized?: boolean };
+
+export async function saveStep(form: FormData): Promise<SaveStepResult> {
   const user = await requireUser();
   const step = Number(form.get("step") ?? 0);
   const totalSteps = Number(form.get("totalSteps") ?? 0);
@@ -114,8 +115,11 @@ export async function saveStep(form: FormData) {
 
   if (finalize) {
     revalidatePath("/profile");
-    redirect("/profile?onboarded=1");
+    revalidatePath("/profile/onboarding");
+    return { ok: true, finalized: true };
   }
+
+  return { ok: true };
 }
 
 export async function switchMode(form: FormData) {

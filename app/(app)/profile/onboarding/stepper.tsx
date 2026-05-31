@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
 import { INTENT_BADGES, detectContradictions } from "@/lib/intent/badges";
+import { CHRISTIAN_DEAL_BREAKERS } from "@/lib/profile/deal-breakers";
+import { suggestDisplayNames } from "@/lib/profile/display-names";
 import { saveStep } from "./actions";
 
 type Question = {
@@ -36,15 +39,6 @@ const THEOLOGICAL = [
   "Christian — Evangelical",
   "Christian — Orthodox",
   "Christian — Other",
-];
-
-const COMMON_DEAL_BREAKERS = [
-  "Smoking",
-  "Heavy drinking",
-  "No interest in marriage",
-  "Different faith",
-  "Long distance permanently",
-  "No interest in kids",
 ];
 
 const COMMON_INTERESTS = [
@@ -96,6 +90,10 @@ export function OnboardingStepper({
   const [err, setErr] = useState<string | null>(null);
 
   const contradictions = detectContradictions(data.intentBadges);
+  const nameSuggestions = useMemo(
+    () => suggestDisplayNames(data.displayName || profile.displayName, 8),
+    [data.displayName, profile.displayName],
+  );
 
   function toggle(arr: string[], v: string) {
     return arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
@@ -123,11 +121,17 @@ export function OnboardingStepper({
       ([questionId, answer]) => ({ questionId, answer }),
     );
     fd.set("answers", JSON.stringify(answersToSave));
-    start(() =>
-      saveStep(fd).catch((e: unknown) =>
-        setErr((e as Error).message ?? "Could not save."),
-      ),
-    );
+    start(async () => {
+      try {
+        const result = await saveStep(fd);
+        if (result.finalized) {
+          window.location.assign("/profile?onboarded=1");
+        }
+      } catch (e: unknown) {
+        if (isRedirectError(e)) return;
+        setErr((e as Error).message ?? "Could not save.");
+      }
+    });
   }
 
   function next() {
@@ -166,13 +170,38 @@ export function OnboardingStepper({
         <div className="space-y-4">
           <h2 className="text-display text-2xl text-plum-900">Tell us who you are</h2>
           <div>
-            <Label>Display name</Label>
+            <Label>Display name (your nickname on Evermore)</Label>
+            <p className="text-xs text-plum-900/50 mb-2">
+              This is how you appear at events and to matches — not your legal
+              name. Pick a suggestion or type your own.
+            </p>
             <Input
               value={data.displayName}
+              list="display-name-suggestions"
               onChange={(e) =>
                 setData((d) => ({ ...d, displayName: e.target.value }))
               }
+              placeholder="e.g. The Quiet Oak"
             />
+            <datalist id="display-name-suggestions">
+              {nameSuggestions.map((n) => (
+                <option key={n} value={n} />
+              ))}
+            </datalist>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {nameSuggestions.slice(0, 5).map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() =>
+                    setData((d) => ({ ...d, displayName: n }))
+                  }
+                  className="rounded-full bg-plum-900/5 px-3 py-1 text-xs text-plum-900 hover:bg-plum-900/10"
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
           </div>
           <div>
             <Label>City</Label>
@@ -329,10 +358,10 @@ export function OnboardingStepper({
         <div className="space-y-4">
           <h2 className="text-display text-2xl text-plum-900">Deal-breakers</h2>
           <p className="text-sm text-plum-900/60">
-            These act as functional filters on the matching pool.
+            Faith-aligned filters for your matching pool. Pick all that apply.
           </p>
           <div className="flex flex-wrap gap-2">
-            {COMMON_DEAL_BREAKERS.map((d) => (
+            {CHRISTIAN_DEAL_BREAKERS.map((d) => (
               <button
                 key={d}
                 type="button"

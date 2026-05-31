@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
+import { planBySlug } from "@/lib/membership/plans";
 import type { PaymentRecord, StartPaymentInput } from "./provider";
 import { tinypesaStkPush } from "./tinypesa";
 
@@ -69,6 +70,15 @@ export async function markPaymentSucceeded(
       .update(schema.hearthBookings)
       .set({ status: "confirmed" })
       .where(eq(schema.hearthBookings.id, pay.subjectId));
+  }
+  if (pay && pay.subjectKind === "subscription") {
+    const plan = planBySlug(pay.subjectId);
+    if (plan) {
+      await db
+        .update(schema.users)
+        .set({ tier: plan.tier, updatedAt: new Date() })
+        .where(eq(schema.users.id, pay.userId));
+    }
   }
 
   return pay;
