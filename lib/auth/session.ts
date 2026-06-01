@@ -12,13 +12,66 @@ export async function getSession() {
 }
 
 export async function getCurrentUser() {
+  const h = await headers();
   const session = await getSession();
-  if (!session?.user) return null;
+  if (!session?.user) {
+    // #region agent log
+    void fetch(
+      "http://127.0.0.1:7405/ingest/eb375903-b24c-4ad4-9d65-edd096cd3d7f",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Debug-Session-Id": "5e1951",
+        },
+        body: JSON.stringify({
+          sessionId: "5e1951",
+          runId: "repro-1",
+          hypothesisId: "B",
+          location: "session.ts:getCurrentUser:noSession",
+          message: "getSession returned no user",
+          data: {
+            pathname: h.get("x-pathname"),
+            isRsc: h.get("RSC") === "1",
+            hasCookieHeader: Boolean(h.get("cookie")),
+          },
+          timestamp: Date.now(),
+        }),
+      },
+    ).catch(() => {});
+    // #endregion
+    return null;
+  }
   const [user] = await db
     .select()
     .from(schema.users)
     .where(eq(schema.users.id, session.user.id))
     .limit(1);
+  // #region agent log
+  void fetch(
+    "http://127.0.0.1:7405/ingest/eb375903-b24c-4ad4-9d65-edd096cd3d7f",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "5e1951",
+      },
+      body: JSON.stringify({
+        sessionId: "5e1951",
+        runId: "repro-1",
+        hypothesisId: "C",
+        location: "session.ts:getCurrentUser:dbLookup",
+        message: "session user db lookup result",
+        data: {
+          pathname: h.get("x-pathname"),
+          hasDbUser: Boolean(user),
+          isRsc: h.get("RSC") === "1",
+        },
+        timestamp: Date.now(),
+      }),
+    },
+  ).catch(() => {});
+  // #endregion
   return user ?? null;
 }
 

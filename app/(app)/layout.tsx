@@ -23,9 +23,13 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const h = await headers();
+  const isRouterPrefetch = h.get("Next-Router-Prefetch") === "1";
   const user = await getCurrentUser();
   if (!user) {
-    const h = await headers();
+    if (isRouterPrefetch) {
+      return <div className="min-h-screen" aria-hidden="true" />;
+    }
     const pathname = h.get("x-pathname");
     redirect(
       pathname
@@ -79,6 +83,7 @@ export default async function AppLayout({
               <Link
                 key={n.href}
                 href={n.href}
+                prefetch={false}
                 className="block rounded-xl px-3 py-2 text-sm text-plum-900/80 hover:bg-plum-900/5 hover:text-plum-900"
               >
                 {n.label}
