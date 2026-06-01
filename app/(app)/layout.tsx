@@ -6,6 +6,7 @@ import { db, schema } from "@/db";
 import { getCurrentUser } from "@/lib/auth";
 import { isRouterPrefetchRequest } from "@/lib/auth/request-kind";
 import { AppLink } from "@/components/nav/app-link";
+import { SignOutButton } from "@/components/nav/sign-out-button";
 
 export const dynamic = "force-dynamic";
 
@@ -115,12 +116,7 @@ export default async function AppLayout({
                 Host portal
               </AppLink>
             )}
-            <AppLink
-              href="/logout"
-              className="mt-2 block rounded-xl px-3 py-2 text-sm text-plum-900/50 hover:text-plum-900"
-            >
-              Sign out
-            </AppLink>
+            <SignOutButton className="mt-2 block w-full text-left rounded-xl px-3 py-2 text-sm text-plum-900/50 hover:text-plum-900" />
           </nav>
         </aside>
         <main className="flex-1 min-w-0">{children}</main>

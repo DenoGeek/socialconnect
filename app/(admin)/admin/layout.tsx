@@ -1,4 +1,5 @@
 import { AppLink } from "@/components/nav/app-link";
+import { SignOutButton } from "@/components/nav/sign-out-button";
 import { requireAdmin } from "@/lib/auth";
 
 const NAV = [
@@ -41,12 +42,7 @@ export default async function AdminLayout({
                 {n.label}
               </AppLink>
             ))}
-            <AppLink
-              href="/logout"
-              className="mt-4 block rounded-xl px-3 py-2 text-sm text-plum-900/50 hover:text-plum-900"
-            >
-              Sign out
-            </AppLink>
+            <SignOutButton className="mt-4 block w-full text-left rounded-xl px-3 py-2 text-sm text-plum-900/50 hover:text-plum-900" />
           </nav>
         </aside>
         <main className="flex-1 min-w-0">{children}</main>
