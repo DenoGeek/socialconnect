@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/nav/app-link";
 import { requireFacilitator } from "@/lib/auth";
 
 const NAV = [
@@ -19,31 +19,31 @@ export default async function FacilitatorLayout({
     <div className="min-h-screen bg-plum-50">
       <div className="mx-auto flex max-w-7xl gap-8 px-4 py-6">
         <aside className="hidden md:block w-56 shrink-0">
-          <Link
+          <AppLink
             href="/facilitator"
             className="block text-display text-2xl text-plum-900 mb-2"
           >
             The Lab
-          </Link>
+          </AppLink>
           <p className="text-xs uppercase tracking-widest text-plum-900/50 mb-6">
             {user.email}
           </p>
           <nav className="space-y-1">
             {NAV.map((n) => (
-              <Link
+              <AppLink
                 key={n.href}
                 href={n.href}
                 className="block rounded-xl px-3 py-2 text-sm text-plum-900/80 hover:bg-plum-900/5 hover:text-plum-900"
               >
                 {n.label}
-              </Link>
+              </AppLink>
             ))}
-            <Link
+            <AppLink
               href="/logout"
               className="mt-4 block rounded-xl px-3 py-2 text-sm text-plum-900/50 hover:text-plum-900"
             >
               Sign out
-            </Link>
+            </AppLink>
           </nav>
         </aside>
         <main className="flex-1 min-w-0">{children}</main>

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/nav/app-link";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
@@ -53,18 +53,18 @@ export default async function MyEvents() {
               {purchase.status.replace("_", " ")}
             </Badge>
             <div className="mt-4 flex flex-wrap gap-3">
-              <Link
+              <AppLink
                 href={`/events/me/${purchase.id}`}
                 className="text-sm underline text-plum-900"
               >
                 View ticket & QR →
-              </Link>
-              <Link
+              </AppLink>
+              <AppLink
                 href={`/events/${event.slug}/toolkit`}
                 className="text-sm underline text-plum-900"
               >
                 Event toolkit →
-              </Link>
+              </AppLink>
             </div>
           </Card>
         ))}

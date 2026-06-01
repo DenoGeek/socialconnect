@@ -32,6 +32,8 @@ export function LoginForm({
       setErr(formatAuthError(error.message));
       return;
     }
+    // Ensure Set-Cookie is applied before the protected document request (see register-form).
+    await authClient.getSession();
     window.location.assign(sp.redirect ?? "/profile");
   }
 

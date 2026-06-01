@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/nav/app-link";
 import { notFound } from "next/navigation";
 import { eq, asc } from "drizzle-orm";
 import { db, schema } from "@/db";
@@ -87,12 +87,12 @@ export default async function ProgramDetail({
               </span>
               <span className="text-plum-900">{l.title}</span>
               {l.connectionBoxUrl && (
-                <Link
+                <AppLink
                   href={l.connectionBoxUrl}
                   className="ml-3 text-xs underline text-plum-900/70"
                 >
                   Connection Box →
-                </Link>
+                </AppLink>
               )}
             </li>
           ))}
@@ -110,9 +110,9 @@ export default async function ProgramDetail({
           </Button>
         </form>
       ) : (
-        <Link href="/programs/me">
+        <AppLink href="/programs/me">
           <Button variant="outline">View my journey</Button>
-        </Link>
+        </AppLink>
       )}
     </div>
   );

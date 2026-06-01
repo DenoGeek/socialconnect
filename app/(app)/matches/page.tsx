@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/nav/app-link";
 import { eq, or, desc } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
@@ -52,18 +52,18 @@ export default async function MatchesPage() {
                   {match.sharedIntents.length === 1 ? "" : "s"}
                 </CardSubtitle>
                 <div className="mt-4 flex gap-3 flex-wrap">
-                  <Link
+                  <AppLink
                     href={`/matches/${match.id}`}
                     className="text-sm underline text-plum-900"
                   >
                     View match →
-                  </Link>
-                  <Link
+                  </AppLink>
+                  <AppLink
                     href={`/matches/${match.id}/feedback`}
                     className="text-sm underline text-plum-900/70"
                   >
                     Bridge feedback →
-                  </Link>
+                  </AppLink>
                 </div>
                 <p className="text-xs text-plum-900/40 mt-3">{otherId}</p>
               </Card>

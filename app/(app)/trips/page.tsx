@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/nav/app-link";
 import { and, eq, gte } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
@@ -33,35 +33,35 @@ export default async function Trips({
       </header>
 
       <div className="flex flex-wrap gap-2 text-sm">
-        <Link
+        <AppLink
           href="/trips"
           className={`rounded-full px-3 py-1.5 ${!sp.scope ? "bg-plum-900 text-plum-100" : "bg-plum-900/5"}`}
         >
           All
-        </Link>
-        <Link
+        </AppLink>
+        <AppLink
           href="/trips?scope=group"
           className={`rounded-full px-3 py-1.5 ${sp.scope === "group" ? "bg-plum-900 text-plum-100" : "bg-plum-900/5"}`}
         >
           Group
-        </Link>
-        <Link
+        </AppLink>
+        <AppLink
           href="/trips?scope=private"
           className={`rounded-full px-3 py-1.5 ${sp.scope === "private" ? "bg-plum-900 text-plum-100" : "bg-plum-900/5"}`}
         >
           Private
-        </Link>
-        <Link
+        </AppLink>
+        <AppLink
           href="/trips?curriculum=1"
           className={`rounded-full px-3 py-1.5 ${sp.curriculum === "1" ? "bg-plum-900 text-plum-100" : "bg-plum-900/5"}`}
         >
           With curriculum
-        </Link>
+        </AppLink>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         {rows.map((t) => (
-          <Link key={t.id} href={`/trips/${t.slug}`}>
+          <AppLink key={t.id} href={`/trips/${t.slug}`}>
             <article className="rounded-3xl overflow-hidden bg-white border border-plum-900/8 shadow-sm hover:shadow-md transition">
               <div
                 className="h-44 bg-cover bg-center bg-plum-900"
@@ -91,7 +91,7 @@ export default async function Trips({
                 </p>
               </div>
             </article>
-          </Link>
+          </AppLink>
         ))}
       </div>
     </div>

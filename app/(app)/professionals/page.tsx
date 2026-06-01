@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/nav/app-link";
 import { and, eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
@@ -44,7 +44,7 @@ export default async function Professionals({
       </header>
 
       <div className="flex flex-wrap gap-2 text-sm">
-        <Link
+        <AppLink
           href="/professionals"
           className={`rounded-full px-3 py-1.5 ${
             !sp.specialty
@@ -53,9 +53,9 @@ export default async function Professionals({
           }`}
         >
           All
-        </Link>
+        </AppLink>
         {SPECIALTIES.map((s) => (
-          <Link
+          <AppLink
             key={s}
             href={`/professionals?specialty=${encodeURIComponent(s)}`}
             className={`rounded-full px-3 py-1.5 ${
@@ -65,13 +65,13 @@ export default async function Professionals({
             }`}
           >
             {s}
-          </Link>
+          </AppLink>
         ))}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         {rows.map((p) => (
-          <Link key={p.id} href={`/professionals/${p.id}`}>
+          <AppLink key={p.id} href={`/professionals/${p.id}`}>
             <Card>
               <CardTitle>{p.fullName}</CardTitle>
               <CardSubtitle>{p.city ?? "Online"}</CardSubtitle>
@@ -86,7 +86,7 @@ export default async function Professionals({
                 )}
               </div>
             </Card>
-          </Link>
+          </AppLink>
         ))}
       </div>
     </div>

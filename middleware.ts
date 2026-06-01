@@ -1,25 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
-
-const PROTECTED_PREFIXES = [
-  "/profile",
-  "/events",
-  "/events/me",
-  "/matches",
-  "/concierge",
-  "/programs",
-  "/residential",
-  "/professionals",
-  "/trips",
-  "/duo",
-  "/date-vault",
-  "/admin",
-  "/facilitator",
-];
+import { isAuthSoftRequest } from "@/lib/auth/request-kind";
+import { PROTECTED_PATH_PREFIXES } from "@/lib/nav/protected-paths";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const isProtected = PROTECTED_PREFIXES.some(
+  const isProtected = PROTECTED_PATH_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`),
   );
   if (!isProtected) return NextResponse.next();
@@ -27,13 +13,12 @@ export async function middleware(req: NextRequest) {
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-pathname", pathname);
 
-  // Router prefetch often omits cookies in production; do not redirect here.
-  const isRouterPrefetch = req.headers.get("Next-Router-Prefetch") === "1";
-  if (isRouterPrefetch) {
+  // Prefetch/RSC often omits cookies in production; do not 307 (poisons client router).
+  if (isAuthSoftRequest(req.headers)) {
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
-  // Lightweight cookie check only; full session validation runs in layouts/pages.
+  // Lightweight cookie check on document navigations; full validation in layouts/pages.
   const hasCookie = Boolean(getSessionCookie(req.headers));
   if (!hasCookie) {
     const url = req.nextUrl.clone();

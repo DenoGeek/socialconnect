@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/nav/app-link";
 import { notFound } from "next/navigation";
 import { and, eq, inArray, or } from "drizzle-orm";
 import { db, schema } from "@/db";
@@ -137,9 +137,9 @@ export default async function MatchDetail({
                 <Badge tone="teal">Code: {u.deal.discountCode}</Badge>
               )}
             </div>
-            <Link href={`/date-vault/${u.deal.id}/redeem?matchId=${match.id}`}>
+            <AppLink href={`/date-vault/${u.deal.id}/redeem?matchId=${match.id}`}>
               <Button className="mt-4">Swipe to redeem</Button>
-            </Link>
+            </AppLink>
             <p className="text-xs text-plum-900/40 mt-3">
               {u.upsell.reasoning}
             </p>
@@ -156,9 +156,9 @@ export default async function MatchDetail({
           <CardSubtitle>
             The Agano Ascent pre-marital course is ready when you are.
           </CardSubtitle>
-          <Link href="/programs?kind=agano_ascent">
+          <AppLink href="/programs?kind=agano_ascent">
             <Button className="mt-4">Explore Ascent</Button>
-          </Link>
+          </AppLink>
         </Card>
       )}
     </article>

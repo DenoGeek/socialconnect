@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AppLink } from "@/components/nav/app-link";
 import { count, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { Button } from "@/components/ui/button";
@@ -38,11 +39,11 @@ export default async function MarketingHome() {
                 Begin your journey
               </Button>
             </Link>
-            <Link href="/events">
+            <AppLink href="/events">
               <Button variant="outline" size="lg" className="bg-white/10 border-plum-100/30 text-plum-100 hover:bg-white/20">
                 Explore the Pulse
               </Button>
-            </Link>
+            </AppLink>
           </div>
         </div>
       </section>
@@ -117,17 +118,20 @@ function Tier({
       : tone === "mint"
         ? "from-mint to-teal text-plum-900"
         : "from-amber to-[#e29c2c] text-plum-900";
+  const inner = (
+    <div
+      className={`rounded-3xl p-8 bg-gradient-to-br ${toneClass} h-full transition hover:-translate-y-1`}
+    >
+      <h3 className="text-display text-2xl mb-3">{name}</h3>
+      <p className="opacity-80 text-sm leading-relaxed mb-6">{body}</p>
+      <span className="text-sm font-medium underline-offset-4 underline">
+        {cta} →
+      </span>
+    </div>
+  );
   return (
-    <Link href={href} className="block">
-      <div
-        className={`rounded-3xl p-8 bg-gradient-to-br ${toneClass} h-full transition hover:-translate-y-1`}
-      >
-        <h3 className="text-display text-2xl mb-3">{name}</h3>
-        <p className="opacity-80 text-sm leading-relaxed mb-6">{body}</p>
-        <span className="text-sm font-medium underline-offset-4 underline">
-          {cta} →
-        </span>
-      </div>
-    </Link>
+    <AppLink href={href} className="block">
+      {inner}
+    </AppLink>
   );
 }

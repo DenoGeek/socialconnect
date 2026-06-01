@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/nav/app-link";
 import { desc, eq, ilike, or, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireAdmin } from "@/lib/auth";
@@ -91,12 +91,12 @@ export default async function AdminUsers({
                   )}
                 </td>
                 <td>
-                  <Link
+                  <AppLink
                     href={`/admin/users/${user.id}`}
                     className="text-xs underline text-plum-900"
                   >
                     Open →
-                  </Link>
+                  </AppLink>
                 </td>
               </tr>
             ))}

@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { eq, and } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { getCurrentUser } from "@/lib/auth";
+import { isRouterPrefetchRequest } from "@/lib/auth/request-kind";
+import { AppLink } from "@/components/nav/app-link";
 
 export const dynamic = "force-dynamic";
 
@@ -26,10 +28,9 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const h = await headers();
-  const isRouterPrefetch = h.get("Next-Router-Prefetch") === "1";
   const user = await getCurrentUser();
   if (!user) {
-    if (isRouterPrefetch) {
+    if (isRouterPrefetchRequest(h)) {
       return <div className="min-h-screen" aria-hidden="true" />;
     }
     const pathname = h.get("x-pathname");
@@ -82,45 +83,44 @@ export default async function AppLayout({
           </Link>
           <nav className="space-y-1">
             {NAV.map((n) => (
-              <Link
+              <AppLink
                 key={n.href}
                 href={n.href}
-                prefetch={false}
                 className="block rounded-xl px-3 py-2 text-sm text-plum-900/80 hover:bg-plum-900/5 hover:text-plum-900"
               >
                 {n.label}
-              </Link>
+              </AppLink>
             ))}
             {(user.role === "admin" || user.role === "super_admin" || user.role === "concierge") && (
-              <Link
+              <AppLink
                 href="/admin"
                 className="mt-4 block rounded-xl bg-plum-900 px-3 py-2 text-sm font-medium text-plum-100"
               >
                 Admin
-              </Link>
+              </AppLink>
             )}
             {user.role === "facilitator" && (
-              <Link
+              <AppLink
                 href="/facilitator"
                 className="mt-4 block rounded-xl bg-mint px-3 py-2 text-sm font-medium text-plum-900"
               >
                 The Lab
-              </Link>
+              </AppLink>
             )}
             {user.role === "host" && (
-              <Link
+              <AppLink
                 href="/host"
                 className="mt-4 block rounded-xl bg-teal px-3 py-2 text-sm font-medium text-white"
               >
                 Host portal
-              </Link>
+              </AppLink>
             )}
-            <Link
+            <AppLink
               href="/logout"
               className="mt-2 block rounded-xl px-3 py-2 text-sm text-plum-900/50 hover:text-plum-900"
             >
               Sign out
-            </Link>
+            </AppLink>
           </nav>
         </aside>
         <main className="flex-1 min-w-0">{children}</main>

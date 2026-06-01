@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/nav/app-link";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
@@ -38,9 +38,9 @@ export default async function ProfilePage() {
             Step {profile?.onboardingProgress ?? 0}: Map your values, lifestyle,
             and deal-breakers so the matching engine can read you.
           </CardSubtitle>
-          <Link href="/profile/onboarding">
+          <AppLink href="/profile/onboarding">
             <Button className="mt-4">Continue onboarding</Button>
-          </Link>
+          </AppLink>
         </Card>
       )}
 
@@ -91,20 +91,20 @@ export default async function ProfilePage() {
           <dd className="text-plum-900">
             {tierDisplayName(user.tier)}
             {" · "}
-            <Link href="/profile/membership" className="underline text-sm">
+            <AppLink href="/profile/membership" className="underline text-sm">
               Upgrade
-            </Link>
+            </AppLink>
           </dd>
           <dt className="text-plum-900/50">Mode</dt>
           <dd className="text-plum-900 capitalize">{user.mode}</dd>
         </dl>
         <div className="mt-6 flex gap-3">
-          <Link href="/profile/onboarding">
+          <AppLink href="/profile/onboarding">
             <Button variant="outline">Edit psychometric</Button>
-          </Link>
-          <Link href="/profile/mode">
+          </AppLink>
+          <AppLink href="/profile/mode">
             <Button variant="ghost">Switch mode</Button>
-          </Link>
+          </AppLink>
         </div>
       </Card>
     </div>

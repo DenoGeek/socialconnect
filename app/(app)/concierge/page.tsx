@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/nav/app-link";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
@@ -35,11 +35,11 @@ export default async function ConciergeIndex() {
               ? "On duty — typically replies within an hour."
               : "Off duty — replies will arrive within 24 hours."}
           </CardSubtitle>
-          <Link href="/concierge/thread">
+          <AppLink href="/concierge/thread">
             <Button variant="elite" className="mt-4">
               Open thread
             </Button>
-          </Link>
+          </AppLink>
         </Card>
       ) : (
         <Card>
@@ -47,9 +47,9 @@ export default async function ConciergeIndex() {
           <CardSubtitle>
             3 fields. No profile required. We&rsquo;ll reach out within 24 hours.
           </CardSubtitle>
-          <Link href="/concierge/intake">
+          <AppLink href="/concierge/intake">
             <Button className="mt-4">Reserve</Button>
-          </Link>
+          </AppLink>
         </Card>
       )}
     </div>

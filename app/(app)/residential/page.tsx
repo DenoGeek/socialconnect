@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/nav/app-link";
 import { and, eq, ilike, gte, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
@@ -83,7 +83,7 @@ export default async function ResidentialIndex({
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {rows.map((p) => (
-          <Link key={p.id} href={`/residential/${p.slug}`} className="group block">
+          <AppLink key={p.id} href={`/residential/${p.slug}`} className="group block">
             <article className="rounded-3xl overflow-hidden bg-white border border-plum-900/8 shadow-sm hover:shadow-md transition">
               <div
                 className="h-44 bg-cover bg-center bg-plum-900"
@@ -110,7 +110,7 @@ export default async function ResidentialIndex({
                 </p>
               </div>
             </article>
-          </Link>
+          </AppLink>
         ))}
         {rows.length === 0 && (
           <Card>

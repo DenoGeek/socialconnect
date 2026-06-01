@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/nav/app-link";
 import { desc, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireAdmin } from "@/lib/auth";
@@ -42,12 +42,12 @@ export default async function ConciergeInbox() {
               </div>
               <div className="flex items-center gap-2">
                 {t.user.tier === "elite" && <Badge tone="amber">High</Badge>}
-                <Link
+                <AppLink
                   href={`/admin/concierge/${t.thread.id}`}
                   className="text-xs underline text-plum-900"
                 >
                   Open →
-                </Link>
+                </AppLink>
               </div>
             </li>
           ))}

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/nav/app-link";
 import { and, eq, gte, count, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
@@ -87,7 +87,7 @@ export default async function PulseHub() {
           const remaining = Math.max(c.total - c.sold, 0);
           const last3 = remaining <= 3 && remaining > 0;
           return (
-            <Link key={e.id} href={`/events/${e.slug}`} className="group block">
+            <AppLink key={e.id} href={`/events/${e.slug}`} className="group block">
               <article className="overflow-hidden rounded-3xl bg-white shadow-sm border border-plum-900/8 hover:shadow-md transition">
                 <div
                   className="h-48 bg-cover bg-center bg-plum-900"
@@ -120,7 +120,7 @@ export default async function PulseHub() {
                   </p>
                 </div>
               </article>
-            </Link>
+            </AppLink>
           );
         })}
       </div>

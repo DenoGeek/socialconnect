@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/nav/app-link";
 import { notFound } from "next/navigation";
 import { and, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
@@ -117,12 +117,12 @@ export default async function EventPage({
                   </div>
                   {last3 && <Badge tone="amber">Only {remaining} left</Badge>}
                 </div>
-                <Link
+                <AppLink
                   href={`/events/${event.slug}/buy?ticketId=${t.id}`}
                   className="block mt-4"
                 >
                   <Button className="w-full">Purchase</Button>
-                </Link>
+                </AppLink>
               </Card>
             );
           })}

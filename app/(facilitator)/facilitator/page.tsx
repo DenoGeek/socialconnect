@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/nav/app-link";
 import { eq, inArray } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireFacilitator } from "@/lib/auth";
@@ -60,7 +60,7 @@ export default async function FacilitatorLab() {
 
       <div className="grid gap-4 md:grid-cols-2">
         {cohorts.map(({ cohort, program }) => (
-          <Link
+          <AppLink
             key={cohort.id}
             href={`/facilitator/cohorts/${cohort.id}`}
             className="block"
@@ -73,7 +73,7 @@ export default async function FacilitatorLab() {
                 {new Date(cohort.startsOn).toLocaleDateString("en-GB")}
               </CardSubtitle>
             </Card>
-          </Link>
+          </AppLink>
         ))}
         {cohorts.length === 0 && (
           <Card>

@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/purity */
-import Link from "next/link";
+import { AppLink } from "@/components/nav/app-link";
 import { count, eq, gte, sql, desc } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireAdmin } from "@/lib/auth";
@@ -117,12 +117,12 @@ export default async function CommandDashboard() {
                     · {e.city ?? "—"}
                   </p>
                 </div>
-                <Link
+                <AppLink
                   href={`/admin/events/${e.id}/scan`}
                   className="text-xs underline text-plum-900"
                 >
                   Check-in →
-                </Link>
+                </AppLink>
               </li>
             ))}
             {upcoming.length === 0 && (

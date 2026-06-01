@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/nav/app-link";
 import { and, eq, gt, isNull, or } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
@@ -41,7 +41,7 @@ export default async function DateVault() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {rows.map(({ deal, partner }) => (
-          <Link key={deal.id} href={`/date-vault/${deal.id}`}>
+          <AppLink key={deal.id} href={`/date-vault/${deal.id}`}>
             <article className="rounded-3xl overflow-hidden bg-white border border-plum-900/8 shadow-sm hover:shadow-md transition">
               <div
                 className="h-40 bg-cover bg-center bg-plum-900"
@@ -73,7 +73,7 @@ export default async function DateVault() {
                 </div>
               </div>
             </article>
-          </Link>
+          </AppLink>
         ))}
         {rows.length === 0 && (
           <Card>

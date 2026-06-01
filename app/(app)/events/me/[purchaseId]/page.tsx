@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { AppLink } from "@/components/nav/app-link";
 import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
@@ -79,11 +79,11 @@ export default async function TicketPage({
           <CardSubtitle className="text-plum-100/60 mt-2">
             Your real name is hidden until a mutual match.
           </CardSubtitle>
-          <Link href={`/events/me/${row.purchase.id}/alias-badge`}>
+          <AppLink href={`/events/me/${row.purchase.id}/alias-badge`}>
             <Button variant="elite" className="mt-4">
               Export Story badge
             </Button>
-          </Link>
+          </AppLink>
         </Card>
       )}
 
@@ -93,12 +93,12 @@ export default async function TicketPage({
           Icebreakers, blind responses, and a private notes log unlock at the
           venue.
         </CardSubtitle>
-        <Link
+        <AppLink
           href={`/events/${row.event.slug}/toolkit`}
           className="mt-3 inline-block underline text-plum-900 text-sm"
         >
           Open the toolkit →
-        </Link>
+        </AppLink>
       </Card>
     </div>
   );

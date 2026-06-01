@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/nav/app-link";
 import { desc } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireAdmin } from "@/lib/auth";
@@ -20,9 +20,9 @@ export default async function AdminEvents() {
           <h1 className="text-display text-3xl text-plum-900">Events</h1>
           <p className="text-sm text-plum-900/60">CMS for Pulse retreats.</p>
         </div>
-        <Link href="/admin/events/new">
+        <AppLink href="/admin/events/new">
           <Button>New event</Button>
-        </Link>
+        </AppLink>
       </header>
 
       <Card>
@@ -61,18 +61,18 @@ export default async function AdminEvents() {
                   )}
                 </td>
                 <td className="space-x-2">
-                  <Link
+                  <AppLink
                     href={`/admin/events/${e.id}/edit`}
                     className="text-xs underline text-plum-900"
                   >
                     Edit
-                  </Link>
-                  <Link
+                  </AppLink>
+                  <AppLink
                     href={`/admin/events/${e.id}/scan`}
                     className="text-xs underline text-plum-900"
                   >
                     Check-in
-                  </Link>
+                  </AppLink>
                 </td>
               </tr>
             ))}

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/nav/app-link";
 import { and, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
@@ -48,7 +48,7 @@ export default async function ProgramsPage({
           { v: "marital_legacy", l: "Marital Legacy" },
           { v: "parental_legacy", l: "Parental Legacy" },
         ].map((b) => (
-          <Link
+          <AppLink
             key={b.v}
             href={`/programs${b.v ? `?kind=${b.v}` : ""}`}
             className={`rounded-full px-3 py-1.5 ${
@@ -58,13 +58,13 @@ export default async function ProgramsPage({
             }`}
           >
             {b.l}
-          </Link>
+          </AppLink>
         ))}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         {rows.map(({ program, institution }) => (
-          <Link key={program.id} href={`/programs/${program.id}`}>
+          <AppLink key={program.id} href={`/programs/${program.id}`}>
             <Card>
               <Badge tone="amber">{program.kind.replaceAll("_", " ")}</Badge>
               <CardTitle className="mt-2">{program.title}</CardTitle>
@@ -78,7 +78,7 @@ export default async function ProgramsPage({
                 </p>
               )}
             </Card>
-          </Link>
+          </AppLink>
         ))}
       </div>
     </div>

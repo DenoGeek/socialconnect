@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/nav/app-link";
 import { notFound } from "next/navigation";
 import { and, eq, not } from "drizzle-orm";
 import { db, schema } from "@/db";
@@ -88,12 +88,12 @@ export default async function ImpressionsPage({
           <CardSubtitle>
             You&rsquo;ll see any matches in the matches page.
           </CardSubtitle>
-          <Link
+          <AppLink
             href="/matches"
             className="mt-3 inline-block underline text-plum-900"
           >
             View my matches →
-          </Link>
+          </AppLink>
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
@@ -125,12 +125,12 @@ export default async function ImpressionsPage({
                     {already ? "Opted in" : "Opt in"}
                   </Button>
                 </form>
-                <Link
+                <AppLink
                   href={`/matches/impressions/${event.slug}/about/${a.assignment.id}`}
                   className="mt-2 inline-block text-xs underline text-plum-900/70"
                 >
                   See what they&rsquo;re about →
-                </Link>
+                </AppLink>
               </Card>
             );
           })}

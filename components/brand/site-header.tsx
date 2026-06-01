@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
+import { AppLink } from "@/components/nav/app-link";
 
 export async function SiteHeader() {
   const user = await getCurrentUser();
@@ -13,31 +14,30 @@ export async function SiteHeader() {
           Evermore
         </Link>
         <nav className="hidden md:flex items-center gap-7 text-sm text-plum-900/70">
-          <Link href="/events" prefetch={false} className="hover:text-plum-900">
+          <AppLink href="/events" className="hover:text-plum-900">
             Pulse
-          </Link>
-          <Link href="/residential" prefetch={false} className="hover:text-plum-900">
+          </AppLink>
+          <AppLink href="/residential" className="hover:text-plum-900">
             Hearth
-          </Link>
-          <Link href="/date-vault" prefetch={false} className="hover:text-plum-900">
+          </AppLink>
+          <AppLink href="/date-vault" className="hover:text-plum-900">
             Date Vault
-          </Link>
-          <Link href="/programs" prefetch={false} className="hover:text-plum-900">
+          </AppLink>
+          <AppLink href="/programs" className="hover:text-plum-900">
             Ascent
-          </Link>
-          <Link href="/concierge" prefetch={false} className="hover:text-plum-900">
+          </AppLink>
+          <AppLink href="/concierge" className="hover:text-plum-900">
             Concierge
-          </Link>
+          </AppLink>
         </nav>
         <div className="flex items-center gap-3">
           {user ? (
-            <Link
+            <AppLink
               href="/profile"
-              prefetch={false}
               className="text-sm text-plum-900 underline-offset-4 hover:underline"
             >
               {user.name?.split(" ")[0] ?? "Profile"}
-            </Link>
+            </AppLink>
           ) : (
             <>
               <Link
