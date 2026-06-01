@@ -5,6 +5,8 @@ import { eq, and } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { getCurrentUser } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 const NAV = [
   { href: "/profile", label: "Profile" },
   { href: "/profile/membership", label: "Membership" },
