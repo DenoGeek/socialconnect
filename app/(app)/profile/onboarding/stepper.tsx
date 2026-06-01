@@ -170,12 +170,13 @@ export function OnboardingStepper({
         <div className="space-y-4">
           <h2 className="text-display text-2xl text-plum-900">Tell us who you are</h2>
           <div>
-            <Label>Display name (your nickname on Evermore)</Label>
+            <Label htmlFor="displayName">Display name (your nickname on Evermore)</Label>
             <p className="text-xs text-plum-900/50 mb-2">
               This is how you appear at events and to matches — not your legal
               name. Pick a suggestion or type your own.
             </p>
             <Input
+              id="displayName"
               value={data.displayName}
               list="display-name-suggestions"
               onChange={(e) =>
@@ -204,23 +205,26 @@ export function OnboardingStepper({
             </div>
           </div>
           <div>
-            <Label>City</Label>
+            <Label htmlFor="city">City</Label>
             <Input
+              id="city"
               value={data.city}
               onChange={(e) => setData((d) => ({ ...d, city: e.target.value }))}
               placeholder="Nairobi"
             />
           </div>
           <div>
-            <Label>A short bio</Label>
+            <Label htmlFor="bio">A short bio</Label>
             <Textarea
+              id="bio"
               value={data.bio}
               onChange={(e) => setData((d) => ({ ...d, bio: e.target.value }))}
             />
           </div>
           <div>
-            <Label>Your dream date</Label>
+            <Label htmlFor="dreamDate">Your dream date</Label>
             <Textarea
+              id="dreamDate"
               value={data.dreamDate}
               onChange={(e) =>
                 setData((d) => ({ ...d, dreamDate: e.target.value }))

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
@@ -143,4 +144,5 @@ export async function switchMode(form: FormData) {
   });
 
   revalidatePath("/profile");
+  redirect("/profile");
 }

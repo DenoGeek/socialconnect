@@ -24,16 +24,17 @@ export default async function IntakePage() {
         <CardSubtitle>Name, phone, email. That&rsquo;s it.</CardSubtitle>
         <form action={submitIntake} className="mt-4 space-y-3">
           <div>
-            <Label>Full name</Label>
-            <Input name="fullName" required defaultValue={user.name} />
+            <Label htmlFor="fullName">Full name</Label>
+            <Input id="fullName" name="fullName" required defaultValue={user.name} />
           </div>
           <div>
-            <Label>Phone</Label>
-            <Input name="phone" required />
+            <Label htmlFor="phone">Phone</Label>
+            <Input id="phone" name="phone" required />
           </div>
           <div>
-            <Label>Email</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
+              id="email"
               name="email"
               type="email"
               required
@@ -41,8 +42,8 @@ export default async function IntakePage() {
             />
           </div>
           <div>
-            <Label>Anything else? (optional)</Label>
-            <Textarea name="requirements" rows={3} />
+            <Label htmlFor="requirements">Anything else? (optional)</Label>
+            <Textarea id="requirements" name="requirements" rows={3} />
           </div>
           <Button type="submit" className="w-full">
             Reserve

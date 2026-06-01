@@ -57,8 +57,9 @@ export function TripBookingForm({
         </div>
 
         <div>
-          <Label>Installments</Label>
+          <Label htmlFor="installments">Installments</Label>
           <select
+            id="installments"
             name="installmentMonths"
             value={installments}
             onChange={(e) => setInstallments(Number(e.target.value))}
@@ -81,8 +82,8 @@ export function TripBookingForm({
         </div>
 
         <div>
-          <Label>Travel document (passport/visa) — encrypted vault</Label>
-          <Input type="file" name="document" />
+          <Label htmlFor="document">Travel document (passport/visa) — encrypted vault</Label>
+          <Input id="document" type="file" name="document" />
           <p className="text-xs text-plum-900/50 mt-1">
             Files stay encrypted and visible only to you and the Concierge.
           </p>

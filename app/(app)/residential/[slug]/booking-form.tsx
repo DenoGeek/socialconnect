@@ -122,8 +122,9 @@ export function BookingForm({
       <form onSubmit={submit} className="mt-4 space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label>Check-in</Label>
+            <Label htmlFor="checkIn">Check-in</Label>
             <Input
+              id="checkIn"
               type="date"
               value={checkIn}
               onChange={(e) => setCheckIn(e.target.value)}
@@ -131,8 +132,9 @@ export function BookingForm({
             />
           </div>
           <div>
-            <Label>Check-out</Label>
+            <Label htmlFor="checkOut">Check-out</Label>
             <Input
+              id="checkOut"
               type="date"
               value={checkOut}
               onChange={(e) => setCheckOut(e.target.value)}
@@ -140,8 +142,9 @@ export function BookingForm({
             />
           </div>
           <div>
-            <Label>Rooms</Label>
+            <Label htmlFor="rooms">Rooms</Label>
             <Input
+              id="rooms"
               type="number"
               min={1}
               value={rooms}
@@ -149,8 +152,9 @@ export function BookingForm({
             />
           </div>
           <div>
-            <Label>Adults</Label>
+            <Label htmlFor="adults">Adults</Label>
             <Input
+              id="adults"
               type="number"
               min={1}
               value={adults}

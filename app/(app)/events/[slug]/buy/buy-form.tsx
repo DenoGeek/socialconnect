@@ -94,8 +94,9 @@ export function BuyForm({
 
           {currency === "KSH" && (
             <div className="mt-4">
-              <Label>M-Pesa number</Label>
+              <Label htmlFor="phone">M-Pesa number</Label>
               <Input
+                id="phone"
                 name="phone"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}

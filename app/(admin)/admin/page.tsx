@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/purity */
 import Link from "next/link";
 import { count, eq, gte, sql, desc } from "drizzle-orm";
 import { db, schema } from "@/db";

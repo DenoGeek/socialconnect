@@ -46,8 +46,9 @@ export default async function FeedbackPage({
         <form action={saveFeedback} className="mt-4 space-y-3">
           <input type="hidden" name="matchId" value={m.id} />
           <div>
-            <Label>Rating (1–5)</Label>
+            <Label htmlFor="rating">Rating (1–5)</Label>
             <input
+              id="rating"
               name="rating"
               type="number"
               min={1}
@@ -57,8 +58,8 @@ export default async function FeedbackPage({
             />
           </div>
           <div>
-            <Label>Notes</Label>
-            <Textarea name="body" rows={5} />
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea id="notes" name="body" rows={5} />
           </div>
           <Button type="submit">Save</Button>
         </form>

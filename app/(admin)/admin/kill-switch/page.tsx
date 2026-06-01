@@ -25,12 +25,12 @@ export default async function KillSwitch() {
         <CardTitle>Add or update a region</CardTitle>
         <form action={toggleSwitch} className="mt-3 space-y-2">
           <div>
-            <Label>Region (country code)</Label>
-            <Input name="region" placeholder="KE / NG / US" required />
+            <Label htmlFor="region">Region (country code)</Label>
+            <Input id="region" name="region" placeholder="KE / NG / US" required />
           </div>
           <div>
-            <Label>Reason</Label>
-            <Input name="reason" placeholder="Maintenance, incident…" />
+            <Label htmlFor="reason">Reason</Label>
+            <Input id="reason" name="reason" placeholder="Maintenance, incident…" />
           </div>
           <Button type="submit" variant="danger">
             Toggle
