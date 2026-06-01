@@ -44,7 +44,18 @@ services:
     # __drizzle_migrations), so this is a no-op when nothing is pending.
     # If migrations fail the container exits non-zero and Dokploy keeps the
     # previous version healthy via `restart: unless-stopped`.
-    command: sh -c "node scripts/migrate.mjs && node scripts/bootstrap-admin.mjs && node server.js"
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        node scripts/migrate.mjs
+        if [ -f scripts/bootstrap-admin.mjs ]; then
+          node scripts/bootstrap-admin.mjs
+        else
+          echo "[start] scripts/bootstrap-admin.mjs missing — pull a newer image (rebuild GHCR after adding the script)."
+        fi
+        exec node server.js
 
     # Cloudflare Tunnel hits this host:port pair.
     ports:
