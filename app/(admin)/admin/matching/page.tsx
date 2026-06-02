@@ -1,14 +1,14 @@
-import { eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireAdmin } from "@/lib/auth";
 import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { rankCandidatesForUser } from "@/lib/matching/engine";
+import { runMatchingSnapshot } from "./actions";
 
 export default async function MatchingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ userId?: string; mode?: string }>;
+  searchParams: Promise<{ userId?: string; mode?: string; run?: string }>;
 }) {
   await requireAdmin();
   const sp = await searchParams;
@@ -25,13 +25,27 @@ export default async function MatchingPage({
       eq(schema.profiles.userId, schema.users.id),
     );
 
-  let ranking: { candidateId: string; score: number; sharedIntents: string[] }[] =
-    [];
+  let ranking: { candidateId: string; score: number; sharedIntents: string[] }[] = [];
   if (sp.userId) {
-    const candidates = allUsers
-      .filter((u) => u.user.id !== sp.userId && !u.user.banned)
-      .map((u) => u.user.id);
-    ranking = await rankCandidatesForUser(sp.userId, candidates);
+    const snapshots = await db
+      .select()
+      .from(schema.auditLog)
+      .where(
+        and(
+          eq(schema.auditLog.action, "admin.matching.snapshot"),
+          eq(schema.auditLog.target, sp.userId),
+        ),
+      )
+      .orderBy(desc(schema.auditLog.createdAt));
+    const selected =
+      snapshots.find((s) => s.id === sp.run) ??
+      snapshots.find((s) => String((s.diff as Record<string, unknown>)?.mode ?? "normal") === (sp.mode ?? "normal")) ??
+      snapshots[0];
+
+    const savedRanking = (selected?.diff as Record<string, unknown> | undefined)?.ranking;
+    if (Array.isArray(savedRanking)) {
+      ranking = savedRanking as { candidateId: string; score: number; sharedIntents: string[] }[];
+    }
   }
 
   return (
@@ -45,7 +59,7 @@ export default async function MatchingPage({
       </header>
 
       <Card>
-        <form className="flex gap-3 items-end">
+        <form action={runMatchingSnapshot} className="flex gap-3 items-end">
           <div className="flex-1">
             <label className="block text-xs uppercase tracking-widest text-plum-900/50 mb-1">
               Run for user
@@ -71,9 +85,18 @@ export default async function MatchingPage({
             <option value="normal">Normal</option>
             <option value="shadow">Shadow (silent)</option>
           </select>
-          <Button type="submit">Rank</Button>
+          <Button type="submit">{ranking.length > 0 ? "Retry" : "Run"}</Button>
         </form>
       </Card>
+
+      {sp.userId && ranking.length === 0 && (
+        <Card>
+          <CardTitle>No saved ranking yet</CardTitle>
+          <CardSubtitle>
+            Run matching to generate and hold results. Use Retry anytime to refresh.
+          </CardSubtitle>
+        </Card>
+      )}
 
       {ranking.length > 0 && (
         <Card>

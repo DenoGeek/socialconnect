@@ -38,6 +38,7 @@ export default async function OnboardingPage() {
       startAtStep={progress?.currentStep ?? 0}
       profile={{
         displayName: profile?.displayName ?? user.name,
+        phone: profile?.phone ?? "",
         city: profile?.city ?? "",
         bio: profile?.bio ?? "",
         dreamDate: profile?.dreamDate ?? "",

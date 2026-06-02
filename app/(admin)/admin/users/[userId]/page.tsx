@@ -4,6 +4,8 @@ import { db, schema } from "@/db";
 import { requireAdmin } from "@/lib/auth";
 import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { deleteUserAccount, grantDiscountedTicket, updateUserTier } from "../actions";
 
 export default async function AdminUserDetail({
   params,
@@ -31,6 +33,13 @@ export default async function AdminUserDetail({
     .select()
     .from(schema.ticketPurchases)
     .where(eq(schema.ticketPurchases.userId, u.id));
+  const ticketCatalog = await db
+    .select({
+      event: schema.events,
+      ticket: schema.eventTickets,
+    })
+    .from(schema.eventTickets)
+    .innerJoin(schema.events, eq(schema.events.id, schema.eventTickets.eventId));
   const matches = await db
     .select()
     .from(schema.matches)
@@ -53,6 +62,82 @@ export default async function AdminUserDetail({
           {u.banned && <Badge tone="amber">Banned</Badge>}
         </div>
       </header>
+
+      <Card>
+        <CardTitle>Admin controls</CardTitle>
+        <div className="mt-4 space-y-6">
+          <form action={updateUserTier} className="flex flex-wrap items-end gap-2">
+            <input type="hidden" name="userId" value={u.id} />
+            <div>
+              <label className="block text-xs uppercase tracking-widest text-plum-900/50 mb-1">
+                Membership tier
+              </label>
+              <select
+                name="tier"
+                defaultValue={u.tier}
+                className="rounded-2xl border border-plum-900/15 bg-white px-3 py-2 text-sm"
+              >
+                <option value="free">free</option>
+                <option value="explorer">explorer</option>
+                <option value="couple">couple</option>
+                <option value="elite">elite</option>
+                <option value="concierge">concierge</option>
+              </select>
+            </div>
+            <Button type="submit" variant="outline">
+              Save tier
+            </Button>
+          </form>
+
+          <form action={grantDiscountedTicket} className="space-y-2">
+            <input type="hidden" name="userId" value={u.id} />
+            <label className="block text-xs uppercase tracking-widest text-plum-900/50">
+              Grant discounted ticket
+            </label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <select
+                name="ticketId"
+                className="rounded-2xl border border-plum-900/15 bg-white px-3 py-2 text-sm"
+                required
+              >
+                <option value="">Select ticket</option>
+                {ticketCatalog.map(({ event, ticket }) => (
+                  <option key={ticket.id} value={ticket.id}>
+                    {event.title} · {ticket.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                name="currency"
+                defaultValue="KSH"
+                className="rounded-2xl border border-plum-900/15 bg-white px-3 py-2 text-sm"
+              >
+                <option value="KSH">KSH</option>
+                <option value="USD">USD</option>
+              </select>
+              <input
+                name="discountPct"
+                type="number"
+                min={0}
+                max={100}
+                defaultValue={20}
+                className="rounded-2xl border border-plum-900/15 bg-white px-3 py-2 text-sm"
+                placeholder="Discount %"
+              />
+            </div>
+            <Button type="submit" variant="outline">
+              Grant ticket
+            </Button>
+          </form>
+
+          <form action={deleteUserAccount}>
+            <input type="hidden" name="userId" value={u.id} />
+            <Button type="submit" variant="ghost" className="text-red-700">
+              Delete user
+            </Button>
+          </form>
+        </div>
+      </Card>
 
       <Card>
         <CardTitle>Profile</CardTitle>

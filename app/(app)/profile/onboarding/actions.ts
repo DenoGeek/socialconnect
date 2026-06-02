@@ -41,6 +41,7 @@ export async function saveStep(form: FormData): Promise<SaveStepResult> {
   const profileUpdates: Record<string, unknown> = {};
   for (const f of [
     "displayName",
+    "phone",
     "city",
     "bio",
     "dreamDate",

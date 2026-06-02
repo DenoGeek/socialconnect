@@ -83,6 +83,8 @@ export default async function ProfilePage() {
           </dd>
           <dt className="text-plum-900/50">City</dt>
           <dd className="text-plum-900">{profile?.city ?? "—"}</dd>
+          <dt className="text-plum-900/50">Phone</dt>
+          <dd className="text-plum-900">{profile?.phone ?? "—"}</dd>
           <dt className="text-plum-900/50">Spending tier</dt>
           <dd className="text-plum-900 capitalize">
             {profile?.spendingTier ?? "standard"}

@@ -24,6 +24,7 @@ type Question = {
 
 type Profile = {
   displayName: string;
+  phone: string;
   city: string;
   bio: string;
   dreamDate: string;
@@ -106,6 +107,7 @@ export function OnboardingStepper({
     fd.set("totalSteps", String(totalSteps));
     if (opts.finalize) fd.set("finalize", "1");
     fd.set("displayName", data.displayName);
+    fd.set("phone", data.phone);
     fd.set("city", data.city);
     fd.set("bio", data.bio);
     fd.set("dreamDate", data.dreamDate);
@@ -203,6 +205,15 @@ export function OnboardingStepper({
                 </button>
               ))}
             </div>
+          </div>
+          <div>
+            <Label htmlFor="phone">Phone number</Label>
+            <Input
+              id="phone"
+              value={data.phone}
+              onChange={(e) => setData((d) => ({ ...d, phone: e.target.value }))}
+              placeholder="+254..."
+            />
           </div>
           <div>
             <Label htmlFor="city">City</Label>
@@ -499,8 +510,8 @@ export function OnboardingStepper({
           </p>
           <div className="rounded-2xl bg-plum-900/5 p-4 text-sm space-y-2">
             <p>
-              <strong>Name:</strong> {data.displayName} · <strong>City:</strong>{" "}
-              {data.city || "—"}
+              <strong>Name:</strong> {data.displayName} · <strong>Phone:</strong>{" "}
+              {data.phone || "—"} · <strong>City:</strong> {data.city || "—"}
             </p>
             <p>
               <strong>Intent:</strong>{" "}
