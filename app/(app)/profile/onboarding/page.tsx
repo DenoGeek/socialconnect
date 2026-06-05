@@ -1,10 +1,13 @@
 import { asc, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
-import { requireUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { requireUser, canAccessEcosystem } from "@/lib/auth";
 import { OnboardingStepper } from "./stepper";
 
 export default async function OnboardingPage() {
   const user = await requireUser();
+  if (!canAccessEcosystem(user)) redirect("/apply");
+  if (user.pathway === "zahari") redirect("/concierge");
   const questions = await db
     .select()
     .from(schema.psychometricQuestions)

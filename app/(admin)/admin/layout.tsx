@@ -4,8 +4,11 @@ import { requireAdmin } from "@/lib/auth";
 
 const NAV = [
   { href: "/admin", label: "Command" },
+  { href: "/admin/applications", label: "Applications" },
   { href: "/admin/users", label: "Users" },
-  { href: "/admin/hosts", label: "Hosts" },
+  { href: "/admin/hosts", label: "Event hosts" },
+  { href: "/admin/hearth-hosts", label: "Hearth hosts" },
+  { href: "/admin/zahari", label: "Zahari" },
   { href: "/admin/events", label: "Events" },
   { href: "/admin/matching", label: "Matching" },
   { href: "/admin/aliases", label: "Aliases" },

@@ -2,7 +2,14 @@ export type PaymentProvider = "tinypesa" | "mpesa" | "card" | "cytton_mmf" | "ma
 
 export type StartPaymentInput = {
   userId: string;
-  subjectKind: "ticket" | "booking" | "trip" | "professional" | "subscription";
+  subjectKind:
+    | "ticket"
+    | "booking"
+    | "trip"
+    | "professional"
+    | "subscription"
+    | "zahari_sovereign"
+    | "zahari_activation";
   subjectId: string;
   provider: PaymentProvider;
   currency: "KSH" | "USD";

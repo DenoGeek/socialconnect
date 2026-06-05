@@ -69,6 +69,12 @@ export const auth = betterAuth({
       role: { type: "string", required: false, defaultValue: "user" },
       tier: { type: "string", required: false, defaultValue: "free" },
       mode: { type: "string", required: false, defaultValue: "explorer" },
+      pathway: { type: "string", required: false },
+      vettingStatus: {
+        type: "string",
+        required: false,
+        defaultValue: "pending",
+      },
     },
   },
 });

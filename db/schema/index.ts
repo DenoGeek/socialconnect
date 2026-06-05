@@ -11,3 +11,5 @@ export * from "./professionals";
 export * from "./payments";
 export * from "./duo";
 export * from "./audit";
+export * from "./applications";
+export * from "./zahari";

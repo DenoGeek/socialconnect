@@ -1,5 +1,6 @@
 /** Must stay in sync with middleware auth gating. */
 export const PROTECTED_PATH_PREFIXES = [
+  "/apply",
   "/profile",
   "/events",
   "/events/me",

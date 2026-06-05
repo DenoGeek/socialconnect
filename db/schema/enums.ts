@@ -138,3 +138,37 @@ export const aliasModeEnum = pgEnum("alias_mode", [
 ]);
 
 export const tripScopeEnum = pgEnum("trip_scope", ["group", "private"]);
+
+export const memberPathwayEnum = pgEnum("member_pathway", ["amari", "zahari"]);
+
+export const vettingStatusEnum = pgEnum("vetting_status", [
+  "pending",
+  "approved",
+  "rejected",
+]);
+
+export const applicationStatusEnum = pgEnum("application_status", [
+  "draft",
+  "submitted",
+  "in_review",
+  "approved",
+  "rejected",
+]);
+
+export const zahariEngagementStatusEnum = pgEnum("zahari_engagement_status", [
+  "pending_payment",
+  "active",
+  "matched",
+  "completed",
+]);
+
+export const introductionStatusEnum = pgEnum("introduction_status", [
+  "presented",
+  "accepted",
+  "declined",
+  "scheduled",
+  "completed",
+  "cancelled",
+]);
+
+export const eventKindEnum = pgEnum("event_kind", ["social", "pulse_retreat"]);

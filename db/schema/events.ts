@@ -14,6 +14,7 @@ import { sql } from "drizzle-orm";
 import { users } from "./identity";
 import {
   eventStatusEnum,
+  eventKindEnum,
   ticketStatusEnum,
   ticketTierEnum,
   paymentCurrencyEnum,
@@ -44,6 +45,7 @@ export const events = pgTable(
     endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
     capacity: integer("capacity").notNull().default(100),
     eliteOnly: boolean("elite_only").notNull().default(false),
+    kind: eventKindEnum("kind").notNull().default("social"),
     status: eventStatusEnum("status").notNull().default("draft"),
     impressionDeadlineHours: integer("impression_deadline_hours")
       .notNull()

@@ -6,6 +6,7 @@ import { eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { detectContradictions } from "@/lib/intent/badges";
+import { assignAlias } from "@/lib/alias/assign";
 
 export type SaveStepResult = { ok: true; finalized?: boolean };
 
@@ -116,6 +117,11 @@ export async function saveStep(form: FormData): Promise<SaveStepResult> {
     });
 
   if (finalize) {
+    try {
+      await assignAlias({ userId: user.id, eventId: null });
+    } catch {
+      // Pool may be empty; admin can assign manually.
+    }
     revalidatePath("/profile");
     revalidatePath("/profile/onboarding");
     return { ok: true, finalized: true };

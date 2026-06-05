@@ -15,6 +15,8 @@ import {
   userTierEnum,
   userModeEnum,
   intentBadgeEnum,
+  memberPathwayEnum,
+  vettingStatusEnum,
 } from "./enums";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -29,6 +31,10 @@ export const users = pgTable("users", {
   role: userRoleEnum("role").notNull().default("user"),
   tier: userTierEnum("tier").notNull().default("free"),
   mode: userModeEnum("mode").notNull().default("explorer"),
+  pathway: memberPathwayEnum("pathway"),
+  vettingStatus: vettingStatusEnum("vetting_status")
+    .notNull()
+    .default("pending"),
   banned: boolean("banned").notNull().default(false),
   banReason: text("ban_reason"),
   banExpiresAt: timestamp("ban_expires_at", { withTimezone: true }),

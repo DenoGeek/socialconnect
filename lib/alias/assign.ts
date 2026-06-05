@@ -16,6 +16,26 @@ export async function assignAlias(opts: {
 }) {
   const { userId, eventId, forceAliasId } = opts;
 
+  const [user] = await db
+    .select()
+    .from(schema.users)
+    .where(eq(schema.users.id, userId))
+    .limit(1);
+  if (!user || user.vettingStatus !== "approved") {
+    throw new Error("Member not approved for alias assignment");
+  }
+  if (user.pathway === "zahari") {
+    throw new Error("Zahari members remain digitally invisible at events");
+  }
+  const [profile] = await db
+    .select()
+    .from(schema.profiles)
+    .where(eq(schema.profiles.userId, userId))
+    .limit(1);
+  if (!profile?.onboardingCompletedAt) {
+    throw new Error("Complete onboarding before receiving an alias");
+  }
+
   // Idempotency: existing assignment for this (user, event).
   const [existing] = await db
     .select()

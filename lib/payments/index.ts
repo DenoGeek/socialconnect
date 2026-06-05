@@ -80,6 +80,47 @@ export async function markPaymentSucceeded(
         .where(eq(schema.users.id, pay.userId));
     }
   }
+  if (pay && pay.subjectKind === "zahari_sovereign") {
+    await db
+      .update(schema.zahariEngagements)
+      .set({
+        status: "active",
+        sovereignPaidAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.zahariEngagements.id, pay.subjectId));
+  }
+  if (pay && pay.subjectKind === "zahari_activation") {
+    await db
+      .update(schema.zahariEngagements)
+      .set({
+        status: "matched",
+        activationPaidAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.zahariEngagements.id, pay.subjectId));
+  }
 
   return pay;
+}
+
+export async function startZahariPayment(opts: {
+  userId: string;
+  engagementId: string;
+  kind: "zahari_sovereign" | "zahari_activation";
+  amountUsd: number;
+}) {
+  return startPayment({
+    userId: opts.userId,
+    subjectKind: opts.kind,
+    subjectId: opts.engagementId,
+    provider: "manual",
+    currency: "USD",
+    amount: opts.amountUsd,
+    senderDisplayName: "Agano Evermore · Zahari",
+  });
+}
+
+export async function confirmManualPayment(paymentId: string) {
+  return markPaymentSucceeded(paymentId, `manual-${Date.now()}`);
 }

@@ -3,25 +3,35 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { eq, and } from "drizzle-orm";
 import { db, schema } from "@/db";
-import { getCurrentUser } from "@/lib/auth";
+import {
+  getCurrentUser,
+  canAccessEcosystem,
+  isStaffRole,
+} from "@/lib/auth";
 import { isRouterPrefetchRequest } from "@/lib/auth/request-kind";
 import { AppLink } from "@/components/nav/app-link";
 import { SignOutButton } from "@/components/nav/sign-out-button";
 
 export const dynamic = "force-dynamic";
 
-const NAV = [
+const NAV_AMARI = [
   { href: "/profile", label: "Profile" },
-  { href: "/profile/membership", label: "Membership" },
   { href: "/events", label: "Pulse Hub" },
   { href: "/matches", label: "Matches" },
-  { href: "/residential", label: "Hearth" },
   { href: "/date-vault", label: "Date Vault" },
+  { href: "/residential", label: "Hearth" },
   { href: "/programs", label: "Ascent" },
   { href: "/professionals", label: "Professionals" },
-  { href: "/trips", label: "Trips" },
-  { href: "/concierge", label: "Concierge" },
 ];
+
+const NAV_ZAHARI = [
+  { href: "/concierge", label: "Concierge" },
+  { href: "/concierge/introductions", label: "Introductions" },
+  { href: "/programs", label: "Ascent" },
+  { href: "/professionals", label: "Professionals" },
+];
+
+const APPLY_PREFIX = "/apply";
 
 export default async function AppLayout({
   children,
@@ -55,6 +65,16 @@ export default async function AppLayout({
     )
     .limit(1);
 
+  const pathname = h.get("x-pathname") ?? "";
+  const onApplyFlow = pathname.startsWith(APPLY_PREFIX);
+  const ecosystemOk = canAccessEcosystem(user);
+
+  if (!ecosystemOk && !onApplyFlow && !isStaffRole(user.role)) {
+    if (!isRouterPrefetchRequest(h)) {
+      redirect("/apply");
+    }
+  }
+
   if (killed) {
     return (
       <main className="min-h-screen brand-bg flex items-center justify-center p-8">
@@ -69,11 +89,16 @@ export default async function AppLayout({
     );
   }
 
-  // Side bar varies subtly for Elite tier.
-  const isElite = user.tier === "elite";
+  const isZahari = user.pathway === "zahari";
+  const nav =
+    isStaffRole(user.role) || !ecosystemOk
+      ? [{ href: "/apply", label: "Application" }, { href: "/profile", label: "Profile" }]
+      : isZahari
+        ? NAV_ZAHARI
+        : NAV_AMARI;
 
   return (
-    <div className={isElite ? "min-h-screen elite-bg" : "min-h-screen"}>
+    <div className={isZahari ? "min-h-screen elite-bg" : "min-h-screen"}>
       <div className="mx-auto flex max-w-7xl gap-8 px-4 py-6">
         <aside className="hidden md:block w-56 shrink-0">
           <Link
@@ -83,7 +108,7 @@ export default async function AppLayout({
             Evermore
           </Link>
           <nav className="space-y-1">
-            {NAV.map((n) => (
+            {nav.map((n) => (
               <AppLink
                 key={n.href}
                 href={n.href}

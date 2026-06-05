@@ -11,32 +11,35 @@ export async function SiteHeader() {
           href="/"
           className="text-display text-xl text-plum-900 tracking-tight"
         >
-          Evermore
+          Agano Evermore
         </Link>
-        <nav className="hidden md:flex items-center gap-7 text-sm text-plum-900/70">
-          <AppLink href="/events" className="hover:text-plum-900">
-            Pulse
-          </AppLink>
-          <AppLink href="/residential" className="hover:text-plum-900">
-            Hearth
-          </AppLink>
-          <AppLink href="/date-vault" className="hover:text-plum-900">
-            Date Vault
-          </AppLink>
-          <AppLink href="/programs" className="hover:text-plum-900">
-            Ascent
-          </AppLink>
-          <AppLink href="/concierge" className="hover:text-plum-900">
-            Concierge
-          </AppLink>
+        <nav className="hidden md:flex items-center gap-6 text-sm text-plum-900/70">
+          <Link href="/" className="hover:text-plum-900">
+            Home
+          </Link>
+          <Link href="/story" className="hover:text-plum-900">
+            Our Story
+          </Link>
+          <Link href="/ecosystem" className="hover:text-plum-900">
+            Ecosystem
+          </Link>
+          <Link href="/circles" className="hover:text-plum-900">
+            Circles
+          </Link>
+          <Link href="/journey" className="hover:text-plum-900">
+            Journey
+          </Link>
+          <Link href="/resources" className="hover:text-plum-900">
+            Resources
+          </Link>
         </nav>
         <div className="flex items-center gap-3">
           {user ? (
             <AppLink
-              href="/profile"
+              href={user.vettingStatus === "approved" ? "/profile" : "/apply/status"}
               className="text-sm text-plum-900 underline-offset-4 hover:underline"
             >
-              {user.name?.split(" ")[0] ?? "Profile"}
+              Dashboard
             </AppLink>
           ) : (
             <>
@@ -50,7 +53,7 @@ export async function SiteHeader() {
                 href="/register"
                 className="rounded-full bg-plum-900 px-4 py-2 text-sm font-medium text-plum-100 hover:bg-plum-700"
               >
-                Join
+                Create profile
               </Link>
             </>
           )}

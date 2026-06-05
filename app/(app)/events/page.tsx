@@ -8,6 +8,17 @@ import { formatDateRange } from "@/lib/utils/format";
 
 export default async function PulseHub() {
   const user = await requireUser();
+  if (user.pathway === "zahari") {
+    return (
+      <Card>
+        <CardTitle>Evermore events</CardTitle>
+        <CardSubtitle>
+          Zahari members remain digitally invisible at community gatherings.
+          Your concierge coordinates private introductions.
+        </CardSubtitle>
+      </Card>
+    );
+  }
   const now = new Date();
 
   const isElite = user.tier === "elite";
@@ -52,8 +63,8 @@ export default async function PulseHub() {
       <header>
         <h1 className="text-display text-3xl text-plum-900">Evermore Pulse</h1>
         <p className="text-sm text-plum-900/60">
-          Curated retreats and mixers. Tickets in KSh or USD. Aliases assigned on
-          purchase.
+          Evermore Socials and Pulse retreats — chemistry first. Aliases assigned
+          on ticket purchase after onboarding.
         </p>
       </header>
 

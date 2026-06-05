@@ -1,4 +1,5 @@
 import { SiteHeader } from "@/components/brand/site-header";
+import { SiteFooter } from "@/components/brand/site-footer";
 
 export default function MarketingLayout({
   children,
@@ -9,6 +10,7 @@ export default function MarketingLayout({
     <>
       <SiteHeader />
       <main>{children}</main>
+      <SiteFooter />
     </>
   );
 }

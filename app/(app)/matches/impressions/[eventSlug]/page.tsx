@@ -1,6 +1,6 @@
 import { AppLink } from "@/components/nav/app-link";
 import { notFound } from "next/navigation";
-import { and, eq, not } from "drizzle-orm";
+import { and, eq, not, ne, or, isNull } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
@@ -15,6 +15,19 @@ export default async function ImpressionsPage({
 }) {
   const { eventSlug } = await params;
   const user = await requireUser();
+  if (user.pathway === "zahari") {
+    return (
+      <Card>
+        <CardTitle>Match Cards are for Amari members</CardTitle>
+        <CardSubtitle>
+          Zahari introductions are coordinated privately by your concierge.
+        </CardSubtitle>
+        <AppLink href="/concierge/introductions" className="mt-3 inline-block underline">
+          View introductions →
+        </AppLink>
+      </Card>
+    );
+  }
   const [event] = await db
     .select()
     .from(schema.events)
@@ -40,10 +53,12 @@ export default async function ImpressionsPage({
       schema.aliasPool,
       eq(schema.aliasPool.id, schema.aliasAssignments.aliasId),
     )
+    .innerJoin(schema.users, eq(schema.users.id, schema.aliasAssignments.userId))
     .where(
       and(
         eq(schema.aliasAssignments.eventId, event.id),
         not(eq(schema.aliasAssignments.userId, user.id)),
+        or(isNull(schema.users.pathway), ne(schema.users.pathway, "zahari")),
       ),
     );
 
@@ -64,11 +79,11 @@ export default async function ImpressionsPage({
     <div className="space-y-6">
       <header>
         <h1 className="text-display text-3xl text-plum-900">
-          Impressions: {event.title}
+          Match Card · {event.title}
         </h1>
         <p className="text-sm text-plum-900/60">
-          Tap aliases you&rsquo;d like to connect with. We notify only on mutual
-          opt-in.
+          Note the alias of anyone who resonated with your spirit. Mutual
+          alignments unlock your Courtship Launchpad — complimentary.
         </p>
         <p className="mt-2 text-xs text-plum-900/50">
           Window closes{" "}

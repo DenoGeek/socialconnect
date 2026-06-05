@@ -1,12 +1,11 @@
 import { AppLink } from "@/components/nav/app-link";
-import { eq } from "drizzle-orm";
+import { eq, count } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { INTENT_BADGES } from "@/lib/intent/badges";
-import { tierDisplayName } from "@/lib/membership/plans";
 import { getAlias } from "@/lib/alias/assign";
 
 export default async function ProfilePage() {
@@ -19,6 +18,27 @@ export default async function ProfilePage() {
   const alias = await getAlias(user.id, null);
 
   const onboardingDone = profile?.onboardingCompletedAt != null;
+  const isAmari = user.pathway === "amari";
+
+  const [{ value: ticketCount }] = isAmari
+    ? await db
+        .select({ value: count() })
+        .from(schema.ticketPurchases)
+        .where(eq(schema.ticketPurchases.userId, user.id))
+    : [{ value: 0 }];
+
+  const journeySteps = isAmari
+    ? [
+        { label: "Pathway secured", done: user.vettingStatus === "approved" },
+        { label: "Profile live", done: onboardingDone },
+        { label: "Attend a gathering", done: Number(ticketCount) > 0 },
+        {
+          label: "Submit Match Card",
+          done: false,
+          hint: "After your next event",
+        },
+      ]
+    : [];
 
   return (
     <div className="space-y-6">
@@ -31,7 +51,39 @@ export default async function ProfilePage() {
         </p>
       </div>
 
-      {!onboardingDone && (
+      {isAmari && journeySteps.length > 0 && (
+        <Card>
+          <CardTitle>Your Amari journey</CardTitle>
+          <ol className="mt-3 space-y-2 text-sm">
+            {journeySteps.map((s) => (
+              <li key={s.label} className="flex items-center gap-2">
+                <span
+                  className={`h-2 w-2 rounded-full ${s.done ? "bg-mint" : "bg-plum-900/20"}`}
+                />
+                <span className={s.done ? "text-plum-900" : "text-plum-900/60"}>
+                  {s.label}
+                  {"hint" in s && s.hint ? ` (${s.hint})` : ""}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </Card>
+      )}
+
+      {user.pathway === "zahari" && (
+        <Card className="elite-card">
+          <CardTitle>Zahari · Private Circle</CardTitle>
+          <CardSubtitle>
+            Your profile is invisible in community directories. Work with your
+            matchmaker via the concierge portal.
+          </CardSubtitle>
+          <AppLink href="/concierge" className="block mt-3 underline text-sm">
+            Open concierge →
+          </AppLink>
+        </Card>
+      )}
+
+      {!onboardingDone && user.vettingStatus === "approved" && (
         <Card className="bg-amber-soft border border-amber">
           <CardTitle>Complete your psychometric onboarding</CardTitle>
           <CardSubtitle>
@@ -89,13 +141,17 @@ export default async function ProfilePage() {
           <dd className="text-plum-900 capitalize">
             {profile?.spendingTier ?? "standard"}
           </dd>
-          <dt className="text-plum-900/50">Membership</dt>
-          <dd className="text-plum-900">
-            {tierDisplayName(user.tier)}
-            {" · "}
-            <AppLink href="/profile/membership" className="underline text-sm">
-              Upgrade
-            </AppLink>
+          <dt className="text-plum-900/50">Pathway</dt>
+          <dd className="text-plum-900 capitalize">
+            {user.pathway ?? "—"}
+            {user.pathway === "amari" && (
+              <>
+                {" · "}
+                <AppLink href="/events" className="underline text-sm">
+                  Pulse Hub
+                </AppLink>
+              </>
+            )}
           </dd>
           <dt className="text-plum-900/50">Mode</dt>
           <dd className="text-plum-900 capitalize">{user.mode}</dd>

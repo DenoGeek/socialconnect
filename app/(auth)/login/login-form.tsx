@@ -34,7 +34,7 @@ export function LoginForm({
     }
     // Ensure Set-Cookie is applied before the protected document request (see register-form).
     await authClient.getSession();
-    window.location.assign(sp.redirect ?? "/profile");
+    window.location.assign(sp.redirect ?? "/apply/status");
   }
 
   return (
