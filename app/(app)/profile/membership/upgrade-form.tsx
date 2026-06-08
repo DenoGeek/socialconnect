@@ -14,7 +14,7 @@ export function UpgradeForm({
     <form action={startMembershipUpgrade} className="mt-4 border-t border-plum-900/10 pt-4">
       <input type="hidden" name="plan" value={planSlug} />
       <Button type="submit" className="w-full">
-        Checkout · KES {priceKsh.toLocaleString()} ({planLabel})
+        Simulate payment · KES {priceKsh.toLocaleString()} ({planLabel})
       </Button>
     </form>
   );

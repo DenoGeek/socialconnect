@@ -34,6 +34,12 @@ export default async function ConciergeInbox() {
       <Card>
         <CardTitle>Elite threads</CardTitle>
         <ul className="mt-3 divide-y divide-plum-900/8 text-sm">
+          {threads.length === 0 && (
+            <li className="py-4 text-plum-900/60">
+              No concierge threads yet. Threads are created when Zahari
+              applications are approved.
+            </li>
+          )}
           {threads.map((t) => (
             <li key={t.thread.id} className="flex justify-between py-2">
               <div>
@@ -41,12 +47,15 @@ export default async function ConciergeInbox() {
                 <p className="text-xs text-plum-900/50">{t.user.email}</p>
               </div>
               <div className="flex items-center gap-2">
-                {t.user.tier === "elite" && <Badge tone="amber">High</Badge>}
+                {t.user.pathway === "zahari" && (
+                  <Badge tone="amber">Zahari</Badge>
+                )}
+                {t.user.tier === "elite" && <Badge tone="amber">Elite</Badge>}
                 <AppLink
                   href={`/admin/concierge/${t.thread.id}`}
                   className="text-xs underline text-plum-900"
                 >
-                  Open →
+                  Open chat →
                 </AppLink>
               </div>
             </li>

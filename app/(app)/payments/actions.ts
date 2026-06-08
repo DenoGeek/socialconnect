@@ -3,7 +3,10 @@
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
-import { confirmManualPayment } from "@/lib/payments";
+import {
+  confirmManualPayment,
+  getPaymentSuccessRedirect,
+} from "@/lib/payments";
 
 export async function simulatePaymentSuccess(paymentId: string) {
   const user = await requireUser();
@@ -17,9 +20,9 @@ export async function simulatePaymentSuccess(paymentId: string) {
     throw new Error("Payment not found.");
   }
   if (pay.status === "succeeded") {
-    return { ok: true };
+    return { ok: true, redirectTo: getPaymentSuccessRedirect(pay) };
   }
 
   await confirmManualPayment(paymentId);
-  return { ok: true };
+  return { ok: true, redirectTo: getPaymentSuccessRedirect(pay) };
 }

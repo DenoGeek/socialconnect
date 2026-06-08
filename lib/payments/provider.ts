@@ -3,8 +3,7 @@ export type PaymentProvider =
   | "mpesa"
   | "card"
   | "cytton_mmf"
-  | "manual"
-  | "mock";
+  | "manual";
 
 export type StartPaymentInput = {
   userId: string;

@@ -19,7 +19,7 @@ export function UpgradeToZahariBanner({
   }
 
   return (
-    <Card className="elite-card">
+    <Card className="border-amber bg-amber-soft">
       <CardTitle>Zahari · The Private Circle</CardTitle>
       <CardSubtitle className="mt-2">
         White-glove concierge matching with absolute digital invisibility.

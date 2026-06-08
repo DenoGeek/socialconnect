@@ -2,9 +2,9 @@ import { notFound, redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
+import { getPaymentSuccessRedirect } from "@/lib/payments";
 import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { MockCheckout } from "@/components/payments/mock-checkout";
+import { SimulateCheckout } from "@/components/payments/simulate-checkout";
 import { formatMoney } from "@/lib/utils/format";
 
 export default async function PaymentPage({
@@ -24,16 +24,7 @@ export default async function PaymentPage({
   if (!pay || pay.userId !== user.id) notFound();
 
   if (pay.status === "succeeded") {
-    if (pay.subjectKind === "ticket") {
-      redirect(`/events/me/${pay.subjectId}`);
-    }
-    if (
-      pay.subjectKind === "zahari_sovereign" ||
-      pay.subjectKind === "zahari_activation"
-    ) {
-      redirect("/concierge/zahari/pay");
-    }
-    redirect("/profile");
+    redirect(getPaymentSuccessRedirect(pay));
   }
 
   const label =
@@ -47,33 +38,24 @@ export default async function PaymentPage({
             ? "Zahari Covenant Activation"
             : "Payment";
 
-  const successRedirect =
-    pay.subjectKind === "ticket"
-      ? `/events/me/${pay.subjectId}`
-      : pay.subjectKind === "zahari_sovereign" ||
-          pay.subjectKind === "zahari_activation"
-        ? "/concierge/zahari/pay"
-        : "/profile";
-
   return (
     <div className="max-w-md space-y-6">
       <header>
-        <h1 className="text-display text-3xl text-plum-900">Checkout</h1>
-        <Badge tone="amber" className="mt-2">
-          {pay.status}
-        </Badge>
+        <h1 className="text-display text-3xl text-plum-900">{label}</h1>
+        <p className="text-sm text-plum-900/70 mt-1">
+          Demo mode — simulate a successful payment to continue.
+        </p>
       </header>
       <Card>
-        <CardTitle>{label}</CardTitle>
+        <CardTitle>Amount due</CardTitle>
         <CardSubtitle className="mt-2">
           {formatMoney(Number(pay.amount), pay.currency)}
         </CardSubtitle>
-        <MockCheckout
+        <SimulateCheckout
           paymentId={pay.id}
           amount={Number(pay.amount)}
           currency={pay.currency}
           label={label}
-          successRedirect={successRedirect}
         />
       </Card>
     </div>

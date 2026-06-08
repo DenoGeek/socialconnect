@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { planBySlug, tierRank, type DbUserTier } from "@/lib/membership/plans";
-import { startPayment } from "@/lib/payments";
+import { startPayment, simulateAndCompletePayment } from "@/lib/payments";
 
 export async function startMembershipUpgrade(form: FormData) {
   const user = await requireUser();
@@ -22,11 +22,12 @@ export async function startMembershipUpgrade(form: FormData) {
     userId: user.id,
     subjectKind: "subscription",
     subjectId: plan.slug,
-    provider: "mock",
+    provider: "manual",
     currency: "KSH",
     amount: plan.priceKsh,
     senderDisplayName: "Evermore",
   });
 
-  redirect(`/payments/${payment.id}`);
+  const redirectTo = await simulateAndCompletePayment(payment.id);
+  redirect(redirectTo);
 }

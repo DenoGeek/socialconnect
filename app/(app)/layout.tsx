@@ -12,6 +12,7 @@ import {
 import { isRouterPrefetchRequest } from "@/lib/auth/request-kind";
 import { AppLink } from "@/components/nav/app-link";
 import { SignOutButton } from "@/components/nav/sign-out-button";
+import { MemberConciergeFloaterShell } from "@/components/concierge/member-concierge-floater-shell";
 
 export const dynamic = "force-dynamic";
 
@@ -28,8 +29,7 @@ const NAV_AMARI = [
 const NAV_ZAHARI = [
   { href: "/concierge", label: "Concierge" },
   { href: "/concierge/introductions", label: "Introductions" },
-  { href: "/programs", label: "Ascent" },
-  { href: "/professionals", label: "Professionals" },
+  ...NAV_AMARI,
 ];
 
 const APPLY_PREFIX = "/apply";
@@ -92,6 +92,35 @@ export default async function AppLayout({
 
   const isZahari = user.pathway === "zahari";
   const eliteChrome = isEliteExperience(user);
+  const mainClassName = isZahari
+    ? "flex-1 min-w-0 elite-main-panel"
+    : "flex-1 min-w-0";
+
+  // #region agent log
+  fetch("http://127.0.0.1:7405/ingest/eb375903-b24c-4ad4-9d65-edd096cd3d7f", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Debug-Session-Id": "851db9",
+    },
+    body: JSON.stringify({
+      sessionId: "851db9",
+      location: "layout.tsx:render",
+      message: "app layout chrome flags",
+      data: {
+        pathname,
+        pathway: user.pathway,
+        tier: user.tier,
+        isZahari,
+        eliteChrome,
+        mainClassName,
+      },
+      timestamp: Date.now(),
+      hypothesisId: "A",
+    }),
+  }).catch(() => {});
+  // #endregion
+
   const nav =
     isStaffRole(user.role) || !ecosystemOk
       ? [{ href: "/apply", label: "Application" }, { href: "/profile", label: "Profile" }]
@@ -152,20 +181,26 @@ export default async function AppLayout({
             <SignOutButton
               className={`mt-2 block w-full text-left rounded-xl px-3 py-2 text-sm ${
                 eliteChrome
-                  ? "elite-nav-link opacity-60"
+                  ? "elite-nav-link opacity-80"
                   : "text-plum-900/50 hover:text-plum-900"
               }`}
             />
           </nav>
         </aside>
-        <main
-          className={
-            isZahari ? "flex-1 min-w-0 elite-main-panel" : "flex-1 min-w-0"
-          }
-        >
+        <main className={mainClassName}>
           {children}
         </main>
       </div>
+      {ecosystemOk && (
+        <MemberConciergeFloaterShell
+          user={{
+            id: user.id,
+            pathway: user.pathway,
+            tier: user.tier,
+            role: user.role,
+          }}
+        />
+      )}
     </div>
   );
 }

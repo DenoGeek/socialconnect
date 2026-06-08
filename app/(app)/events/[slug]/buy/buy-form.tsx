@@ -108,7 +108,7 @@ export function BuyForm({
         </Card>
 
         <Button type="submit" className="w-full" size="lg">
-          Confirm purchase
+          Simulate payment
         </Button>
         <p className="text-xs text-plum-900/50">
           The charge will appear from <strong>Evermore Events</strong> — never

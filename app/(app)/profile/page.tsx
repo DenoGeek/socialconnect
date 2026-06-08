@@ -76,13 +76,13 @@ export default async function ProfilePage() {
       )}
 
       {user.pathway === "zahari" && (
-        <Card className="elite-card">
+        <Card>
           <CardTitle>Zahari · Private Circle</CardTitle>
           <CardSubtitle>
             Your profile is invisible in community directories. Work with your
             matchmaker via the concierge portal.
           </CardSubtitle>
-          <AppLink href="/concierge" className="block mt-3 underline text-sm">
+          <AppLink href="/concierge" className="block mt-3 underline text-sm text-plum-700 hover:text-plum-900">
             Open concierge →
           </AppLink>
         </Card>

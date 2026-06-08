@@ -1,7 +1,7 @@
 import { asc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db, schema } from "@/db";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, isStaffRole } from "@/lib/auth";
 
 export async function GET(
   _req: Request,
@@ -19,7 +19,9 @@ export async function GET(
     .where(eq(schema.conciergeThreads.id, threadId))
     .limit(1);
 
-  if (!thread || thread.userId !== user.id) {
+  const isMember = thread?.userId === user.id;
+  const isStaff = isStaffRole(user.role);
+  if (!thread || (!isMember && !isStaff)) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 

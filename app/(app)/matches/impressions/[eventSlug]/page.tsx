@@ -15,19 +15,6 @@ export default async function ImpressionsPage({
 }) {
   const { eventSlug } = await params;
   const user = await requireUser();
-  if (user.pathway === "zahari") {
-    return (
-      <Card>
-        <CardTitle>Match Cards are for Amari members</CardTitle>
-        <CardSubtitle>
-          Zahari introductions are coordinated privately by your concierge.
-        </CardSubtitle>
-        <AppLink href="/concierge/introductions" className="mt-3 inline-block underline">
-          View introductions →
-        </AppLink>
-      </Card>
-    );
-  }
   const [event] = await db
     .select()
     .from(schema.events)

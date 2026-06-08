@@ -3,7 +3,7 @@ import { getSessionCookie } from "better-auth/cookies";
 import { isAuthSoftRequest } from "@/lib/auth/request-kind";
 import { PROTECTED_PATH_PREFIXES } from "@/lib/nav/protected-paths";
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const isProtected = PROTECTED_PATH_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`),

@@ -1,7 +1,7 @@
 import { AppLink } from "@/components/nav/app-link";
 import { and, eq, gte, count, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
-import { requireUser } from "@/lib/auth";
+import { requireUser, isEliteExperience } from "@/lib/auth";
 import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDateRange } from "@/lib/utils/format";
@@ -9,20 +9,9 @@ import { UpgradeToZahariBanner } from "@/components/membership/upgrade-to-zahari
 
 export default async function PulseHub() {
   const user = await requireUser();
-  if (user.pathway === "zahari") {
-    return (
-      <Card>
-        <CardTitle>Evermore events</CardTitle>
-        <CardSubtitle>
-          Zahari members remain digitally invisible at community gatherings.
-          Your concierge coordinates private introductions.
-        </CardSubtitle>
-      </Card>
-    );
-  }
   const now = new Date();
 
-  const isElite = user.tier === "elite";
+  const isElite = isEliteExperience(user);
 
   // Events visible to this tier.
   const rows = await db

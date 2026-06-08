@@ -1,6 +1,7 @@
 import { AppLink } from "@/components/nav/app-link";
 import { SignOutButton } from "@/components/nav/sign-out-button";
 import { requireAdmin } from "@/lib/auth";
+import { StaffConciergeFloater } from "@/components/concierge/staff-concierge-floater";
 
 const NAV = [
   { href: "/admin", label: "Command" },
@@ -51,6 +52,7 @@ export default async function AdminLayout({
         </aside>
         <main className="flex-1 min-w-0">{children}</main>
       </div>
+      <StaffConciergeFloater staffUserId={user.id} />
     </div>
   );
 }

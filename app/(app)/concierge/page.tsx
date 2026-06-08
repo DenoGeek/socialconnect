@@ -1,11 +1,15 @@
 import { AppLink } from "@/components/nav/app-link";
-import { eq, asc, count } from "drizzle-orm";
+import { eq, count } from "drizzle-orm";
 import { db, schema } from "@/db";
-import { requireUser, isEliteExperience, isZahariPathway } from "@/lib/auth";
+import {
+  requireUser,
+  isEliteExperience,
+  isZahariPathway,
+  isStaffRole,
+} from "@/lib/auth";
 import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ConciergeChat } from "@/components/concierge/concierge-chat";
 import { UpgradeToZahariBanner } from "@/components/membership/upgrade-to-zahari";
 
 export default async function ConciergeIndex() {
@@ -25,14 +29,6 @@ export default async function ConciergeIndex() {
       .values({ userId: user.id })
       .returning();
   }
-
-  const messages = thread
-    ? await db
-        .select()
-        .from(schema.conciergeMessages)
-        .where(eq(schema.conciergeMessages.threadId, thread.id))
-        .orderBy(asc(schema.conciergeMessages.createdAt))
-    : [];
 
   const [eng] = zahari
     ? await db
@@ -61,6 +57,20 @@ export default async function ConciergeIndex() {
 
   return (
     <div className="space-y-6 max-w-2xl">
+      {isStaffRole(user.role) && (
+        <Card className="border-mint bg-mint-soft">
+          <CardTitle>Staff concierge inbox</CardTitle>
+          <CardSubtitle className="mt-2">
+            Member chats are managed from the admin inbox, not this page.
+          </CardSubtitle>
+          <AppLink href="/admin/concierge">
+            <Button className="mt-4" size="sm">
+              Open admin concierge →
+            </Button>
+          </AppLink>
+        </Card>
+      )}
+
       <header>
         <h1 className="text-display text-3xl text-plum-900">Concierge</h1>
         <p className="text-sm text-plum-900/70">
@@ -71,7 +81,7 @@ export default async function ConciergeIndex() {
       </header>
 
       {zahari && eng && (
-        <Card className="elite-card">
+        <Card>
           <div className="flex flex-wrap gap-2">
             <Badge tone="amber">{eng.status}</Badge>
             {!eng.sovereignPaidAt && <Badge tone="neutral">Fee pending</Badge>}
@@ -98,7 +108,7 @@ export default async function ConciergeIndex() {
           )}
           <AppLink
             href="/concierge/introductions"
-            className="block mt-3 text-sm underline opacity-80"
+            className="block mt-3 text-sm underline text-plum-700 hover:text-plum-900"
           >
             View candidate presentations →
           </AppLink>
@@ -110,31 +120,17 @@ export default async function ConciergeIndex() {
       )}
 
       {elite && thread ? (
-        <Card className={elite ? "elite-card" : ""}>
-          <CardTitle className={elite ? "" : ""}>
+        <Card className="border-mint bg-mint-soft">
+          <CardTitle>
             {zahari ? "Your matchmaker" : "Your concierge thread"}
           </CardTitle>
-          <CardSubtitle className={elite ? "opacity-70" : ""}>
+          <CardSubtitle className="mt-2">
             {thread.conciergeOnDuty
               ? "On duty — typically replies within an hour."
-              : "Off duty — replies will arrive within 24 hours."}
+              : "Off duty — replies will arrive within 24 hours."}{" "}
+            Open the chat bubble at the bottom-right of your screen to message
+            your concierge.
           </CardSubtitle>
-          <div className="mt-4">
-            <ConciergeChat
-              threadId={thread.id}
-              userId={user.id}
-              initialMessages={messages.map((m) => ({
-                id: m.id,
-                senderUserId: m.senderUserId,
-                body: m.body,
-                priority: m.priority,
-                attachments: m.attachments,
-                createdAt: m.createdAt.toISOString(),
-              }))}
-              conciergeOnDuty={thread.conciergeOnDuty}
-              elite={elite}
-            />
-          </div>
         </Card>
       ) : (
         <Card>

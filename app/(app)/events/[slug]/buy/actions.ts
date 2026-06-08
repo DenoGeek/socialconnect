@@ -6,7 +6,7 @@ import { randomBytes } from "node:crypto";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { signTicketToken } from "@/lib/utils/qr";
-import { startPayment } from "@/lib/payments";
+import { startPayment, simulateAndCompletePayment } from "@/lib/payments";
 
 export async function purchaseTicket(form: FormData) {
   const user = await requireUser();
@@ -60,12 +60,13 @@ export async function purchaseTicket(form: FormData) {
     userId: user.id,
     subjectKind: "ticket",
     subjectId: purchase.id,
-    provider: "mock",
+    provider: "manual",
     currency,
     amount,
     phone,
     senderDisplayName: "Evermore Events",
   });
 
-  redirect(`/payments/${payment.id}`);
+  const redirectTo = await simulateAndCompletePayment(payment.id);
+  redirect(redirectTo);
 }
