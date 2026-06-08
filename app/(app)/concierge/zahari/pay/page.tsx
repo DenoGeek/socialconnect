@@ -44,13 +44,13 @@ export default async function ZahariPayPage({
 
   return (
     <div className="max-w-md space-y-6">
-      <header className="elite-page-header">
-        <h1 className="text-display text-3xl">Zahari fees</h1>
-        <p className="text-sm opacity-70">
+      <header>
+        <h1 className="text-display text-3xl text-plum-900">Zahari fees</h1>
+        <p className="text-sm text-plum-900/70">
           Secure payment for your sovereign search and covenant activation.
         </p>
         {sp.requested && (
-          <p className="text-sm mt-2 text-mint">
+          <p className="text-sm mt-2 text-teal font-medium">
             Payment initiated — complete checkout below.
           </p>
         )}

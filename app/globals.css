@@ -55,12 +55,26 @@ body {
 }
 
 .elite-nav-link {
-  color: rgba(212, 175, 55, 0.85);
+  color: var(--color-plum-100);
 }
 
 .elite-nav-link:hover {
+  color: #ffffff;
+  background: rgba(243, 187, 239, 0.12);
+}
+
+/* Zahari main content: light panel so headings/cards stay readable on elite shell */
+.elite-main-panel {
+  background: var(--color-plum-50);
+  color: var(--color-plum-900);
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+}
+
+.elite-sidebar-title {
   color: #d4af37;
-  background: rgba(212, 175, 55, 0.08);
 }
 
 .text-display {

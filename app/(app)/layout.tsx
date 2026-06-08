@@ -106,7 +106,7 @@ export default async function AppLayout({
           <Link
             href="/"
             className={`block text-display text-2xl mb-8 ${
-              eliteChrome ? "elite-page-header" : "text-plum-900"
+              eliteChrome ? "elite-sidebar-title" : "text-plum-900"
             }`}
           >
             Evermore
@@ -158,7 +158,13 @@ export default async function AppLayout({
             />
           </nav>
         </aside>
-        <main className="flex-1 min-w-0">{children}</main>
+        <main
+          className={
+            isZahari ? "flex-1 min-w-0 elite-main-panel" : "flex-1 min-w-0"
+          }
+        >
+          {children}
+        </main>
       </div>
     </div>
   );

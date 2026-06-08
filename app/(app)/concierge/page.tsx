@@ -59,13 +59,11 @@ export default async function ConciergeIndex() {
         .then((r) => Number(r[0]?.value ?? 0))
     : 0;
 
-  const headerClass = elite ? "elite-page-header" : "";
-
   return (
     <div className="space-y-6 max-w-2xl">
-      <header className={headerClass}>
-        <h1 className="text-display text-3xl">Concierge</h1>
-        <p className="text-sm opacity-70">
+      <header>
+        <h1 className="text-display text-3xl text-plum-900">Concierge</h1>
+        <p className="text-sm text-plum-900/70">
           {elite
             ? "Your direct line. Always responsive, always discrete."
             : "Open a concierge consultation for high-discretion matching."}

@@ -40,9 +40,9 @@ export default async function IntroductionsPage() {
 
   return (
     <div className="space-y-6">
-      <header className="elite-page-header">
-        <h1 className="text-display text-3xl">Candidate presentations</h1>
-        <p className="text-sm opacity-70">
+      <header>
+        <h1 className="text-display text-3xl text-plum-900">Candidate presentations</h1>
+        <p className="text-sm text-plum-900/70">
           Your matchmaker introduces aligned candidates — accept or decline prayerfully.
         </p>
       </header>

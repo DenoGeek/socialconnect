@@ -15,6 +15,13 @@
       "when": 1778704346603,
       "tag": "0001_agano_pathways",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778804346603,
+      "tag": "0002_mock_payment_provider",
+      "breakpoints": true
     }
   ]
 }

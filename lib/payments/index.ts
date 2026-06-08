@@ -114,7 +114,7 @@ export async function startZahariPayment(opts: {
     userId: opts.userId,
     subjectKind: opts.kind,
     subjectId: opts.engagementId,
-    provider: "mock",
+    provider: "manual",
     currency: "USD",
     amount: opts.amountUsd,
     senderDisplayName: "Agano Evermore · Zahari",
