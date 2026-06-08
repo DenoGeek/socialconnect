@@ -1,5 +1,6 @@
-import { eq, inArray } from "drizzle-orm";
+import { inArray } from "drizzle-orm";
 import { db, schema } from "@/db";
+import { areGendersCompatible } from "@/lib/profile/gender";
 
 const INTENT_WEIGHT = 50; // each shared intent badge
 const INTEREST_WEIGHT = 5; // each shared interest
@@ -15,6 +16,10 @@ export async function scoreCompatibility(userAId: string, userBId: string) {
   const b = profiles.find((p) => p.userId === userBId);
   if (!a || !b)
     return { score: 0, sharedIntents: [] as string[], sharedInterests: [] };
+
+  if (!areGendersCompatible(a, b)) {
+    return { score: 0, sharedIntents: [] as string[], sharedInterests: [] };
+  }
 
   const aIntents = new Set(a.intentBadges ?? []);
   const bIntents = new Set(b.intentBadges ?? []);
@@ -67,9 +72,6 @@ export async function rankCandidatesForUser(
 }
 
 export async function isExcluded(userAId: string, userBId: string) {
-  const rows = await db
-    .select()
-    .from(schema.matchExclusions)
-    .where(eq(schema.matchExclusions.userAId, userAId));
-  return rows.some((r) => r.userBId === userBId);
+  const { isPairExcluded } = await import("./exclusions");
+  return isPairExcluded(userAId, userBId);
 }

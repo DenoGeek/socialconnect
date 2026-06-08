@@ -82,6 +82,8 @@ export const matchStatusEnum = pgEnum("match_status", [
   "expired",
 ]);
 
+export const genderEnum = pgEnum("gender", ["man", "woman"]);
+
 export const concierge_priority = pgEnum("concierge_priority", [
   "normal",
   "high",

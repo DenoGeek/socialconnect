@@ -4,7 +4,6 @@ import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PayPageStyleProbe } from "@/components/debug/pay-page-style-probe";
 import { simulateSovereignPayment, simulateActivationPayment } from "./actions";
 
 export default async function ZahariPayPage() {
@@ -20,33 +19,8 @@ export default async function ZahariPayPage() {
 
   const sovereignPaid = Boolean(eng.sovereignPaidAt);
 
-  // #region agent log
-  fetch("http://127.0.0.1:7405/ingest/eb375903-b24c-4ad4-9d65-edd096cd3d7f", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Debug-Session-Id": "851db9",
-    },
-    body: JSON.stringify({
-      sessionId: "851db9",
-      location: "pay/page.tsx:render",
-      message: "zahari pay page state",
-      data: {
-        userId: user.id,
-        pathway: user.pathway,
-        sovereignPaid,
-        activationPaid: Boolean(eng.activationPaidAt),
-        sovereignFeeUsd: Number(eng.sovereignSearchFeeUsd),
-      },
-      timestamp: Date.now(),
-      hypothesisId: "D",
-    }),
-  }).catch(() => {});
-  // #endregion
-
   return (
     <div className="max-w-md space-y-6">
-      <PayPageStyleProbe />
       <header>
         <h1 className="text-display text-3xl text-plum-900">Zahari fees</h1>
         <p className="text-sm text-plum-900/70">

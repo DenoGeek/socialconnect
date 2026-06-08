@@ -65,6 +65,15 @@ export default async function MyEvents() {
               >
                 Event toolkit →
               </AppLink>
+              {purchase.status === "confirmed" ||
+              purchase.status === "checked_in" ? (
+                <AppLink
+                  href={`/matches/impressions/${event.slug}`}
+                  className="text-sm underline text-teal font-medium"
+                >
+                  Match Card →
+                </AppLink>
+              ) : null}
             </div>
           </Card>
         ))}

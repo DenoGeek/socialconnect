@@ -7,68 +7,19 @@ import { tinypesaStkPush } from "./tinypesa";
 export async function startPayment(
   input: StartPaymentInput,
 ): Promise<PaymentRecord> {
-  let row;
-  try {
-    [row] = await db
-      .insert(schema.payments)
-      .values({
-        userId: input.userId,
-        subjectKind: input.subjectKind,
-        subjectId: input.subjectId,
-        provider: input.provider,
-        currency: input.currency,
-        amount: String(input.amount),
-        status: "processing",
-        senderDisplayName: input.senderDisplayName ?? "Evermore",
-      })
-      .returning();
-  } catch (err) {
-    // #region agent log
-    fetch("http://127.0.0.1:7405/ingest/eb375903-b24c-4ad4-9d65-edd096cd3d7f", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "851db9",
-      },
-      body: JSON.stringify({
-        sessionId: "851db9",
-        location: "payments/index.ts:startPayment",
-        message: "payment insert failed",
-        data: {
-          provider: input.provider,
-          subjectKind: input.subjectKind,
-          error: err instanceof Error ? err.message : String(err),
-        },
-        timestamp: Date.now(),
-        hypothesisId: "F",
-      }),
-    }).catch(() => {});
-    // #endregion
-    throw err;
-  }
-
-  // #region agent log
-  fetch("http://127.0.0.1:7405/ingest/eb375903-b24c-4ad4-9d65-edd096cd3d7f", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Debug-Session-Id": "851db9",
-    },
-    body: JSON.stringify({
-      sessionId: "851db9",
-      location: "payments/index.ts:startPayment",
-      message: "payment insert ok",
-      data: {
-        paymentId: row.id,
-        provider: input.provider,
-        subjectKind: input.subjectKind,
-      },
-      timestamp: Date.now(),
-      hypothesisId: "F",
-      runId: "post-fix",
-    }),
-  }).catch(() => {});
-  // #endregion
+  const [row] = await db
+    .insert(schema.payments)
+    .values({
+      userId: input.userId,
+      subjectKind: input.subjectKind,
+      subjectId: input.subjectId,
+      provider: input.provider,
+      currency: input.currency,
+      amount: String(input.amount),
+      status: "processing",
+      senderDisplayName: input.senderDisplayName ?? "Evermore",
+    })
+    .returning();
 
   if (
     (input.provider === "tinypesa" || input.provider === "mpesa") &&

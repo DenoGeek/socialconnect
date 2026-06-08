@@ -7,6 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { INTENT_BADGES } from "@/lib/intent/badges";
 import { getAlias } from "@/lib/alias/assign";
+import {
+  genderLabel,
+  genderPreferenceLabels,
+  genderPreferencesFromLookingFor,
+} from "@/lib/profile/gender";
+import {
+  getOpenMatchCardEvents,
+  hasSubmittedMatchCard,
+} from "@/lib/matching/open-match-cards";
 import { UpgradeToZahariBanner } from "@/components/membership/upgrade-to-zahari";
 
 export default async function ProfilePage() {
@@ -28,6 +37,13 @@ export default async function ProfilePage() {
         .where(eq(schema.ticketPurchases.userId, user.id))
     : [{ value: 0 }];
 
+  const submittedMatchCard = isAmari
+    ? await hasSubmittedMatchCard(user.id)
+    : false;
+  const openMatchCards = isAmari
+    ? await getOpenMatchCardEvents(user.id)
+    : [];
+
   const journeySteps = isAmari
     ? [
         { label: "Pathway secured", done: user.vettingStatus === "approved" },
@@ -35,8 +51,12 @@ export default async function ProfilePage() {
         { label: "Attend a gathering", done: Number(ticketCount) > 0 },
         {
           label: "Submit Match Card",
-          done: false,
-          hint: "After your next event",
+          done: submittedMatchCard,
+          hint: submittedMatchCard
+            ? undefined
+            : openMatchCards.length > 0
+              ? "Window open now"
+              : "After your next event",
         },
       ]
     : [];
@@ -51,6 +71,34 @@ export default async function ProfilePage() {
           Your private profile. Visible only to the Concierge and your matches.
         </p>
       </div>
+
+      {isAmari && openMatchCards.length > 0 && (
+        <Card className="bg-mint-soft border border-mint">
+          <CardTitle>Match Card open</CardTitle>
+          <CardSubtitle>
+            Submit impressions for attendees who resonated with you.
+          </CardSubtitle>
+          <ul className="mt-3 space-y-2 text-sm">
+            {openMatchCards.map(({ event, closesAt }) => (
+              <li key={event.id}>
+                <AppLink
+                  href={`/matches/impressions/${event.slug}`}
+                  className="underline text-plum-900"
+                >
+                  {event.title}
+                </AppLink>
+                <span className="text-plum-900/50 text-xs ml-2">
+                  closes{" "}
+                  {closesAt.toLocaleString("en-GB", {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       {isAmari && journeySteps.length > 0 && (
         <Card>
@@ -140,6 +188,15 @@ export default async function ProfilePage() {
           </dd>
           <dt className="text-plum-900/50">City</dt>
           <dd className="text-plum-900">{profile?.city ?? "—"}</dd>
+          <dt className="text-plum-900/50">Gender</dt>
+          <dd className="text-plum-900">{genderLabel(profile?.gender)}</dd>
+          <dt className="text-plum-900/50">Interested in</dt>
+          <dd className="text-plum-900">
+            {genderPreferenceLabels(
+              genderPreferencesFromLookingFor(profile?.lookingFor, profile?.gender),
+              profile?.gender,
+            )}
+          </dd>
           <dt className="text-plum-900/50">Phone</dt>
           <dd className="text-plum-900">{profile?.phone ?? "—"}</dd>
           <dt className="text-plum-900/50">Date budget</dt>

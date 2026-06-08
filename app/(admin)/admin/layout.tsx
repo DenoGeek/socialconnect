@@ -1,5 +1,6 @@
 import { AppLink } from "@/components/nav/app-link";
 import { SignOutButton } from "@/components/nav/sign-out-button";
+import { MobileNavDrawer } from "@/components/nav/mobile-nav-drawer";
 import { requireAdmin } from "@/lib/auth";
 import { StaffConciergeFloater } from "@/components/concierge/staff-concierge-floater";
 
@@ -29,6 +30,11 @@ export default async function AdminLayout({
   const user = await requireAdmin();
   return (
     <div className="min-h-screen bg-plum-50">
+      <MobileNavDrawer
+        title="Evermore"
+        subtitle={user.role.replace("_", " ")}
+        nav={NAV}
+      />
       <div className="mx-auto flex max-w-7xl gap-8 px-4 py-6">
         <aside className="hidden md:block w-56 shrink-0">
           <AppLink href="/admin" className="block text-display text-2xl text-plum-900 mb-2">

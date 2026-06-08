@@ -3,6 +3,7 @@ import { db, schema } from "@/db";
 import { redirect } from "next/navigation";
 import { requireUser, canAccessEcosystem } from "@/lib/auth";
 import { OnboardingStepper } from "./stepper";
+import { genderPreferencesFromLookingFor, heterosexualPreference } from "@/lib/profile/gender";
 
 export default async function OnboardingPage() {
   const user = await requireUser();
@@ -45,6 +46,10 @@ export default async function OnboardingPage() {
         city: profile?.city ?? "",
         bio: profile?.bio ?? "",
         dreamDate: profile?.dreamDate ?? "",
+        gender: profile?.gender ?? "",
+        genderPreference: profile?.gender
+          ? heterosexualPreference(profile.gender)
+          : genderPreferencesFromLookingFor(profile?.lookingFor, profile?.gender),
         intentBadges: profile?.intentBadges ?? [],
         dealBreakers: profile?.dealBreakers ?? [],
         interests: profile?.interests ?? [],

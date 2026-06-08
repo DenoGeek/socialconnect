@@ -12,6 +12,7 @@ import {
 import { isRouterPrefetchRequest } from "@/lib/auth/request-kind";
 import { AppLink } from "@/components/nav/app-link";
 import { SignOutButton } from "@/components/nav/sign-out-button";
+import { MobileNavDrawer } from "@/components/nav/mobile-nav-drawer";
 import { MemberConciergeFloaterShell } from "@/components/concierge/member-concierge-floater-shell";
 
 export const dynamic = "force-dynamic";
@@ -96,31 +97,6 @@ export default async function AppLayout({
     ? "flex-1 min-w-0 elite-main-panel"
     : "flex-1 min-w-0";
 
-  // #region agent log
-  fetch("http://127.0.0.1:7405/ingest/eb375903-b24c-4ad4-9d65-edd096cd3d7f", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Debug-Session-Id": "851db9",
-    },
-    body: JSON.stringify({
-      sessionId: "851db9",
-      location: "layout.tsx:render",
-      message: "app layout chrome flags",
-      data: {
-        pathname,
-        pathway: user.pathway,
-        tier: user.tier,
-        isZahari,
-        eliteChrome,
-        mainClassName,
-      },
-      timestamp: Date.now(),
-      hypothesisId: "A",
-    }),
-  }).catch(() => {});
-  // #endregion
-
   const nav =
     isStaffRole(user.role) || !ecosystemOk
       ? [{ href: "/apply", label: "Application" }, { href: "/profile", label: "Profile" }]
@@ -130,6 +106,20 @@ export default async function AppLayout({
 
   return (
     <div className={isZahari ? "min-h-screen elite-bg" : "min-h-screen"}>
+      <MobileNavDrawer
+        title="Evermore"
+        nav={nav}
+        eliteChrome={eliteChrome}
+        adminHref={
+          user.role === "admin" ||
+          user.role === "super_admin" ||
+          user.role === "concierge"
+            ? "/admin"
+            : undefined
+        }
+        facilitatorHref={user.role === "facilitator" ? "/facilitator" : undefined}
+        hostHref={user.role === "host" ? "/host" : undefined}
+      />
       <div className="mx-auto flex max-w-7xl gap-8 px-4 py-6">
         <aside className="hidden md:block w-56 shrink-0">
           <Link

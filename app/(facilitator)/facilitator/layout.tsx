@@ -1,5 +1,6 @@
 import { AppLink } from "@/components/nav/app-link";
 import { SignOutButton } from "@/components/nav/sign-out-button";
+import { MobileNavDrawer } from "@/components/nav/mobile-nav-drawer";
 import { requireFacilitator } from "@/lib/auth";
 
 const NAV = [
@@ -18,6 +19,11 @@ export default async function FacilitatorLayout({
   const user = await requireFacilitator();
   return (
     <div className="min-h-screen bg-plum-50">
+      <MobileNavDrawer
+        title="The Lab"
+        subtitle={user.email ?? undefined}
+        nav={NAV}
+      />
       <div className="mx-auto flex max-w-7xl gap-8 px-4 py-6">
         <aside className="hidden md:block w-56 shrink-0">
           <AppLink

@@ -7,6 +7,7 @@ import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { detectContradictions } from "@/lib/intent/badges";
 import { assignAlias } from "@/lib/alias/assign";
+import { heterosexualPreference } from "@/lib/profile/gender";
 
 export type SaveStepResult = { ok: true; finalized?: boolean };
 
@@ -47,6 +48,7 @@ export async function saveStep(form: FormData): Promise<SaveStepResult> {
     "bio",
     "dreamDate",
     "spendingTier",
+    "gender",
   ] as const) {
     const v = form.get(f);
     if (typeof v === "string" && v.length > 0) profileUpdates[f] = v;
@@ -63,19 +65,34 @@ export async function saveStep(form: FormData): Promise<SaveStepResult> {
     }
   }
 
-  // Detect contradictions on intent badges and flag for admin.
+  const existing = await db
+    .select()
+    .from(schema.profiles)
+    .where(eq(schema.profiles.userId, user.id))
+    .limit(1);
+
+  const genderPrefRaw = form.get("genderPreference");
+  const genderValue = form.get("gender");
+  if (typeof genderValue === "string" && (genderValue === "man" || genderValue === "woman")) {
+    profileUpdates.lookingFor = {
+      ...((existing[0]?.lookingFor as Record<string, unknown> | undefined) ?? {}),
+      genderPreference: heterosexualPreference(genderValue),
+    };
+  } else if (typeof genderPrefRaw === "string" && genderPrefRaw.length > 0) {
+    const existingLookingFor =
+      (existing[0]?.lookingFor as Record<string, unknown> | undefined) ?? {};
+    profileUpdates.lookingFor = {
+      ...existingLookingFor,
+      genderPreference: JSON.parse(genderPrefRaw),
+    };
+  }
+
   if (
     Array.isArray(profileUpdates.intentBadges) &&
     detectContradictions(profileUpdates.intentBadges as string[]).length > 0
   ) {
     profileUpdates.flaggedForReview = true;
   }
-
-  const existing = await db
-    .select()
-    .from(schema.profiles)
-    .where(eq(schema.profiles.userId, user.id))
-    .limit(1);
 
   if (existing[0]) {
     await db

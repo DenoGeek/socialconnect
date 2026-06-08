@@ -10,6 +10,13 @@ import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
 import { INTENT_BADGES, detectContradictions } from "@/lib/intent/badges";
 import { CHRISTIAN_DEAL_BREAKERS } from "@/lib/profile/deal-breakers";
+import {
+  GENDER_OPTIONS,
+  genderPreferenceLabels,
+  heterosexualPreference,
+  type Gender,
+  type GenderPreference,
+} from "@/lib/profile/gender";
 import { suggestDisplayNames } from "@/lib/profile/display-names";
 import { saveStep } from "./actions";
 
@@ -28,6 +35,8 @@ type Profile = {
   city: string;
   bio: string;
   dreamDate: string;
+  gender: Gender | "";
+  genderPreference: GenderPreference[];
   intentBadges: string[];
   dealBreakers: string[];
   interests: string[];
@@ -112,6 +121,8 @@ export function OnboardingStepper({
     fd.set("bio", data.bio);
     fd.set("dreamDate", data.dreamDate);
     fd.set("spendingTier", data.spendingTier);
+    fd.set("gender", data.gender);
+    fd.set("genderPreference", JSON.stringify(data.genderPreference));
     fd.set("intentBadges", JSON.stringify(data.intentBadges));
     fd.set("dealBreakers", JSON.stringify(data.dealBreakers));
     fd.set("interests", JSON.stringify(data.interests));
@@ -137,6 +148,13 @@ export function OnboardingStepper({
   }
 
   function next() {
+    const section = sections[step];
+    if (section === "basics") {
+      if (!data.gender) {
+        setErr("Please select your gender.");
+        return;
+      }
+    }
     persist({ toStep: step + 1 });
     setStep((s) => Math.min(s + 1, totalSteps - 1));
   }
@@ -224,6 +242,37 @@ export function OnboardingStepper({
               placeholder="Nairobi"
             />
           </div>
+          <div>
+            <Label>I am a</Label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {GENDER_OPTIONS.map((g) => (
+                <button
+                  key={g.value}
+                  type="button"
+                  onClick={() =>
+                    setData((d) => ({
+                      ...d,
+                      gender: g.value,
+                      genderPreference: heterosexualPreference(g.value),
+                    }))
+                  }
+                  className={`rounded-full px-4 py-2 text-sm transition ${
+                    data.gender === g.value
+                      ? "bg-plum-900 text-plum-100"
+                      : "bg-plum-900/5 text-plum-900"
+                  }`}
+                >
+                  {g.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          {data.gender && (
+            <p className="text-sm text-plum-900/70">
+              Interested in meeting:{" "}
+              <strong>{genderPreferenceLabels(data.genderPreference, data.gender)}</strong>
+            </p>
+          )}
           <div>
             <Label htmlFor="bio">A short bio</Label>
             <Textarea
@@ -518,6 +567,12 @@ export function OnboardingStepper({
             <p>
               <strong>Name:</strong> {data.displayName} · <strong>Phone:</strong>{" "}
               {data.phone || "—"} · <strong>City:</strong> {data.city || "—"}
+            </p>
+            <p>
+              <strong>Gender:</strong>{" "}
+              {GENDER_OPTIONS.find((g) => g.value === data.gender)?.label ?? "—"}{" "}
+              · <strong>Interested in:</strong>{" "}
+              {genderPreferenceLabels(data.genderPreference, data.gender)}
             </p>
             <p>
               <strong>Intent:</strong>{" "}

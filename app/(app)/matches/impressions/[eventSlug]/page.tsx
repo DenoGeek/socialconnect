@@ -1,12 +1,14 @@
 import { AppLink } from "@/components/nav/app-link";
 import { notFound } from "next/navigation";
-import { and, eq, not, ne, or, isNull } from "drizzle-orm";
+import { and, eq, not, ne, or, isNull, inArray } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { submitImpression } from "../actions";
+import { areGendersCompatible } from "@/lib/profile/gender";
+import { isPairExcluded } from "@/lib/matching/exclusions";
 
 export default async function ImpressionsPage({
   params,
@@ -22,18 +24,23 @@ export default async function ImpressionsPage({
     .limit(1);
   if (!event) notFound();
 
-  // Window: closes N hours after event end.
+  const [myProfile] = await db
+    .select()
+    .from(schema.profiles)
+    .where(eq(schema.profiles.userId, user.id))
+    .limit(1);
+
   const closesAt = new Date(
     new Date(event.endsAt).getTime() +
       event.impressionDeadlineHours * 60 * 60 * 1000,
   );
   const windowOpen = new Date() < closesAt;
 
-  // Aliases at the event (excluding mine).
   const attendees = await db
     .select({
       assignment: schema.aliasAssignments,
       alias: schema.aliasPool,
+      userId: schema.aliasAssignments.userId,
     })
     .from(schema.aliasAssignments)
     .innerJoin(
@@ -49,7 +56,33 @@ export default async function ImpressionsPage({
       ),
     );
 
-  // What I've already opted-in on.
+  const attendeeIds = attendees.map((a) => a.userId);
+  const attendeeProfiles =
+    attendeeIds.length > 0
+      ? await db
+          .select()
+          .from(schema.profiles)
+          .where(inArray(schema.profiles.userId, attendeeIds))
+      : [];
+
+  const profileByUserId = new Map(
+    attendeeProfiles.map((p) => [p.userId, p]),
+  );
+
+  const eligibleAttendees = [];
+  for (const a of attendees) {
+    if (await isPairExcluded(user.id, a.userId)) continue;
+    const theirProfile = profileByUserId.get(a.userId);
+    if (
+      myProfile &&
+      theirProfile &&
+      !areGendersCompatible(myProfile, theirProfile)
+    ) {
+      continue;
+    }
+    eligibleAttendees.push(a);
+  }
+
   const myImpressions = await db
     .select()
     .from(schema.impressions)
@@ -84,11 +117,24 @@ export default async function ImpressionsPage({
         </p>
       </header>
 
+      {!myProfile?.gender && (
+        <Card className="bg-amber-soft border border-amber">
+          <CardTitle>Complete your profile first</CardTitle>
+          <CardSubtitle>
+            Add your gender and matching preferences in onboarding so the Match
+            Card can show compatible attendees.
+          </CardSubtitle>
+          <AppLink href="/profile/onboarding" className="mt-3 inline-block underline text-plum-900">
+            Continue onboarding →
+          </AppLink>
+        </Card>
+      )}
+
       {!windowOpen ? (
         <Card>
           <CardTitle>The impression window has closed.</CardTitle>
           <CardSubtitle>
-            You&rsquo;ll see any matches in the matches page.
+            You&rsquo;ll see any matches on the matches page.
           </CardSubtitle>
           <AppLink
             href="/matches"
@@ -99,8 +145,8 @@ export default async function ImpressionsPage({
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          {attendees.map((a) => {
-            const id = a.assignment.userId;
+          {eligibleAttendees.map((a) => {
+            const id = a.userId;
             const already = optedInIds.has(id);
             return (
               <Card key={a.assignment.id}>
@@ -136,11 +182,12 @@ export default async function ImpressionsPage({
               </Card>
             );
           })}
-          {attendees.length === 0 && (
+          {eligibleAttendees.length === 0 && (
             <Card>
-              <CardTitle>No attendees yet</CardTitle>
+              <CardTitle>No compatible attendees yet</CardTitle>
               <CardSubtitle>
-                Once others purchase tickets you&rsquo;ll see them here.
+                Once others join this event with matching preferences, they will
+                appear here.
               </CardSubtitle>
             </Card>
           )}

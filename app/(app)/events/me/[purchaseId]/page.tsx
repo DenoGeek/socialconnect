@@ -88,6 +88,23 @@ export default async function TicketPage({
       )}
 
       <Card>
+        <CardTitle>Match Card</CardTitle>
+        <CardSubtitle>
+          After the gathering, opt in on aliases that resonated with you. Mutual
+          alignments unlock your Courtship Launchpad.
+        </CardSubtitle>
+        {(row.purchase.status === "confirmed" ||
+          row.purchase.status === "checked_in") && (
+          <AppLink
+            href={`/matches/impressions/${row.event.slug}`}
+            className="mt-3 inline-block underline text-plum-900 text-sm font-medium"
+          >
+            Open Match Card →
+          </AppLink>
+        )}
+      </Card>
+
+      <Card>
         <CardTitle>Day-of toolkit</CardTitle>
         <CardSubtitle>
           Icebreakers, blind responses, and a private notes log unlock at the

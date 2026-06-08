@@ -17,6 +17,7 @@ import {
   intentBadgeEnum,
   memberPathwayEnum,
   vettingStatusEnum,
+  genderEnum,
 } from "./enums";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -117,6 +118,7 @@ export const profiles = pgTable(
     displayName: text("display_name"),
     phone: text("phone"),
     city: text("city"),
+    gender: genderEnum("gender"),
     country: text("country").notNull().default("KE"),
     bio: text("bio"),
     dreamDate: text("dream_date"),

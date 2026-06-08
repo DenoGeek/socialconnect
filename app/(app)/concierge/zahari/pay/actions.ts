@@ -65,25 +65,6 @@ export async function simulateSovereignPayment() {
   });
 
   const redirectTo = await simulateAndCompletePayment(payment.id);
-
-  // #region agent log
-  fetch("http://127.0.0.1:7405/ingest/eb375903-b24c-4ad4-9d65-edd096cd3d7f", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Debug-Session-Id": "851db9",
-    },
-    body: JSON.stringify({
-      sessionId: "851db9",
-      location: "pay/actions.ts:simulateSovereignPayment",
-      message: "sovereign simulate complete",
-      data: { paymentId: payment.id, redirectTo },
-      timestamp: Date.now(),
-      hypothesisId: "D",
-    }),
-  }).catch(() => {});
-  // #endregion
-
   redirect(redirectTo);
 }
 

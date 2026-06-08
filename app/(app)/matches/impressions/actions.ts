@@ -1,10 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { detectMutualMatch } from "@/lib/matching/match-loop";
+import { isPairExcluded } from "@/lib/matching/exclusions";
 
 export async function submitImpression(form: FormData) {
   const user = await requireUser();
@@ -14,18 +15,9 @@ export async function submitImpression(form: FormData) {
 
   if (toUserId === user.id) throw new Error("Cannot opt in on yourself");
 
-  // Exclusion check: e.g. ex-partners or de-synced couples.
-  const excluded = await db
-    .select()
-    .from(schema.matchExclusions)
-    .where(
-      and(
-        eq(schema.matchExclusions.userAId, user.id),
-        eq(schema.matchExclusions.userBId, toUserId),
-      ),
-    )
-    .limit(1);
-  if (excluded[0]) throw new Error("Match unavailable");
+  if (await isPairExcluded(user.id, toUserId)) {
+    throw new Error("Match unavailable");
+  }
 
   await db
     .insert(schema.impressions)
