@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db, schema } from "@/db";
-import { requireUser } from "@/lib/auth";
+import { requireUser, isEliteExperience } from "@/lib/auth";
 
 export async function sendMessage(form: FormData) {
   const user = await requireUser();
@@ -14,8 +14,9 @@ export async function sendMessage(form: FormData) {
     threadId,
     senderUserId: user.id,
     body,
-    priority: user.tier === "elite" ? "high" : "normal",
+    priority: isEliteExperience(user) ? "high" : "normal",
   });
 
   revalidatePath("/concierge/thread");
+  revalidatePath("/concierge");
 }

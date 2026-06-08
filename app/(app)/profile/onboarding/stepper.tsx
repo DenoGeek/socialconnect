@@ -244,22 +244,28 @@ export function OnboardingStepper({
             />
           </div>
           <div>
-            <Label>Spending tier</Label>
+            <Label>Date budget</Label>
             <div className="flex gap-2">
-              {["standard", "premium", "elite"].map((t) => (
+              {(
+                [
+                  { id: "standard", label: "Modest" },
+                  { id: "premium", label: "Elevated" },
+                  { id: "elite", label: "Luxury" },
+                ] as const
+              ).map((t) => (
                 <button
-                  key={t}
+                  key={t.id}
                   type="button"
                   onClick={() =>
-                    setData((d) => ({ ...d, spendingTier: t }))
+                    setData((d) => ({ ...d, spendingTier: t.id }))
                   }
-                  className={`rounded-full px-3 py-1.5 text-sm capitalize ${
-                    data.spendingTier === t
+                  className={`rounded-full px-3 py-1.5 text-sm ${
+                    data.spendingTier === t.id
                       ? "bg-plum-900 text-plum-100"
                       : "bg-plum-900/5 text-plum-900"
                   }`}
                 >
-                  {t}
+                  {t.label}
                 </button>
               ))}
             </div>

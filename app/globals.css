@@ -50,6 +50,19 @@ body {
   color: #d4af37;
 }
 
+.elite-page-header {
+  color: #d4af37;
+}
+
+.elite-nav-link {
+  color: rgba(212, 175, 55, 0.85);
+}
+
+.elite-nav-link:hover {
+  color: #d4af37;
+  background: rgba(212, 175, 55, 0.08);
+}
+
 .text-display {
   font-family: var(--font-display);
 }

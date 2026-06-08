@@ -60,12 +60,12 @@ export async function purchaseTicket(form: FormData) {
     userId: user.id,
     subjectKind: "ticket",
     subjectId: purchase.id,
-    provider,
+    provider: "mock",
     currency,
     amount,
     phone,
     senderDisplayName: "Evermore Events",
   });
 
-  redirect(`/events/me/${purchase.id}?paymentId=${payment.id}`);
+  redirect(`/payments/${payment.id}`);
 }

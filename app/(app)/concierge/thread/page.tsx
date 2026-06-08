@@ -1,6 +1,7 @@
+import { redirect } from "next/navigation";
 import { eq, asc } from "drizzle-orm";
 import { db, schema } from "@/db";
-import { requireUser } from "@/lib/auth";
+import { requireUser, isEliteExperience } from "@/lib/auth";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +10,10 @@ import { sendMessage } from "./actions";
 
 export default async function ThreadPage() {
   const user = await requireUser();
+
+  if (user.pathway === "zahari") {
+    redirect("/concierge");
+  }
 
   let [thread] = await db
     .select()
@@ -28,11 +33,11 @@ export default async function ThreadPage() {
     .where(eq(schema.conciergeMessages.threadId, thread.id))
     .orderBy(asc(schema.conciergeMessages.createdAt));
 
-  const elite = user.tier === "elite";
+  const elite = isEliteExperience(user);
 
   return (
     <div className={`max-w-2xl space-y-6 ${elite ? "elite-bg p-4 rounded-3xl" : ""}`}>
-      <header className={elite ? "text-plum-100" : ""}>
+      <header className={elite ? "elite-page-header" : ""}>
         <h1 className="text-display text-3xl">Concierge thread</h1>
         <p className="text-sm opacity-70">
           Encrypted at rest. Only you and the Concierge see this.
@@ -57,7 +62,7 @@ export default async function ThreadPage() {
                   mine
                     ? "bg-plum-900 text-plum-100"
                     : elite
-                      ? "bg-plum-100/10 text-plum-100"
+                      ? "bg-white/10 border border-[#d4af37]/20 text-plum-100"
                       : "bg-white border border-plum-900/10 text-plum-900"
                 }`}
               >
@@ -95,7 +100,7 @@ export default async function ThreadPage() {
 
       <form
         action={sendMessage}
-        className={`space-y-2 ${elite ? "text-plum-100" : ""}`}
+        className={`space-y-2 ${elite ? "elite-page-header" : ""}`}
       >
         <input type="hidden" name="threadId" value={thread.id} />
         <Textarea name="body" rows={3} placeholder="Send a message…" required />

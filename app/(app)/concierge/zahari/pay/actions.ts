@@ -15,14 +15,14 @@ export async function requestSovereignPayment() {
     .limit(1);
   if (!eng) throw new Error("No Zahari engagement");
 
-  await startZahariPayment({
+  const payment = await startZahariPayment({
     userId: user.id,
     engagementId: eng.id,
     kind: "zahari_sovereign",
     amountUsd: Number(eng.sovereignSearchFeeUsd),
   });
 
-  redirect("/concierge/zahari/pay?requested=sovereign");
+  redirect(`/payments/${payment.id}`);
 }
 
 export async function requestActivationPayment() {
@@ -34,12 +34,12 @@ export async function requestActivationPayment() {
     .limit(1);
   if (!eng) throw new Error("No Zahari engagement");
 
-  await startZahariPayment({
+  const payment = await startZahariPayment({
     userId: user.id,
     engagementId: eng.id,
     kind: "zahari_activation",
     amountUsd: Number(eng.covenantActivationFeeUsd),
   });
 
-  redirect("/concierge/zahari/pay?requested=activation");
+  redirect(`/payments/${payment.id}`);
 }

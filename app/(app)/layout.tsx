@@ -7,6 +7,7 @@ import {
   getCurrentUser,
   canAccessEcosystem,
   isStaffRole,
+  isEliteExperience,
 } from "@/lib/auth";
 import { isRouterPrefetchRequest } from "@/lib/auth/request-kind";
 import { AppLink } from "@/components/nav/app-link";
@@ -90,6 +91,7 @@ export default async function AppLayout({
   }
 
   const isZahari = user.pathway === "zahari";
+  const eliteChrome = isEliteExperience(user);
   const nav =
     isStaffRole(user.role) || !ecosystemOk
       ? [{ href: "/apply", label: "Application" }, { href: "/profile", label: "Profile" }]
@@ -103,7 +105,9 @@ export default async function AppLayout({
         <aside className="hidden md:block w-56 shrink-0">
           <Link
             href="/"
-            className="block text-display text-2xl text-plum-900 mb-8"
+            className={`block text-display text-2xl mb-8 ${
+              eliteChrome ? "elite-page-header" : "text-plum-900"
+            }`}
           >
             Evermore
           </Link>
@@ -112,7 +116,11 @@ export default async function AppLayout({
               <AppLink
                 key={n.href}
                 href={n.href}
-                className="block rounded-xl px-3 py-2 text-sm text-plum-900/80 hover:bg-plum-900/5 hover:text-plum-900"
+                className={`block rounded-xl px-3 py-2 text-sm ${
+                  eliteChrome
+                    ? "elite-nav-link"
+                    : "text-plum-900/80 hover:bg-plum-900/5 hover:text-plum-900"
+                }`}
               >
                 {n.label}
               </AppLink>
@@ -141,7 +149,13 @@ export default async function AppLayout({
                 Host portal
               </AppLink>
             )}
-            <SignOutButton className="mt-2 block w-full text-left rounded-xl px-3 py-2 text-sm text-plum-900/50 hover:text-plum-900" />
+            <SignOutButton
+              className={`mt-2 block w-full text-left rounded-xl px-3 py-2 text-sm ${
+                eliteChrome
+                  ? "elite-nav-link opacity-60"
+                  : "text-plum-900/50 hover:text-plum-900"
+              }`}
+            />
           </nav>
         </aside>
         <main className="flex-1 min-w-0">{children}</main>

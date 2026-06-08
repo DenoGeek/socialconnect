@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { INTENT_BADGES } from "@/lib/intent/badges";
 import { getAlias } from "@/lib/alias/assign";
+import { UpgradeToZahariBanner } from "@/components/membership/upgrade-to-zahari";
 
 export default async function ProfilePage() {
   const user = await requireUser();
@@ -68,6 +69,10 @@ export default async function ProfilePage() {
             ))}
           </ol>
         </Card>
+      )}
+
+      {user.tier === "elite" && user.pathway === "amari" && (
+        <UpgradeToZahariBanner />
       )}
 
       {user.pathway === "zahari" && (
@@ -137,9 +142,9 @@ export default async function ProfilePage() {
           <dd className="text-plum-900">{profile?.city ?? "—"}</dd>
           <dt className="text-plum-900/50">Phone</dt>
           <dd className="text-plum-900">{profile?.phone ?? "—"}</dd>
-          <dt className="text-plum-900/50">Spending tier</dt>
+          <dt className="text-plum-900/50">Date budget</dt>
           <dd className="text-plum-900 capitalize">
-            {profile?.spendingTier ?? "standard"}
+            {spendingBudgetLabel(profile?.spendingTier ?? "standard")}
           </dd>
           <dt className="text-plum-900/50">Pathway</dt>
           <dd className="text-plum-900 capitalize">
@@ -167,4 +172,15 @@ export default async function ProfilePage() {
       </Card>
     </div>
   );
+}
+
+function spendingBudgetLabel(tier: string) {
+  switch (tier) {
+    case "premium":
+      return "Elevated";
+    case "elite":
+      return "Luxury";
+    default:
+      return "Modest";
+  }
 }

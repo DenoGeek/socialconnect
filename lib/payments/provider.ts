@@ -1,4 +1,10 @@
-export type PaymentProvider = "tinypesa" | "mpesa" | "card" | "cytton_mmf" | "manual";
+export type PaymentProvider =
+  | "tinypesa"
+  | "mpesa"
+  | "card"
+  | "cytton_mmf"
+  | "manual"
+  | "mock";
 
 export type StartPaymentInput = {
   userId: string;

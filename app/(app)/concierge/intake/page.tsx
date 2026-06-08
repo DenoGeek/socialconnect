@@ -4,10 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { submitIntake } from "./actions";
-import { requireUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { requireUser, isEliteExperience } from "@/lib/auth";
 
 export default async function IntakePage() {
   const user = await requireUser();
+  if (isEliteExperience(user)) {
+    redirect("/concierge");
+  }
   return (
     <div className="max-w-md space-y-6">
       <header>

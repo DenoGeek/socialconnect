@@ -59,3 +59,11 @@ export function isAmariPathway(user: {
 }) {
   return user.pathway === "amari";
 }
+
+/** Zahari pathway or legacy elite subscription — drives concierge + elite styling. */
+export function isEliteExperience(user: {
+  pathway?: string | null;
+  tier?: string | null;
+}) {
+  return user.pathway === "zahari" || user.tier === "elite";
+}

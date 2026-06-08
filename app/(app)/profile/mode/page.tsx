@@ -2,6 +2,7 @@ import { requireUser } from "@/lib/auth";
 import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { switchMode } from "../onboarding/actions";
+import { UpgradeToZahariBanner } from "@/components/membership/upgrade-to-zahari";
 
 export default async function ModeSwitchPage() {
   const user = await requireUser();
@@ -14,8 +15,12 @@ export default async function ModeSwitchPage() {
         a specific mixer or to step into the Hearth.
       </p>
 
+      {user.tier === "elite" && user.pathway === "amari" && (
+        <UpgradeToZahariBanner />
+      )}
+
       <div className="grid gap-3">
-        {(["explorer", "couple", "elite"] as const).map((m) => (
+        {(["explorer", "couple"] as const).map((m) => (
           <Card key={m} className={user.mode === m ? "ring-2 ring-plum-900" : ""}>
             <CardTitle>{label(m)}</CardTitle>
             <CardSubtitle>{description(m)}</CardSubtitle>
@@ -36,18 +41,12 @@ export default async function ModeSwitchPage() {
   );
 }
 
-function label(m: "explorer" | "couple" | "elite") {
-  return m === "explorer"
-    ? "Explorer"
-    : m === "couple"
-      ? "Couple (Agano)"
-      : "Elite (Silent)";
+function label(m: "explorer" | "couple") {
+  return m === "explorer" ? "Community" : "Couple (Agano)";
 }
 
-function description(m: "explorer" | "couple" | "elite") {
+function description(m: "explorer" | "couple") {
   return m === "explorer"
-    ? "Public profile in the Pulse hub. Matching active."
-    : m === "couple"
-      ? "Duo-Sync, Hearth, marital programs. Past match history archived."
-      : "Invisible profile. Silent Match Portal + concierge direct-line.";
+    ? "Active in the Pulse hub. Matching enabled."
+    : "Duo-Sync, Hearth, and marital programs.";
 }

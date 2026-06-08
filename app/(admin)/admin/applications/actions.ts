@@ -65,6 +65,38 @@ export async function approveApplication(form: FormData) {
         assignedConciergeId: matchmakerUserId ?? admin.id,
       });
     }
+
+    const [userRow] = await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.id, app.userId))
+      .limit(1);
+    const [existingProfile] = await db
+      .select()
+      .from(schema.profiles)
+      .where(eq(schema.profiles.userId, app.userId))
+      .limit(1);
+    const profileValues = {
+      displayName: userRow?.name ?? "Member",
+      city: app.city ?? undefined,
+      bio: app.professionalContext ?? undefined,
+      isPublic: false,
+      silentMode: true,
+      onboardingProgress: 99,
+      onboardingCompletedAt: new Date(),
+      updatedAt: new Date(),
+    };
+    if (existingProfile) {
+      await db
+        .update(schema.profiles)
+        .set(profileValues)
+        .where(eq(schema.profiles.userId, app.userId));
+    } else {
+      await db.insert(schema.profiles).values({
+        userId: app.userId,
+        ...profileValues,
+      });
+    }
   }
 
   if (app.optIntoCandidatePool && app.pathway === "amari") {

@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/auth";
 import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDateRange } from "@/lib/utils/format";
+import { UpgradeToZahariBanner } from "@/components/membership/upgrade-to-zahari";
 
 export default async function PulseHub() {
   const user = await requireUser();
@@ -67,6 +68,10 @@ export default async function PulseHub() {
           on ticket purchase after onboarding.
         </p>
       </header>
+
+      {user.tier === "elite" && user.pathway === "amari" && (
+        <UpgradeToZahariBanner />
+      )}
 
       <div className="rounded-3xl brand-card-dark p-5">
         <p className="text-xs uppercase tracking-[0.4em] opacity-70">

@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/auth";
 import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatMoney } from "@/lib/utils/format";
+import { UpgradeToZahariBanner } from "@/components/membership/upgrade-to-zahari";
 
 export default async function ResidentialIndex({
   searchParams,
@@ -63,6 +64,10 @@ export default async function ResidentialIndex({
           Box.
         </p>
       </header>
+
+      {user.tier !== "elite" && user.pathway === "amari" && (
+        <UpgradeToZahariBanner />
+      )}
 
       <form className="flex flex-wrap gap-2 text-sm">
         <FilterPill name="region" value={sp.region} placeholder="Region" />

@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { respondToIntroduction } from "./actions";
 
 export default async function IntroductionsPage() {
@@ -39,9 +40,9 @@ export default async function IntroductionsPage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-display text-3xl text-plum-900">Candidate presentations</h1>
-        <p className="text-sm text-plum-900/60">
+      <header className="elite-page-header">
+        <h1 className="text-display text-3xl">Candidate presentations</h1>
+        <p className="text-sm opacity-70">
           Your matchmaker introduces aligned candidates — accept or decline prayerfully.
         </p>
       </header>
@@ -84,11 +85,10 @@ export default async function IntroductionsPage() {
             <form action={respondToIntroduction} className="mt-4 space-y-2">
               <input type="hidden" name="introId" value={intro.id} />
               <input type="hidden" name="response" value="feedback" />
-              <textarea
+              <Textarea
                 name="feedback"
                 placeholder="How did your introduction go?"
                 rows={3}
-                className="w-full rounded-2xl border border-plum-900/15 px-3 py-2 text-sm"
               />
               <Button type="submit" variant="outline" size="sm">
                 Submit feedback

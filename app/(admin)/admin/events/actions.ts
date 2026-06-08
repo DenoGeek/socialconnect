@@ -1,10 +1,12 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireAdmin } from "@/lib/auth";
 import { slugify } from "@/lib/utils/format";
+import { usdFromKsh } from "@/lib/currency/usd-from-ksh";
 
 export async function createEvent(form: FormData) {
   await requireAdmin();
@@ -52,20 +54,29 @@ export async function updateEvent(form: FormData) {
       updatedAt: new Date(),
     })
     .where(eq(schema.events.id, id));
-  redirect(`/admin/events`);
+
+  if (form.get("publish") === "1") {
+    redirect(`/admin/events`);
+  }
+  revalidatePath(`/admin/events/${id}/edit`);
 }
 
 export async function addTicket(form: FormData) {
   await requireAdmin();
+  const eventId = String(form.get("eventId"));
+  const priceKsh = Number(form.get("priceKsh"));
+  const { priceUsd } = await usdFromKsh(priceKsh);
+
   await db.insert(schema.eventTickets).values({
-    eventId: String(form.get("eventId")),
+    eventId,
     tier: String(form.get("tier")) as never,
     label: String(form.get("label")),
-    priceKsh: String(form.get("priceKsh")),
-    priceUsd: String(form.get("priceUsd")),
+    priceKsh: String(priceKsh),
+    priceUsd: String(priceUsd),
     capacity: Number(form.get("capacity")),
     memberDiscountPct: Number(form.get("memberDiscountPct") ?? 0),
   });
+  revalidatePath(`/admin/events/${eventId}/edit`);
 }
 
 export async function checkInTicket(form: FormData) {

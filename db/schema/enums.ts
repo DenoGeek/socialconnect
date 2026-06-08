@@ -73,6 +73,7 @@ export const paymentProviderEnum = pgEnum("payment_provider", [
   "card",
   "cytton_mmf",
   "manual",
+  "mock",
 ]);
 
 export const matchStatusEnum = pgEnum("match_status", [

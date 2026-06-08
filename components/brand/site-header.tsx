@@ -36,7 +36,13 @@ export async function SiteHeader() {
         <div className="flex items-center gap-3">
           {user ? (
             <AppLink
-              href={user.vettingStatus === "approved" ? "/profile" : "/apply/status"}
+              href={
+                user.vettingStatus === "approved"
+                  ? user.pathway === "zahari"
+                    ? "/concierge"
+                    : "/profile"
+                  : "/apply/status"
+              }
               className="text-sm text-plum-900 underline-offset-4 hover:underline"
             >
               Dashboard
