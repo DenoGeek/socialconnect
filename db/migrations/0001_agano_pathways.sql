@@ -1,9 +1,9 @@
-CREATE TYPE "public"."member_pathway" AS ENUM('amari', 'zahari');--> statement-breakpoint
-CREATE TYPE "public"."vetting_status" AS ENUM('pending', 'approved', 'rejected');--> statement-breakpoint
-CREATE TYPE "public"."application_status" AS ENUM('draft', 'submitted', 'in_review', 'approved', 'rejected');--> statement-breakpoint
-CREATE TYPE "public"."zahari_engagement_status" AS ENUM('pending_payment', 'active', 'matched', 'completed');--> statement-breakpoint
-CREATE TYPE "public"."introduction_status" AS ENUM('presented', 'accepted', 'declined', 'scheduled', 'completed', 'cancelled');--> statement-breakpoint
-CREATE TYPE "public"."event_kind" AS ENUM('social', 'pulse_retreat');--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."member_pathway" AS ENUM('amari', 'zahari'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."vetting_status" AS ENUM('pending', 'approved', 'rejected'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."application_status" AS ENUM('draft', 'submitted', 'in_review', 'approved', 'rejected'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."zahari_engagement_status" AS ENUM('pending_payment', 'active', 'matched', 'completed'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."introduction_status" AS ENUM('presented', 'accepted', 'declined', 'scheduled', 'completed', 'cancelled'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."event_kind" AS ENUM('social', 'pulse_retreat'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
 ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "pathway" "member_pathway";--> statement-breakpoint
 ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "vetting_status" "vetting_status" DEFAULT 'pending' NOT NULL;--> statement-breakpoint
 ALTER TABLE "events" ADD COLUMN IF NOT EXISTS "kind" "event_kind" DEFAULT 'social' NOT NULL;--> statement-breakpoint
@@ -60,13 +60,13 @@ CREATE TABLE IF NOT EXISTS "zahari_introductions" (
 	"responded_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );--> statement-breakpoint
-ALTER TABLE "member_applications" ADD CONSTRAINT "member_applications_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "member_applications" ADD CONSTRAINT "member_applications_reviewed_by_user_id_users_id_fk" FOREIGN KEY ("reviewed_by_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "candidate_pool_members" ADD CONSTRAINT "candidate_pool_members_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "zahari_engagements" ADD CONSTRAINT "zahari_engagements_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "zahari_engagements" ADD CONSTRAINT "zahari_engagements_matchmaker_user_id_users_id_fk" FOREIGN KEY ("matchmaker_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "zahari_introductions" ADD CONSTRAINT "zahari_introductions_engagement_id_zahari_engagements_id_fk" FOREIGN KEY ("engagement_id") REFERENCES "public"."zahari_engagements"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "zahari_introductions" ADD CONSTRAINT "zahari_introductions_candidate_user_id_users_id_fk" FOREIGN KEY ("candidate_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "member_applications" ADD CONSTRAINT "member_applications_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "member_applications" ADD CONSTRAINT "member_applications_reviewed_by_user_id_users_id_fk" FOREIGN KEY ("reviewed_by_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "candidate_pool_members" ADD CONSTRAINT "candidate_pool_members_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "zahari_engagements" ADD CONSTRAINT "zahari_engagements_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "zahari_engagements" ADD CONSTRAINT "zahari_engagements_matchmaker_user_id_users_id_fk" FOREIGN KEY ("matchmaker_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "zahari_introductions" ADD CONSTRAINT "zahari_introductions_engagement_id_zahari_engagements_id_fk" FOREIGN KEY ("engagement_id") REFERENCES "public"."zahari_engagements"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "zahari_introductions" ADD CONSTRAINT "zahari_introductions_candidate_user_id_users_id_fk" FOREIGN KEY ("candidate_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "app_user_idx" ON "member_applications" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "app_status_idx" ON "member_applications" USING btree ("status");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "app_pathway_idx" ON "member_applications" USING btree ("pathway");--> statement-breakpoint

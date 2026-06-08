@@ -1,24 +1,24 @@
-CREATE TYPE "public"."alias_mode" AS ENUM('auto', 'manual', 'elite_hidden');--> statement-breakpoint
-CREATE TYPE "public"."booking_status" AS ENUM('pending', 'confirmed', 'checked_in', 'checked_out', 'cancelled');--> statement-breakpoint
-CREATE TYPE "public"."concierge_priority" AS ENUM('normal', 'high', 'urgent');--> statement-breakpoint
-CREATE TYPE "public"."duo_status" AS ENUM('invited', 'active', 'desynced');--> statement-breakpoint
-CREATE TYPE "public"."enrollment_status" AS ENUM('active', 'completed', 'withdrawn', 'graduated');--> statement-breakpoint
-CREATE TYPE "public"."event_status" AS ENUM('draft', 'published', 'sold_out', 'in_progress', 'completed', 'cancelled');--> statement-breakpoint
-CREATE TYPE "public"."intent_badge" AS ENUM('slow_burner', 'ready_for_covenant', 'global_professional', 'iron_sharpens_iron', 'legacy_minded', 'ready_for_marriage');--> statement-breakpoint
-CREATE TYPE "public"."match_status" AS ENUM('single_opt_in', 'mutual', 'rejected', 'expired');--> statement-breakpoint
-CREATE TYPE "public"."message_visibility" AS ENUM('user', 'concierge', 'internal');--> statement-breakpoint
-CREATE TYPE "public"."payment_currency" AS ENUM('KSH', 'USD');--> statement-breakpoint
-CREATE TYPE "public"."payment_provider" AS ENUM('tinypesa', 'mpesa', 'card', 'cytton_mmf', 'manual');--> statement-breakpoint
-CREATE TYPE "public"."payment_status" AS ENUM('pending', 'processing', 'succeeded', 'failed', 'refunded');--> statement-breakpoint
-CREATE TYPE "public"."program_type" AS ENUM('agano_ascent', 'marital_legacy', 'parental_legacy', 'premarital');--> statement-breakpoint
-CREATE TYPE "public"."property_type" AS ENUM('modern_rustic', 'highland_rustic', 'ensuite_suite', 'self_catering', 'private_cabin', 'group_unit');--> statement-breakpoint
-CREATE TYPE "public"."ticket_status" AS ENUM('pending_payment', 'confirmed', 'checked_in', 'no_show', 'refunded');--> statement-breakpoint
-CREATE TYPE "public"."ticket_tier" AS ENUM('one_day', 'two_day', 'member_exclusive', 'elite_only');--> statement-breakpoint
-CREATE TYPE "public"."trip_scope" AS ENUM('group', 'private');--> statement-breakpoint
-CREATE TYPE "public"."user_mode" AS ENUM('explorer', 'couple', 'elite');--> statement-breakpoint
-CREATE TYPE "public"."user_role" AS ENUM('user', 'concierge', 'admin', 'super_admin', 'facilitator', 'host', 'professional');--> statement-breakpoint
-CREATE TYPE "public"."user_tier" AS ENUM('free', 'explorer', 'couple', 'elite', 'concierge');--> statement-breakpoint
-CREATE TABLE "accounts" (
+DO $$ BEGIN CREATE TYPE "public"."alias_mode" AS ENUM('auto', 'manual', 'elite_hidden'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."booking_status" AS ENUM('pending', 'confirmed', 'checked_in', 'checked_out', 'cancelled'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."concierge_priority" AS ENUM('normal', 'high', 'urgent'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."duo_status" AS ENUM('invited', 'active', 'desynced'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."enrollment_status" AS ENUM('active', 'completed', 'withdrawn', 'graduated'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."event_status" AS ENUM('draft', 'published', 'sold_out', 'in_progress', 'completed', 'cancelled'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."intent_badge" AS ENUM('slow_burner', 'ready_for_covenant', 'global_professional', 'iron_sharpens_iron', 'legacy_minded', 'ready_for_marriage'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."match_status" AS ENUM('single_opt_in', 'mutual', 'rejected', 'expired'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."message_visibility" AS ENUM('user', 'concierge', 'internal'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."payment_currency" AS ENUM('KSH', 'USD'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."payment_provider" AS ENUM('tinypesa', 'mpesa', 'card', 'cytton_mmf', 'manual'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."payment_status" AS ENUM('pending', 'processing', 'succeeded', 'failed', 'refunded'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."program_type" AS ENUM('agano_ascent', 'marital_legacy', 'parental_legacy', 'premarital'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."property_type" AS ENUM('modern_rustic', 'highland_rustic', 'ensuite_suite', 'self_catering', 'private_cabin', 'group_unit'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."ticket_status" AS ENUM('pending_payment', 'confirmed', 'checked_in', 'no_show', 'refunded'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."ticket_tier" AS ENUM('one_day', 'two_day', 'member_exclusive', 'elite_only'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."trip_scope" AS ENUM('group', 'private'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."user_mode" AS ENUM('explorer', 'couple', 'elite'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."user_role" AS ENUM('user', 'concierge', 'admin', 'super_admin', 'facilitator', 'host', 'professional'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "public"."user_tier" AS ENUM('free', 'explorer', 'couple', 'elite', 'concierge'); EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "accounts" (
 	"id" text PRIMARY KEY NOT NULL,
 	"user_id" text NOT NULL,
 	"account_id" text NOT NULL,
@@ -34,7 +34,7 @@ CREATE TABLE "accounts" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "onboarding_progress" (
+CREATE TABLE IF NOT EXISTS "onboarding_progress" (
 	"user_id" text PRIMARY KEY NOT NULL,
 	"current_step" integer DEFAULT 0 NOT NULL,
 	"total_steps" integer NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE "onboarding_progress" (
 	"completed_at" timestamp with time zone
 );
 --> statement-breakpoint
-CREATE TABLE "profiles" (
+CREATE TABLE IF NOT EXISTS "profiles" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" text NOT NULL,
 	"display_name" text,
@@ -71,7 +71,7 @@ CREATE TABLE "profiles" (
 	CONSTRAINT "profiles_user_id_unique" UNIQUE("user_id")
 );
 --> statement-breakpoint
-CREATE TABLE "psychometric_questions" (
+CREATE TABLE IF NOT EXISTS "psychometric_questions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"bank_version" integer DEFAULT 1 NOT NULL,
 	"step" integer NOT NULL,
@@ -86,7 +86,7 @@ CREATE TABLE "psychometric_questions" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "psychometric_responses" (
+CREATE TABLE IF NOT EXISTS "psychometric_responses" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" text NOT NULL,
 	"question_id" uuid NOT NULL,
@@ -94,7 +94,7 @@ CREATE TABLE "psychometric_responses" (
 	"answered_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "sessions" (
+CREATE TABLE IF NOT EXISTS "sessions" (
 	"id" text PRIMARY KEY NOT NULL,
 	"user_id" text NOT NULL,
 	"token" text NOT NULL,
@@ -106,7 +106,7 @@ CREATE TABLE "sessions" (
 	CONSTRAINT "sessions_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint
-CREATE TABLE "users" (
+CREATE TABLE IF NOT EXISTS "users" (
 	"id" text PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
 	"email" text NOT NULL,
@@ -124,7 +124,7 @@ CREATE TABLE "users" (
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
-CREATE TABLE "verifications" (
+CREATE TABLE IF NOT EXISTS "verifications" (
 	"id" text PRIMARY KEY NOT NULL,
 	"identifier" text NOT NULL,
 	"value" text NOT NULL,
@@ -133,7 +133,7 @@ CREATE TABLE "verifications" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "alias_assignments" (
+CREATE TABLE IF NOT EXISTS "alias_assignments" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" text NOT NULL,
 	"event_id" uuid,
@@ -143,7 +143,7 @@ CREATE TABLE "alias_assignments" (
 	"assigned_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "alias_pool" (
+CREATE TABLE IF NOT EXISTS "alias_pool" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" text NOT NULL,
 	"archetype" text,
@@ -152,7 +152,7 @@ CREATE TABLE "alias_pool" (
 	CONSTRAINT "alias_pool_name_unique" UNIQUE("name")
 );
 --> statement-breakpoint
-CREATE TABLE "event_prompt_responses" (
+CREATE TABLE IF NOT EXISTS "event_prompt_responses" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"prompt_id" uuid NOT NULL,
 	"user_id" text NOT NULL,
@@ -161,7 +161,7 @@ CREATE TABLE "event_prompt_responses" (
 	"submitted_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "event_prompts" (
+CREATE TABLE IF NOT EXISTS "event_prompts" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"event_id" uuid NOT NULL,
 	"kind" text NOT NULL,
@@ -169,13 +169,13 @@ CREATE TABLE "event_prompts" (
 	"ordering" integer DEFAULT 0 NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "event_table_seats" (
+CREATE TABLE IF NOT EXISTS "event_table_seats" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"table_id" uuid NOT NULL,
 	"user_id" text NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "event_tables" (
+CREATE TABLE IF NOT EXISTS "event_tables" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"event_id" uuid NOT NULL,
 	"name" text NOT NULL,
@@ -183,7 +183,7 @@ CREATE TABLE "event_tables" (
 	"capacity" integer DEFAULT 8 NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "event_tickets" (
+CREATE TABLE IF NOT EXISTS "event_tickets" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"event_id" uuid NOT NULL,
 	"tier" "ticket_tier" NOT NULL,
@@ -196,7 +196,7 @@ CREATE TABLE "event_tickets" (
 	"active" boolean DEFAULT true NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "events" (
+CREATE TABLE IF NOT EXISTS "events" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"slug" text NOT NULL,
 	"title" text NOT NULL,
@@ -220,7 +220,7 @@ CREATE TABLE "events" (
 	CONSTRAINT "events_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
-CREATE TABLE "interaction_notes" (
+CREATE TABLE IF NOT EXISTS "interaction_notes" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"event_id" uuid NOT NULL,
 	"author_user_id" text NOT NULL,
@@ -229,7 +229,7 @@ CREATE TABLE "interaction_notes" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "ticket_purchases" (
+CREATE TABLE IF NOT EXISTS "ticket_purchases" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"event_id" uuid NOT NULL,
 	"ticket_id" uuid NOT NULL,
@@ -245,7 +245,7 @@ CREATE TABLE "ticket_purchases" (
 	CONSTRAINT "ticket_purchases_qr_token_unique" UNIQUE("qr_token")
 );
 --> statement-breakpoint
-CREATE TABLE "impressions" (
+CREATE TABLE IF NOT EXISTS "impressions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"event_id" uuid NOT NULL,
 	"from_user_id" text NOT NULL,
@@ -254,7 +254,7 @@ CREATE TABLE "impressions" (
 	"submitted_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "match_bridge_upsells" (
+CREATE TABLE IF NOT EXISTS "match_bridge_upsells" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"match_id" uuid NOT NULL,
 	"deal_id" uuid,
@@ -265,7 +265,7 @@ CREATE TABLE "match_bridge_upsells" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "match_exclusions" (
+CREATE TABLE IF NOT EXISTS "match_exclusions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_a_id" text NOT NULL,
 	"user_b_id" text NOT NULL,
@@ -274,7 +274,7 @@ CREATE TABLE "match_exclusions" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "match_feedback" (
+CREATE TABLE IF NOT EXISTS "match_feedback" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"match_id" uuid NOT NULL,
 	"author_user_id" text NOT NULL,
@@ -283,7 +283,7 @@ CREATE TABLE "match_feedback" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "matches" (
+CREATE TABLE IF NOT EXISTS "matches" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"event_id" uuid,
 	"user_a_id" text NOT NULL,
@@ -297,7 +297,7 @@ CREATE TABLE "matches" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "concierge_intakes" (
+CREATE TABLE IF NOT EXISTS "concierge_intakes" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"full_name" text NOT NULL,
 	"email" text NOT NULL,
@@ -309,7 +309,7 @@ CREATE TABLE "concierge_intakes" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "concierge_messages" (
+CREATE TABLE IF NOT EXISTS "concierge_messages" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"thread_id" uuid NOT NULL,
 	"sender_user_id" text NOT NULL,
@@ -321,7 +321,7 @@ CREATE TABLE "concierge_messages" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "concierge_threads" (
+CREATE TABLE IF NOT EXISTS "concierge_threads" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" text NOT NULL,
 	"assigned_concierge_id" text,
@@ -330,7 +330,7 @@ CREATE TABLE "concierge_threads" (
 	CONSTRAINT "concierge_threads_user_id_unique" UNIQUE("user_id")
 );
 --> statement-breakpoint
-CREATE TABLE "shadow_match_suggestions" (
+CREATE TABLE IF NOT EXISTS "shadow_match_suggestions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"elite_user_id" text NOT NULL,
 	"candidate_user_id" text NOT NULL,
@@ -339,7 +339,7 @@ CREATE TABLE "shadow_match_suggestions" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "coaching_notes" (
+CREATE TABLE IF NOT EXISTS "coaching_notes" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"enrollment_id" uuid NOT NULL,
 	"author_user_id" text NOT NULL,
@@ -347,7 +347,7 @@ CREATE TABLE "coaching_notes" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "cohorts" (
+CREATE TABLE IF NOT EXISTS "cohorts" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"program_id" uuid NOT NULL,
 	"facilitator_user_id" text,
@@ -356,7 +356,7 @@ CREATE TABLE "cohorts" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "enrollments" (
+CREATE TABLE IF NOT EXISTS "enrollments" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"cohort_id" uuid NOT NULL,
 	"primary_user_id" text NOT NULL,
@@ -367,14 +367,14 @@ CREATE TABLE "enrollments" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "institution_members" (
+CREATE TABLE IF NOT EXISTS "institution_members" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"institution_id" uuid NOT NULL,
 	"user_id" text NOT NULL,
 	"role" text DEFAULT 'facilitator' NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "institutions" (
+CREATE TABLE IF NOT EXISTS "institutions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" text NOT NULL,
 	"city" text,
@@ -384,7 +384,7 @@ CREATE TABLE "institutions" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "lesson_completions" (
+CREATE TABLE IF NOT EXISTS "lesson_completions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"enrollment_id" uuid NOT NULL,
 	"lesson_id" uuid NOT NULL,
@@ -394,7 +394,7 @@ CREATE TABLE "lesson_completions" (
 	"completed_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "program_lessons" (
+CREATE TABLE IF NOT EXISTS "program_lessons" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"program_id" uuid NOT NULL,
 	"week" integer NOT NULL,
@@ -404,7 +404,7 @@ CREATE TABLE "program_lessons" (
 	"connection_box_url" text
 );
 --> statement-breakpoint
-CREATE TABLE "programs" (
+CREATE TABLE IF NOT EXISTS "programs" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"institution_id" uuid,
 	"kind" "program_type" NOT NULL,
@@ -416,7 +416,7 @@ CREATE TABLE "programs" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "hearth_bookings" (
+CREATE TABLE IF NOT EXISTS "hearth_bookings" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"property_id" uuid NOT NULL,
 	"primary_user_id" text NOT NULL,
@@ -436,7 +436,7 @@ CREATE TABLE "hearth_bookings" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "hearth_properties" (
+CREATE TABLE IF NOT EXISTS "hearth_properties" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"slug" text NOT NULL,
 	"host_id" uuid NOT NULL,
@@ -463,7 +463,7 @@ CREATE TABLE "hearth_properties" (
 	CONSTRAINT "hearth_properties_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
-CREATE TABLE "hosts" (
+CREATE TABLE IF NOT EXISTS "hosts" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" text,
 	"legal_name" text NOT NULL,
@@ -475,7 +475,7 @@ CREATE TABLE "hosts" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "licensing_applications" (
+CREATE TABLE IF NOT EXISTS "licensing_applications" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"applicant_user_id" text NOT NULL,
 	"property_name" text NOT NULL,
@@ -487,7 +487,7 @@ CREATE TABLE "licensing_applications" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "property_add_ons" (
+CREATE TABLE IF NOT EXISTS "property_add_ons" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"property_id" uuid NOT NULL,
 	"name" text NOT NULL,
@@ -495,7 +495,7 @@ CREATE TABLE "property_add_ons" (
 	"price_usd" numeric(12, 2) NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "property_reviews" (
+CREATE TABLE IF NOT EXISTS "property_reviews" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"property_id" uuid NOT NULL,
 	"booking_id" uuid,
@@ -507,7 +507,7 @@ CREATE TABLE "property_reviews" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "trip_bookings" (
+CREATE TABLE IF NOT EXISTS "trip_bookings" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"trip_id" uuid NOT NULL,
 	"primary_user_id" text NOT NULL,
@@ -519,7 +519,7 @@ CREATE TABLE "trip_bookings" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "trip_installments" (
+CREATE TABLE IF NOT EXISTS "trip_installments" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"booking_id" uuid NOT NULL,
 	"due_on" timestamp with time zone NOT NULL,
@@ -528,7 +528,7 @@ CREATE TABLE "trip_installments" (
 	"reminder_sent_at" timestamp with time zone
 );
 --> statement-breakpoint
-CREATE TABLE "trips" (
+CREATE TABLE IF NOT EXISTS "trips" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"slug" text NOT NULL,
 	"title" text NOT NULL,
@@ -547,7 +547,7 @@ CREATE TABLE "trips" (
 	CONSTRAINT "trips_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
-CREATE TABLE "date_partners" (
+CREATE TABLE IF NOT EXISTS "date_partners" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" text NOT NULL,
 	"category" text,
@@ -562,7 +562,7 @@ CREATE TABLE "date_partners" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "date_vault_deals" (
+CREATE TABLE IF NOT EXISTS "date_vault_deals" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"partner_id" uuid NOT NULL,
 	"title" text NOT NULL,
@@ -579,7 +579,7 @@ CREATE TABLE "date_vault_deals" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "date_vault_redemptions" (
+CREATE TABLE IF NOT EXISTS "date_vault_redemptions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"deal_id" uuid NOT NULL,
 	"user_id" text NOT NULL,
@@ -588,7 +588,7 @@ CREATE TABLE "date_vault_redemptions" (
 	"affiliate_attribution" jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "professional_availability" (
+CREATE TABLE IF NOT EXISTS "professional_availability" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"professional_id" uuid NOT NULL,
 	"starts_at" timestamp with time zone NOT NULL,
@@ -596,7 +596,7 @@ CREATE TABLE "professional_availability" (
 	"booked" boolean DEFAULT false NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "professional_bookings" (
+CREATE TABLE IF NOT EXISTS "professional_bookings" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"professional_id" uuid NOT NULL,
 	"availability_id" uuid,
@@ -609,7 +609,7 @@ CREATE TABLE "professional_bookings" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "professional_quick_chats" (
+CREATE TABLE IF NOT EXISTS "professional_quick_chats" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"professional_id" uuid NOT NULL,
 	"user_id" text NOT NULL,
@@ -618,7 +618,7 @@ CREATE TABLE "professional_quick_chats" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "professionals" (
+CREATE TABLE IF NOT EXISTS "professionals" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" text,
 	"full_name" text NOT NULL,
@@ -634,7 +634,7 @@ CREATE TABLE "professionals" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "payments" (
+CREATE TABLE IF NOT EXISTS "payments" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" text NOT NULL,
 	"subject_kind" text NOT NULL,
@@ -650,7 +650,7 @@ CREATE TABLE "payments" (
 	"confirmed_at" timestamp with time zone
 );
 --> statement-breakpoint
-CREATE TABLE "duo_syncs" (
+CREATE TABLE IF NOT EXISTS "duo_syncs" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"initiator_user_id" text NOT NULL,
 	"invitee_user_id" text,
@@ -664,7 +664,7 @@ CREATE TABLE "duo_syncs" (
 	CONSTRAINT "duo_syncs_invite_token_unique" UNIQUE("invite_token")
 );
 --> statement-breakpoint
-CREATE TABLE "audit_log" (
+CREATE TABLE IF NOT EXISTS "audit_log" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"actor_user_id" text,
 	"action" text NOT NULL,
@@ -674,7 +674,7 @@ CREATE TABLE "audit_log" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "regional_kill_switches" (
+CREATE TABLE IF NOT EXISTS "regional_kill_switches" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"region" text NOT NULL,
 	"active" boolean DEFAULT false NOT NULL,
@@ -684,7 +684,7 @@ CREATE TABLE "regional_kill_switches" (
 	CONSTRAINT "regional_kill_switches_region_unique" UNIQUE("region")
 );
 --> statement-breakpoint
-CREATE TABLE "user_reports" (
+CREATE TABLE IF NOT EXISTS "user_reports" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"reporter_user_id" text NOT NULL,
 	"reported_user_id" text NOT NULL,
@@ -693,137 +693,137 @@ CREATE TABLE "user_reports" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "onboarding_progress" ADD CONSTRAINT "onboarding_progress_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "profiles" ADD CONSTRAINT "profiles_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "psychometric_responses" ADD CONSTRAINT "psychometric_responses_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "psychometric_responses" ADD CONSTRAINT "psychometric_responses_question_id_psychometric_questions_id_fk" FOREIGN KEY ("question_id") REFERENCES "public"."psychometric_questions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "alias_assignments" ADD CONSTRAINT "alias_assignments_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "alias_assignments" ADD CONSTRAINT "alias_assignments_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "alias_assignments" ADD CONSTRAINT "alias_assignments_alias_id_alias_pool_id_fk" FOREIGN KEY ("alias_id") REFERENCES "public"."alias_pool"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "event_prompt_responses" ADD CONSTRAINT "event_prompt_responses_prompt_id_event_prompts_id_fk" FOREIGN KEY ("prompt_id") REFERENCES "public"."event_prompts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "event_prompt_responses" ADD CONSTRAINT "event_prompt_responses_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "event_prompt_responses" ADD CONSTRAINT "event_prompt_responses_partner_user_id_users_id_fk" FOREIGN KEY ("partner_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "event_prompts" ADD CONSTRAINT "event_prompts_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "event_table_seats" ADD CONSTRAINT "event_table_seats_table_id_event_tables_id_fk" FOREIGN KEY ("table_id") REFERENCES "public"."event_tables"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "event_table_seats" ADD CONSTRAINT "event_table_seats_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "event_tables" ADD CONSTRAINT "event_tables_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "event_tickets" ADD CONSTRAINT "event_tickets_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "interaction_notes" ADD CONSTRAINT "interaction_notes_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "interaction_notes" ADD CONSTRAINT "interaction_notes_author_user_id_users_id_fk" FOREIGN KEY ("author_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "ticket_purchases" ADD CONSTRAINT "ticket_purchases_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "ticket_purchases" ADD CONSTRAINT "ticket_purchases_ticket_id_event_tickets_id_fk" FOREIGN KEY ("ticket_id") REFERENCES "public"."event_tickets"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "ticket_purchases" ADD CONSTRAINT "ticket_purchases_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "impressions" ADD CONSTRAINT "impressions_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "impressions" ADD CONSTRAINT "impressions_from_user_id_users_id_fk" FOREIGN KEY ("from_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "impressions" ADD CONSTRAINT "impressions_to_user_id_users_id_fk" FOREIGN KEY ("to_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "match_bridge_upsells" ADD CONSTRAINT "match_bridge_upsells_match_id_matches_id_fk" FOREIGN KEY ("match_id") REFERENCES "public"."matches"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "match_exclusions" ADD CONSTRAINT "match_exclusions_user_a_id_users_id_fk" FOREIGN KEY ("user_a_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "match_exclusions" ADD CONSTRAINT "match_exclusions_user_b_id_users_id_fk" FOREIGN KEY ("user_b_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "match_feedback" ADD CONSTRAINT "match_feedback_match_id_matches_id_fk" FOREIGN KEY ("match_id") REFERENCES "public"."matches"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "match_feedback" ADD CONSTRAINT "match_feedback_author_user_id_users_id_fk" FOREIGN KEY ("author_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "matches" ADD CONSTRAINT "matches_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "matches" ADD CONSTRAINT "matches_user_a_id_users_id_fk" FOREIGN KEY ("user_a_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "matches" ADD CONSTRAINT "matches_user_b_id_users_id_fk" FOREIGN KEY ("user_b_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "concierge_intakes" ADD CONSTRAINT "concierge_intakes_assigned_to_user_id_users_id_fk" FOREIGN KEY ("assigned_to_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "concierge_intakes" ADD CONSTRAINT "concierge_intakes_converted_user_id_users_id_fk" FOREIGN KEY ("converted_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "concierge_messages" ADD CONSTRAINT "concierge_messages_thread_id_concierge_threads_id_fk" FOREIGN KEY ("thread_id") REFERENCES "public"."concierge_threads"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "concierge_messages" ADD CONSTRAINT "concierge_messages_sender_user_id_users_id_fk" FOREIGN KEY ("sender_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "concierge_threads" ADD CONSTRAINT "concierge_threads_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "concierge_threads" ADD CONSTRAINT "concierge_threads_assigned_concierge_id_users_id_fk" FOREIGN KEY ("assigned_concierge_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shadow_match_suggestions" ADD CONSTRAINT "shadow_match_suggestions_elite_user_id_users_id_fk" FOREIGN KEY ("elite_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "shadow_match_suggestions" ADD CONSTRAINT "shadow_match_suggestions_candidate_user_id_users_id_fk" FOREIGN KEY ("candidate_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "coaching_notes" ADD CONSTRAINT "coaching_notes_enrollment_id_enrollments_id_fk" FOREIGN KEY ("enrollment_id") REFERENCES "public"."enrollments"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "coaching_notes" ADD CONSTRAINT "coaching_notes_author_user_id_users_id_fk" FOREIGN KEY ("author_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "cohorts" ADD CONSTRAINT "cohorts_program_id_programs_id_fk" FOREIGN KEY ("program_id") REFERENCES "public"."programs"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "cohorts" ADD CONSTRAINT "cohorts_facilitator_user_id_users_id_fk" FOREIGN KEY ("facilitator_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "enrollments" ADD CONSTRAINT "enrollments_cohort_id_cohorts_id_fk" FOREIGN KEY ("cohort_id") REFERENCES "public"."cohorts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "enrollments" ADD CONSTRAINT "enrollments_primary_user_id_users_id_fk" FOREIGN KEY ("primary_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "enrollments" ADD CONSTRAINT "enrollments_partner_user_id_users_id_fk" FOREIGN KEY ("partner_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "enrollments" ADD CONSTRAINT "enrollments_verified_by_facilitator_id_users_id_fk" FOREIGN KEY ("verified_by_facilitator_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "institution_members" ADD CONSTRAINT "institution_members_institution_id_institutions_id_fk" FOREIGN KEY ("institution_id") REFERENCES "public"."institutions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "institution_members" ADD CONSTRAINT "institution_members_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "lesson_completions" ADD CONSTRAINT "lesson_completions_enrollment_id_enrollments_id_fk" FOREIGN KEY ("enrollment_id") REFERENCES "public"."enrollments"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "lesson_completions" ADD CONSTRAINT "lesson_completions_lesson_id_program_lessons_id_fk" FOREIGN KEY ("lesson_id") REFERENCES "public"."program_lessons"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "lesson_completions" ADD CONSTRAINT "lesson_completions_completed_by_user_id_users_id_fk" FOREIGN KEY ("completed_by_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "program_lessons" ADD CONSTRAINT "program_lessons_program_id_programs_id_fk" FOREIGN KEY ("program_id") REFERENCES "public"."programs"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "programs" ADD CONSTRAINT "programs_institution_id_institutions_id_fk" FOREIGN KEY ("institution_id") REFERENCES "public"."institutions"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "hearth_bookings" ADD CONSTRAINT "hearth_bookings_property_id_hearth_properties_id_fk" FOREIGN KEY ("property_id") REFERENCES "public"."hearth_properties"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "hearth_bookings" ADD CONSTRAINT "hearth_bookings_primary_user_id_users_id_fk" FOREIGN KEY ("primary_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "hearth_bookings" ADD CONSTRAINT "hearth_bookings_partner_user_id_users_id_fk" FOREIGN KEY ("partner_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "hearth_properties" ADD CONSTRAINT "hearth_properties_host_id_hosts_id_fk" FOREIGN KEY ("host_id") REFERENCES "public"."hosts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "hosts" ADD CONSTRAINT "hosts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "licensing_applications" ADD CONSTRAINT "licensing_applications_applicant_user_id_users_id_fk" FOREIGN KEY ("applicant_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "licensing_applications" ADD CONSTRAINT "licensing_applications_reviewer_user_id_users_id_fk" FOREIGN KEY ("reviewer_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "property_add_ons" ADD CONSTRAINT "property_add_ons_property_id_hearth_properties_id_fk" FOREIGN KEY ("property_id") REFERENCES "public"."hearth_properties"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "property_reviews" ADD CONSTRAINT "property_reviews_property_id_hearth_properties_id_fk" FOREIGN KEY ("property_id") REFERENCES "public"."hearth_properties"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "property_reviews" ADD CONSTRAINT "property_reviews_booking_id_hearth_bookings_id_fk" FOREIGN KEY ("booking_id") REFERENCES "public"."hearth_bookings"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "property_reviews" ADD CONSTRAINT "property_reviews_author_user_id_users_id_fk" FOREIGN KEY ("author_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "trip_bookings" ADD CONSTRAINT "trip_bookings_trip_id_trips_id_fk" FOREIGN KEY ("trip_id") REFERENCES "public"."trips"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "trip_bookings" ADD CONSTRAINT "trip_bookings_primary_user_id_users_id_fk" FOREIGN KEY ("primary_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "trip_bookings" ADD CONSTRAINT "trip_bookings_partner_user_id_users_id_fk" FOREIGN KEY ("partner_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "trip_installments" ADD CONSTRAINT "trip_installments_booking_id_trip_bookings_id_fk" FOREIGN KEY ("booking_id") REFERENCES "public"."trip_bookings"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "date_vault_deals" ADD CONSTRAINT "date_vault_deals_partner_id_date_partners_id_fk" FOREIGN KEY ("partner_id") REFERENCES "public"."date_partners"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "date_vault_redemptions" ADD CONSTRAINT "date_vault_redemptions_deal_id_date_vault_deals_id_fk" FOREIGN KEY ("deal_id") REFERENCES "public"."date_vault_deals"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "date_vault_redemptions" ADD CONSTRAINT "date_vault_redemptions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "date_vault_redemptions" ADD CONSTRAINT "date_vault_redemptions_match_id_matches_id_fk" FOREIGN KEY ("match_id") REFERENCES "public"."matches"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "professional_availability" ADD CONSTRAINT "professional_availability_professional_id_professionals_id_fk" FOREIGN KEY ("professional_id") REFERENCES "public"."professionals"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "professional_bookings" ADD CONSTRAINT "professional_bookings_professional_id_professionals_id_fk" FOREIGN KEY ("professional_id") REFERENCES "public"."professionals"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "professional_bookings" ADD CONSTRAINT "professional_bookings_availability_id_professional_availability_id_fk" FOREIGN KEY ("availability_id") REFERENCES "public"."professional_availability"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "professional_bookings" ADD CONSTRAINT "professional_bookings_primary_user_id_users_id_fk" FOREIGN KEY ("primary_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "professional_bookings" ADD CONSTRAINT "professional_bookings_partner_user_id_users_id_fk" FOREIGN KEY ("partner_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "professional_quick_chats" ADD CONSTRAINT "professional_quick_chats_professional_id_professionals_id_fk" FOREIGN KEY ("professional_id") REFERENCES "public"."professionals"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "professional_quick_chats" ADD CONSTRAINT "professional_quick_chats_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "professionals" ADD CONSTRAINT "professionals_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "payments" ADD CONSTRAINT "payments_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "duo_syncs" ADD CONSTRAINT "duo_syncs_initiator_user_id_users_id_fk" FOREIGN KEY ("initiator_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "duo_syncs" ADD CONSTRAINT "duo_syncs_invitee_user_id_users_id_fk" FOREIGN KEY ("invitee_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "audit_log" ADD CONSTRAINT "audit_log_actor_user_id_users_id_fk" FOREIGN KEY ("actor_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "regional_kill_switches" ADD CONSTRAINT "regional_kill_switches_toggled_by_user_id_users_id_fk" FOREIGN KEY ("toggled_by_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "user_reports" ADD CONSTRAINT "user_reports_reporter_user_id_users_id_fk" FOREIGN KEY ("reporter_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "user_reports" ADD CONSTRAINT "user_reports_reported_user_id_users_id_fk" FOREIGN KEY ("reported_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-CREATE INDEX "profiles_city_idx" ON "profiles" USING btree ("city");--> statement-breakpoint
-CREATE INDEX "profiles_silent_idx" ON "profiles" USING btree ("silent_mode");--> statement-breakpoint
-CREATE UNIQUE INDEX "psych_user_q_uniq" ON "psychometric_responses" USING btree ("user_id","question_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "alias_user_event_uniq" ON "alias_assignments" USING btree ("user_id","event_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "alias_event_alias_uniq" ON "alias_assignments" USING btree ("event_id","alias_id");--> statement-breakpoint
-CREATE INDEX "alias_user_idx" ON "alias_assignments" USING btree ("user_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "prompt_resp_uniq" ON "event_prompt_responses" USING btree ("prompt_id","user_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "seat_table_user_uniq" ON "event_table_seats" USING btree ("table_id","user_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "event_tier_uniq" ON "event_tickets" USING btree ("event_id","tier");--> statement-breakpoint
-CREATE INDEX "events_status_idx" ON "events" USING btree ("status");--> statement-breakpoint
-CREATE INDEX "events_starts_idx" ON "events" USING btree ("starts_at");--> statement-breakpoint
-CREATE INDEX "tp_user_idx" ON "ticket_purchases" USING btree ("user_id");--> statement-breakpoint
-CREATE INDEX "tp_event_idx" ON "ticket_purchases" USING btree ("event_id");--> statement-breakpoint
-CREATE INDEX "tp_status_idx" ON "ticket_purchases" USING btree ("status");--> statement-breakpoint
-CREATE UNIQUE INDEX "impression_event_pair_uniq" ON "impressions" USING btree ("event_id","from_user_id","to_user_id");--> statement-breakpoint
-CREATE INDEX "impression_to_idx" ON "impressions" USING btree ("to_user_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "exclusion_pair_uniq" ON "match_exclusions" USING btree ("user_a_id","user_b_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "match_user_pair_uniq" ON "matches" USING btree ("user_a_id","user_b_id","event_id");--> statement-breakpoint
-CREATE INDEX "match_status_idx" ON "matches" USING btree ("status");--> statement-breakpoint
-CREATE INDEX "intake_priority_idx" ON "concierge_intakes" USING btree ("priority");--> statement-breakpoint
-CREATE INDEX "msg_thread_idx" ON "concierge_messages" USING btree ("thread_id");--> statement-breakpoint
-CREATE INDEX "msg_priority_idx" ON "concierge_messages" USING btree ("priority");--> statement-breakpoint
-CREATE INDEX "enroll_status_idx" ON "enrollments" USING btree ("status");--> statement-breakpoint
-CREATE INDEX "enroll_primary_idx" ON "enrollments" USING btree ("primary_user_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "inst_user_uniq" ON "institution_members" USING btree ("institution_id","user_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "lc_enroll_lesson_uniq" ON "lesson_completions" USING btree ("enrollment_id","lesson_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "lesson_program_week_uniq" ON "program_lessons" USING btree ("program_id","week");--> statement-breakpoint
-CREATE INDEX "booking_property_idx" ON "hearth_bookings" USING btree ("property_id");--> statement-breakpoint
-CREATE INDEX "booking_dates_idx" ON "hearth_bookings" USING btree ("check_in","check_out");--> statement-breakpoint
-CREATE INDEX "booking_status_idx" ON "hearth_bookings" USING btree ("status");--> statement-breakpoint
-CREATE INDEX "hearth_region_idx" ON "hearth_properties" USING btree ("region");--> statement-breakpoint
-CREATE INDEX "hearth_certified_idx" ON "hearth_properties" USING btree ("agano_certified");--> statement-breakpoint
-CREATE INDEX "trip_booking_user_idx" ON "trip_bookings" USING btree ("primary_user_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "installment_booking_due_uniq" ON "trip_installments" USING btree ("booking_id","due_on");--> statement-breakpoint
-CREATE INDEX "deal_partner_idx" ON "date_vault_deals" USING btree ("partner_id");--> statement-breakpoint
-CREATE INDEX "deal_active_idx" ON "date_vault_deals" USING btree ("active");--> statement-breakpoint
-CREATE INDEX "prof_active_idx" ON "professionals" USING btree ("active");--> statement-breakpoint
-CREATE INDEX "payments_user_idx" ON "payments" USING btree ("user_id");--> statement-breakpoint
-CREATE INDEX "payments_status_idx" ON "payments" USING btree ("status");--> statement-breakpoint
-CREATE INDEX "payments_subject_idx" ON "payments" USING btree ("subject_kind","subject_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "duo_users_uniq" ON "duo_syncs" USING btree ("initiator_user_id","invitee_user_id");--> statement-breakpoint
-CREATE INDEX "audit_actor_idx" ON "audit_log" USING btree ("actor_user_id");--> statement-breakpoint
-CREATE INDEX "audit_action_idx" ON "audit_log" USING btree ("action");--> statement-breakpoint
-CREATE INDEX "audit_created_idx" ON "audit_log" USING btree ("created_at");
+DO $$ BEGIN ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "onboarding_progress" ADD CONSTRAINT "onboarding_progress_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "profiles" ADD CONSTRAINT "profiles_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "psychometric_responses" ADD CONSTRAINT "psychometric_responses_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "psychometric_responses" ADD CONSTRAINT "psychometric_responses_question_id_psychometric_questions_id_fk" FOREIGN KEY ("question_id") REFERENCES "public"."psychometric_questions"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "alias_assignments" ADD CONSTRAINT "alias_assignments_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "alias_assignments" ADD CONSTRAINT "alias_assignments_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "alias_assignments" ADD CONSTRAINT "alias_assignments_alias_id_alias_pool_id_fk" FOREIGN KEY ("alias_id") REFERENCES "public"."alias_pool"("id") ON DELETE restrict ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "event_prompt_responses" ADD CONSTRAINT "event_prompt_responses_prompt_id_event_prompts_id_fk" FOREIGN KEY ("prompt_id") REFERENCES "public"."event_prompts"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "event_prompt_responses" ADD CONSTRAINT "event_prompt_responses_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "event_prompt_responses" ADD CONSTRAINT "event_prompt_responses_partner_user_id_users_id_fk" FOREIGN KEY ("partner_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "event_prompts" ADD CONSTRAINT "event_prompts_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "event_table_seats" ADD CONSTRAINT "event_table_seats_table_id_event_tables_id_fk" FOREIGN KEY ("table_id") REFERENCES "public"."event_tables"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "event_table_seats" ADD CONSTRAINT "event_table_seats_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "event_tables" ADD CONSTRAINT "event_tables_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "event_tickets" ADD CONSTRAINT "event_tickets_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "interaction_notes" ADD CONSTRAINT "interaction_notes_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "interaction_notes" ADD CONSTRAINT "interaction_notes_author_user_id_users_id_fk" FOREIGN KEY ("author_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "ticket_purchases" ADD CONSTRAINT "ticket_purchases_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "ticket_purchases" ADD CONSTRAINT "ticket_purchases_ticket_id_event_tickets_id_fk" FOREIGN KEY ("ticket_id") REFERENCES "public"."event_tickets"("id") ON DELETE restrict ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "ticket_purchases" ADD CONSTRAINT "ticket_purchases_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "impressions" ADD CONSTRAINT "impressions_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "impressions" ADD CONSTRAINT "impressions_from_user_id_users_id_fk" FOREIGN KEY ("from_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "impressions" ADD CONSTRAINT "impressions_to_user_id_users_id_fk" FOREIGN KEY ("to_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "match_bridge_upsells" ADD CONSTRAINT "match_bridge_upsells_match_id_matches_id_fk" FOREIGN KEY ("match_id") REFERENCES "public"."matches"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "match_exclusions" ADD CONSTRAINT "match_exclusions_user_a_id_users_id_fk" FOREIGN KEY ("user_a_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "match_exclusions" ADD CONSTRAINT "match_exclusions_user_b_id_users_id_fk" FOREIGN KEY ("user_b_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "match_feedback" ADD CONSTRAINT "match_feedback_match_id_matches_id_fk" FOREIGN KEY ("match_id") REFERENCES "public"."matches"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "match_feedback" ADD CONSTRAINT "match_feedback_author_user_id_users_id_fk" FOREIGN KEY ("author_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "matches" ADD CONSTRAINT "matches_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "matches" ADD CONSTRAINT "matches_user_a_id_users_id_fk" FOREIGN KEY ("user_a_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "matches" ADD CONSTRAINT "matches_user_b_id_users_id_fk" FOREIGN KEY ("user_b_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "concierge_intakes" ADD CONSTRAINT "concierge_intakes_assigned_to_user_id_users_id_fk" FOREIGN KEY ("assigned_to_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "concierge_intakes" ADD CONSTRAINT "concierge_intakes_converted_user_id_users_id_fk" FOREIGN KEY ("converted_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "concierge_messages" ADD CONSTRAINT "concierge_messages_thread_id_concierge_threads_id_fk" FOREIGN KEY ("thread_id") REFERENCES "public"."concierge_threads"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "concierge_messages" ADD CONSTRAINT "concierge_messages_sender_user_id_users_id_fk" FOREIGN KEY ("sender_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "concierge_threads" ADD CONSTRAINT "concierge_threads_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "concierge_threads" ADD CONSTRAINT "concierge_threads_assigned_concierge_id_users_id_fk" FOREIGN KEY ("assigned_concierge_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "shadow_match_suggestions" ADD CONSTRAINT "shadow_match_suggestions_elite_user_id_users_id_fk" FOREIGN KEY ("elite_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "shadow_match_suggestions" ADD CONSTRAINT "shadow_match_suggestions_candidate_user_id_users_id_fk" FOREIGN KEY ("candidate_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "coaching_notes" ADD CONSTRAINT "coaching_notes_enrollment_id_enrollments_id_fk" FOREIGN KEY ("enrollment_id") REFERENCES "public"."enrollments"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "coaching_notes" ADD CONSTRAINT "coaching_notes_author_user_id_users_id_fk" FOREIGN KEY ("author_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "cohorts" ADD CONSTRAINT "cohorts_program_id_programs_id_fk" FOREIGN KEY ("program_id") REFERENCES "public"."programs"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "cohorts" ADD CONSTRAINT "cohorts_facilitator_user_id_users_id_fk" FOREIGN KEY ("facilitator_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "enrollments" ADD CONSTRAINT "enrollments_cohort_id_cohorts_id_fk" FOREIGN KEY ("cohort_id") REFERENCES "public"."cohorts"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "enrollments" ADD CONSTRAINT "enrollments_primary_user_id_users_id_fk" FOREIGN KEY ("primary_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "enrollments" ADD CONSTRAINT "enrollments_partner_user_id_users_id_fk" FOREIGN KEY ("partner_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "enrollments" ADD CONSTRAINT "enrollments_verified_by_facilitator_id_users_id_fk" FOREIGN KEY ("verified_by_facilitator_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "institution_members" ADD CONSTRAINT "institution_members_institution_id_institutions_id_fk" FOREIGN KEY ("institution_id") REFERENCES "public"."institutions"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "institution_members" ADD CONSTRAINT "institution_members_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "lesson_completions" ADD CONSTRAINT "lesson_completions_enrollment_id_enrollments_id_fk" FOREIGN KEY ("enrollment_id") REFERENCES "public"."enrollments"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "lesson_completions" ADD CONSTRAINT "lesson_completions_lesson_id_program_lessons_id_fk" FOREIGN KEY ("lesson_id") REFERENCES "public"."program_lessons"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "lesson_completions" ADD CONSTRAINT "lesson_completions_completed_by_user_id_users_id_fk" FOREIGN KEY ("completed_by_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "program_lessons" ADD CONSTRAINT "program_lessons_program_id_programs_id_fk" FOREIGN KEY ("program_id") REFERENCES "public"."programs"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "programs" ADD CONSTRAINT "programs_institution_id_institutions_id_fk" FOREIGN KEY ("institution_id") REFERENCES "public"."institutions"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "hearth_bookings" ADD CONSTRAINT "hearth_bookings_property_id_hearth_properties_id_fk" FOREIGN KEY ("property_id") REFERENCES "public"."hearth_properties"("id") ON DELETE restrict ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "hearth_bookings" ADD CONSTRAINT "hearth_bookings_primary_user_id_users_id_fk" FOREIGN KEY ("primary_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "hearth_bookings" ADD CONSTRAINT "hearth_bookings_partner_user_id_users_id_fk" FOREIGN KEY ("partner_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "hearth_properties" ADD CONSTRAINT "hearth_properties_host_id_hosts_id_fk" FOREIGN KEY ("host_id") REFERENCES "public"."hosts"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "hosts" ADD CONSTRAINT "hosts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "licensing_applications" ADD CONSTRAINT "licensing_applications_applicant_user_id_users_id_fk" FOREIGN KEY ("applicant_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "licensing_applications" ADD CONSTRAINT "licensing_applications_reviewer_user_id_users_id_fk" FOREIGN KEY ("reviewer_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "property_add_ons" ADD CONSTRAINT "property_add_ons_property_id_hearth_properties_id_fk" FOREIGN KEY ("property_id") REFERENCES "public"."hearth_properties"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "property_reviews" ADD CONSTRAINT "property_reviews_property_id_hearth_properties_id_fk" FOREIGN KEY ("property_id") REFERENCES "public"."hearth_properties"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "property_reviews" ADD CONSTRAINT "property_reviews_booking_id_hearth_bookings_id_fk" FOREIGN KEY ("booking_id") REFERENCES "public"."hearth_bookings"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "property_reviews" ADD CONSTRAINT "property_reviews_author_user_id_users_id_fk" FOREIGN KEY ("author_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "trip_bookings" ADD CONSTRAINT "trip_bookings_trip_id_trips_id_fk" FOREIGN KEY ("trip_id") REFERENCES "public"."trips"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "trip_bookings" ADD CONSTRAINT "trip_bookings_primary_user_id_users_id_fk" FOREIGN KEY ("primary_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "trip_bookings" ADD CONSTRAINT "trip_bookings_partner_user_id_users_id_fk" FOREIGN KEY ("partner_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "trip_installments" ADD CONSTRAINT "trip_installments_booking_id_trip_bookings_id_fk" FOREIGN KEY ("booking_id") REFERENCES "public"."trip_bookings"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "date_vault_deals" ADD CONSTRAINT "date_vault_deals_partner_id_date_partners_id_fk" FOREIGN KEY ("partner_id") REFERENCES "public"."date_partners"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "date_vault_redemptions" ADD CONSTRAINT "date_vault_redemptions_deal_id_date_vault_deals_id_fk" FOREIGN KEY ("deal_id") REFERENCES "public"."date_vault_deals"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "date_vault_redemptions" ADD CONSTRAINT "date_vault_redemptions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "date_vault_redemptions" ADD CONSTRAINT "date_vault_redemptions_match_id_matches_id_fk" FOREIGN KEY ("match_id") REFERENCES "public"."matches"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "professional_availability" ADD CONSTRAINT "professional_availability_professional_id_professionals_id_fk" FOREIGN KEY ("professional_id") REFERENCES "public"."professionals"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "professional_bookings" ADD CONSTRAINT "professional_bookings_professional_id_professionals_id_fk" FOREIGN KEY ("professional_id") REFERENCES "public"."professionals"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "professional_bookings" ADD CONSTRAINT "professional_bookings_availability_id_professional_availability_id_fk" FOREIGN KEY ("availability_id") REFERENCES "public"."professional_availability"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "professional_bookings" ADD CONSTRAINT "professional_bookings_primary_user_id_users_id_fk" FOREIGN KEY ("primary_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "professional_bookings" ADD CONSTRAINT "professional_bookings_partner_user_id_users_id_fk" FOREIGN KEY ("partner_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "professional_quick_chats" ADD CONSTRAINT "professional_quick_chats_professional_id_professionals_id_fk" FOREIGN KEY ("professional_id") REFERENCES "public"."professionals"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "professional_quick_chats" ADD CONSTRAINT "professional_quick_chats_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "professionals" ADD CONSTRAINT "professionals_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "payments" ADD CONSTRAINT "payments_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "duo_syncs" ADD CONSTRAINT "duo_syncs_initiator_user_id_users_id_fk" FOREIGN KEY ("initiator_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "duo_syncs" ADD CONSTRAINT "duo_syncs_invitee_user_id_users_id_fk" FOREIGN KEY ("invitee_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "audit_log" ADD CONSTRAINT "audit_log_actor_user_id_users_id_fk" FOREIGN KEY ("actor_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "regional_kill_switches" ADD CONSTRAINT "regional_kill_switches_toggled_by_user_id_users_id_fk" FOREIGN KEY ("toggled_by_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "user_reports" ADD CONSTRAINT "user_reports_reporter_user_id_users_id_fk" FOREIGN KEY ("reporter_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "user_reports" ADD CONSTRAINT "user_reports_reported_user_id_users_id_fk" FOREIGN KEY ("reported_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action; EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "profiles_city_idx" ON "profiles" USING btree ("city");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "profiles_silent_idx" ON "profiles" USING btree ("silent_mode");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "psych_user_q_uniq" ON "psychometric_responses" USING btree ("user_id","question_id");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "alias_user_event_uniq" ON "alias_assignments" USING btree ("user_id","event_id");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "alias_event_alias_uniq" ON "alias_assignments" USING btree ("event_id","alias_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "alias_user_idx" ON "alias_assignments" USING btree ("user_id");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "prompt_resp_uniq" ON "event_prompt_responses" USING btree ("prompt_id","user_id");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "seat_table_user_uniq" ON "event_table_seats" USING btree ("table_id","user_id");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "event_tier_uniq" ON "event_tickets" USING btree ("event_id","tier");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "events_status_idx" ON "events" USING btree ("status");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "events_starts_idx" ON "events" USING btree ("starts_at");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "tp_user_idx" ON "ticket_purchases" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "tp_event_idx" ON "ticket_purchases" USING btree ("event_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "tp_status_idx" ON "ticket_purchases" USING btree ("status");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "impression_event_pair_uniq" ON "impressions" USING btree ("event_id","from_user_id","to_user_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "impression_to_idx" ON "impressions" USING btree ("to_user_id");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "exclusion_pair_uniq" ON "match_exclusions" USING btree ("user_a_id","user_b_id");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "match_user_pair_uniq" ON "matches" USING btree ("user_a_id","user_b_id","event_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "match_status_idx" ON "matches" USING btree ("status");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "intake_priority_idx" ON "concierge_intakes" USING btree ("priority");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "msg_thread_idx" ON "concierge_messages" USING btree ("thread_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "msg_priority_idx" ON "concierge_messages" USING btree ("priority");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "enroll_status_idx" ON "enrollments" USING btree ("status");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "enroll_primary_idx" ON "enrollments" USING btree ("primary_user_id");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "inst_user_uniq" ON "institution_members" USING btree ("institution_id","user_id");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "lc_enroll_lesson_uniq" ON "lesson_completions" USING btree ("enrollment_id","lesson_id");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "lesson_program_week_uniq" ON "program_lessons" USING btree ("program_id","week");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "booking_property_idx" ON "hearth_bookings" USING btree ("property_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "booking_dates_idx" ON "hearth_bookings" USING btree ("check_in","check_out");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "booking_status_idx" ON "hearth_bookings" USING btree ("status");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "hearth_region_idx" ON "hearth_properties" USING btree ("region");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "hearth_certified_idx" ON "hearth_properties" USING btree ("agano_certified");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "trip_booking_user_idx" ON "trip_bookings" USING btree ("primary_user_id");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "installment_booking_due_uniq" ON "trip_installments" USING btree ("booking_id","due_on");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "deal_partner_idx" ON "date_vault_deals" USING btree ("partner_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "deal_active_idx" ON "date_vault_deals" USING btree ("active");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "prof_active_idx" ON "professionals" USING btree ("active");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "payments_user_idx" ON "payments" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "payments_status_idx" ON "payments" USING btree ("status");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "payments_subject_idx" ON "payments" USING btree ("subject_kind","subject_id");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "duo_users_uniq" ON "duo_syncs" USING btree ("initiator_user_id","invitee_user_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "audit_actor_idx" ON "audit_log" USING btree ("actor_user_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "audit_action_idx" ON "audit_log" USING btree ("action");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "audit_created_idx" ON "audit_log" USING btree ("created_at");
