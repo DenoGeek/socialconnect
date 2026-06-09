@@ -6,9 +6,8 @@ export function uniqueEmail(prefix = "evermore") {
   return `${prefix}-${Date.now()}-${counter}@test.local`;
 }
 
-export async function register(page: Page, name: string, email: string) {
+export async function register(page: Page, _name: string, email: string) {
   await page.goto("/register");
-  await page.getByLabel(/Full name/i).fill(name);
   await page.getByLabel(/Email/i).fill(email);
   await page.getByLabel(/Password/i).fill("password123");
   await page.getByRole("button", { name: /Create account/i }).click();

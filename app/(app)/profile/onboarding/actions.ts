@@ -110,6 +110,19 @@ export async function saveStep(form: FormData): Promise<SaveStepResult> {
     });
   }
 
+  // Keep the account name in sync with the profile's legal name.
+  const first = profileUpdates.firstName as string | undefined;
+  const last = profileUpdates.lastName as string | undefined;
+  if (first || last) {
+    const fullName = [first, last].filter(Boolean).join(" ").trim();
+    if (fullName) {
+      await db
+        .update(schema.users)
+        .set({ name: fullName, updatedAt: new Date() })
+        .where(eq(schema.users.id, user.id));
+    }
+  }
+
   // Resume tracking.
   await db
     .insert(schema.onboardingProgress)

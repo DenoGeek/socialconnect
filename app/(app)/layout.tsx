@@ -73,9 +73,21 @@ export default async function AppLayout({
   const onCreateProfile = pathname.startsWith(CREATE_PROFILE_PREFIX);
   const ecosystemOk = canAccessEcosystem(user);
 
-  if (!ecosystemOk && !onApplyFlow && !onCreateProfile && !isStaffRole(user.role)) {
+  if (!ecosystemOk && !isStaffRole(user.role)) {
+    // The journey/tier flow is locked until the profile is complete.
+    const [profileRow] = await db
+      .select({ completedAt: schema.profiles.onboardingCompletedAt })
+      .from(schema.profiles)
+      .where(eq(schema.profiles.userId, user.id))
+      .limit(1);
+    const profileComplete = profileRow?.completedAt != null;
     if (!isRouterPrefetchRequest(h)) {
-      redirect("/apply");
+      if (!profileComplete && !onCreateProfile) {
+        redirect("/profile/onboarding");
+      }
+      if (profileComplete && !onApplyFlow && !onCreateProfile) {
+        redirect("/apply");
+      }
     }
   }
 

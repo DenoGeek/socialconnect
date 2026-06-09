@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Alert } from "@/components/ui/alert";
 
 export function RegisterForm() {
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
@@ -28,8 +27,10 @@ export function RegisterForm() {
       return;
     }
     setLoading(true);
+    // Name is captured during profile creation; seed a placeholder from the
+    // email local-part so the auth account has a non-empty name.
     const { error } = await authClient.signUp.email({
-      name,
+      name: email.trim().split("@")[0] || "Member",
       email,
       password,
     });
@@ -46,16 +47,6 @@ export function RegisterForm() {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       {err && <Alert tone="danger">{err}</Alert>}
-      <div>
-        <Label htmlFor="name">Full name</Label>
-        <Input
-          id="name"
-          name="name"
-          required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-      </div>
       <div>
         <Label htmlFor="email">Email</Label>
         <Input
