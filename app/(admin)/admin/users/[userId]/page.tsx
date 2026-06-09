@@ -2,9 +2,10 @@ import { notFound, redirect } from "next/navigation";
 import { eq, or } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireAdmin } from "@/lib/auth";
-import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
+import { Card, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { MemberProfileDetail } from "@/components/admin/member-profile-detail";
 import { deleteUserAccount, grantDiscountedTicket, updateUserTier } from "../actions";
 
 export default async function AdminUserDetail({
@@ -51,7 +52,7 @@ export default async function AdminUserDetail({
     );
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-3xl">
       <header>
         <h1 className="text-display text-3xl text-plum-900">{u.name}</h1>
         <p className="text-sm text-plum-900/60">{u.email}</p>
@@ -139,27 +140,7 @@ export default async function AdminUserDetail({
         </div>
       </Card>
 
-      <Card>
-        <CardTitle>Profile</CardTitle>
-        {profile ? (
-          <dl className="grid grid-cols-2 gap-y-2 text-sm mt-3">
-            <dt className="text-plum-900/50">City</dt>
-            <dd>{profile.city ?? "—"}</dd>
-            <dt className="text-plum-900/50">Phone</dt>
-            <dd>{profile.phone ?? "—"}</dd>
-            <dt className="text-plum-900/50">Intent badges</dt>
-            <dd>{(profile.intentBadges ?? []).join(", ") || "—"}</dd>
-            <dt className="text-plum-900/50">Onboarding</dt>
-            <dd>
-              {profile.onboardingCompletedAt
-                ? "Complete"
-                : `${profile.onboardingProgress} steps`}
-            </dd>
-          </dl>
-        ) : (
-          <CardSubtitle>No profile yet.</CardSubtitle>
-        )}
-      </Card>
+      <MemberProfileDetail user={u} profile={profile ?? null} />
 
       <Card>
         <CardTitle>Tickets ({tickets.length})</CardTitle>

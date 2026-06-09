@@ -158,9 +158,14 @@ export function CreateProfileStepper({
   const totalSteps = SECTIONS.length;
   const [step, setStep] = useState(Math.min(startAtStep, totalSteps - 1));
   const [data, setData] = useState<Profile>(profile);
+  const allPresetPersonas = PERSONA_CATEGORIES.flatMap((c) => c.personas);
   const [otherChildren, setOtherChildren] = useState(
     profile.childrenCount !== "" &&
       !CHILDREN_PRESETS.includes(profile.childrenCount),
+  );
+  const [customAliasMode, setCustomAliasMode] = useState(
+    !!profile.personaAlias &&
+      !allPresetPersonas.includes(profile.personaAlias),
   );
   const [pending, start] = useTransition();
   const [err, setErr] = useState<string | null>(null);
@@ -243,8 +248,11 @@ export function CreateProfileStepper({
       if (!data.educationLevel) return "Highest education level is required.";
       if (!data.profession.trim()) return "Profession / core expertise is required.";
       if (!data.primaryIndustry) return "Primary industry is required.";
-      if (!data.personaCategory || !data.personaAlias)
-        return "Please choose a Community Alias.";
+      if (!data.personaCategory) return "Please select a Community Alias category.";
+      if (!data.personaAlias.trim())
+        return "Please choose or create a Community Alias.";
+      if (data.personaAlias.trim().length < 2)
+        return "Community Alias must be at least 2 characters.";
       if (!data.phone.trim()) return "Phone number is required.";
       return null;
     }
@@ -532,6 +540,7 @@ export function CreateProfileStepper({
               onChange={(e) => {
                 set("personaCategory", e.target.value);
                 set("personaAlias", "");
+                setCustomAliasMode(false);
               }}
               className="w-full rounded-xl border border-plum-900/15 bg-white px-3 py-2 text-sm text-plum-900"
             >
@@ -543,21 +552,57 @@ export function CreateProfileStepper({
               ))}
             </select>
             {personasForCategory.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {personasForCategory.map((p) => (
+              <div className="mt-2 space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  {personasForCategory.map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => {
+                        setCustomAliasMode(false);
+                        set("personaAlias", p);
+                      }}
+                      className={`rounded-full px-4 py-2 text-sm transition ${
+                        !customAliasMode && data.personaAlias === p
+                          ? "bg-plum-900 text-plum-100"
+                          : "bg-plum-900/5 text-plum-900"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
                   <button
-                    key={p}
                     type="button"
-                    onClick={() => set("personaAlias", p)}
+                    onClick={() => {
+                      setCustomAliasMode(true);
+                      set("personaAlias", "");
+                    }}
                     className={`rounded-full px-4 py-2 text-sm transition ${
-                      data.personaAlias === p
+                      customAliasMode
                         ? "bg-plum-900 text-plum-100"
                         : "bg-plum-900/5 text-plum-900"
                     }`}
                   >
-                    {p}
+                    Create your own
                   </button>
-                ))}
+                </div>
+                {customAliasMode && (
+                  <div>
+                    <Label htmlFor="customPersonaAlias">Your unique alias</Label>
+                    <Input
+                      id="customPersonaAlias"
+                      value={data.personaAlias}
+                      onChange={(e) => set("personaAlias", e.target.value)}
+                      placeholder="e.g. The Navigator"
+                      maxLength={64}
+                      className="mt-1"
+                    />
+                    <p className="text-xs text-plum-900/50 mt-1">
+                      Aliases are unique across the community — no two members
+                      can share the same name.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>

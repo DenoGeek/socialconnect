@@ -49,7 +49,8 @@ export default async function AdminApplicationsPage({
       <header>
         <h1 className="text-display text-3xl text-plum-900">Applications</h1>
         <p className="text-sm text-plum-900/60">
-          Vetting queue — approve Amari or Zahari pathways.
+          Vetting queue — approve Amari or Zahari pathways. Click an applicant
+          to view their full profile.
         </p>
         <div className="mt-3 flex gap-2 text-sm">
           {["submitted", "in_review", "approved", "rejected", "all"].map((s) => (
@@ -79,7 +80,12 @@ export default async function AdminApplicationsPage({
             {apps.map(({ app, user }) => (
               <tr key={app.id}>
                 <td className="py-3">
-                  <p className="text-plum-900">{user.name}</p>
+                  <AppLink
+                    href={`/admin/users/${user.id}`}
+                    className="text-plum-900 hover:underline"
+                  >
+                    {user.name}
+                  </AppLink>
                   <p className="text-xs text-plum-900/50">{user.email}</p>
                 </td>
                 <td>
@@ -136,12 +142,6 @@ export default async function AdminApplicationsPage({
                       </form>
                     </div>
                   )}
-                  <AppLink
-                    href={`/admin/users/${user.id}`}
-                    className="text-xs underline block mt-1"
-                  >
-                    User →
-                  </AppLink>
                 </td>
               </tr>
             ))}
@@ -154,19 +154,6 @@ export default async function AdminApplicationsPage({
         )}
       </Card>
 
-      <Card>
-        <CardTitle>Application detail (latest row)</CardTitle>
-        {apps[0] && (
-          <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
-            <dt className="text-plum-900/50">City</dt>
-            <dd>{apps[0].app.city ?? "—"}</dd>
-            <dt className="text-plum-900/50">Age</dt>
-            <dd>{apps[0].app.ageAttested ?? "—"}</dd>
-            <dt className="text-plum-900/50">Intent</dt>
-            <dd>{apps[0].app.intentSummary ?? apps[0].app.legacyGoals ?? "—"}</dd>
-          </dl>
-        )}
-      </Card>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState, use } from "react";
 import { authClient } from "@/lib/auth/client";
+import { getPostLoginPath } from "@/lib/auth/post-login-redirect";
 import { formatAuthError } from "@/lib/auth/format-auth-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,8 +34,10 @@ export function LoginForm({
       return;
     }
     // Ensure Set-Cookie is applied before the protected document request (see register-form).
-    await authClient.getSession();
-    window.location.assign(sp.redirect ?? "/apply/status");
+    const { data: session } = await authClient.getSession();
+    const role =
+      (session?.user as { role?: string } | undefined)?.role ?? "user";
+    window.location.assign(getPostLoginPath(role, sp.redirect));
   }
 
   return (

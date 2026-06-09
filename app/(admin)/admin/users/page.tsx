@@ -2,6 +2,7 @@ import { AppLink } from "@/components/nav/app-link";
 import { desc, eq, ilike, or, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireAdmin } from "@/lib/auth";
+import { getProfileProgressLabel } from "@/lib/profile/onboarding-status";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -47,7 +48,8 @@ export default async function AdminUsers({
       <header>
         <h1 className="text-display text-3xl text-plum-900">Users</h1>
         <p className="text-sm text-plum-900/60">
-          Search by name, email, or phone. View the full relationship journey.
+          Search by name, email, or phone. See where each member is in profile
+          creation and open their full profile.
         </p>
       </header>
 
@@ -62,8 +64,9 @@ export default async function AdminUsers({
               <th className="py-2">Name</th>
               <th>Email</th>
               <th>Role</th>
+              <th>Profile</th>
+              <th>Vetting</th>
               <th>Tier</th>
-              <th>Mode</th>
               <th></th>
             </tr>
           </thead>
@@ -77,13 +80,20 @@ export default async function AdminUsers({
                 </td>
                 <td>
                   <Badge
+                    tone={profile?.onboardingCompletedAt ? "mint" : "amber"}
+                  >
+                    {getProfileProgressLabel(profile)}
+                  </Badge>
+                </td>
+                <td>
+                  <Badge tone="neutral">{user.vettingStatus}</Badge>
+                </td>
+                <td>
+                  <Badge
                     tone={user.tier === "elite" ? "amber" : "neutral"}
                   >
                     {user.tier}
                   </Badge>
-                </td>
-                <td>
-                  <Badge tone="neutral">{user.mode}</Badge>
                   {profile?.flaggedForReview && (
                     <Badge tone="amber" className="ml-1">
                       Flagged

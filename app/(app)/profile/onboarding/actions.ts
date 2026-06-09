@@ -6,6 +6,7 @@ import { eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { heterosexualPreference } from "@/lib/profile/gender";
+import { assertPersonaAliasAvailable } from "@/lib/profile/persona-alias";
 
 export type SaveStepResult = { ok: true; finalized?: boolean };
 
@@ -72,8 +73,12 @@ export async function saveStep(form: FormData): Promise<SaveStepResult> {
   }
   profileUpdates.divorceCertified = form.get("divorceCertified") === "1";
 
-  // The chosen Community Alias persona becomes the private display name.
+  // The chosen Community Alias becomes the private display name (must be unique).
   if (typeof profileUpdates.personaAlias === "string") {
+    profileUpdates.personaAlias = await assertPersonaAliasAvailable(
+      profileUpdates.personaAlias,
+      user.id,
+    );
     profileUpdates.displayName = profileUpdates.personaAlias;
   }
 

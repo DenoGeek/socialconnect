@@ -205,6 +205,9 @@ export const profiles = pgTable(
   (t) => [
     index("profiles_city_idx").on(t.city),
     index("profiles_silent_idx").on(t.silentMode),
+    uniqueIndex("profiles_persona_alias_lower_uniq").on(
+      sql`lower(${t.personaAlias})`,
+    ),
   ],
 );
 
