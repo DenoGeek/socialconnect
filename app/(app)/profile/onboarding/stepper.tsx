@@ -1,109 +1,176 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
+import { AppLink } from "@/components/nav/app-link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
-import { INTENT_BADGES, detectContradictions } from "@/lib/intent/badges";
-import { CHRISTIAN_DEAL_BREAKERS } from "@/lib/profile/deal-breakers";
+import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
 import {
-  GENDER_OPTIONS,
-  genderPreferenceLabels,
-  heterosexualPreference,
-  type Gender,
-  type GenderPreference,
-} from "@/lib/profile/gender";
-import { suggestDisplayNames } from "@/lib/profile/display-names";
+  GENDER_CHOICES,
+  FAMILIAL_STATUS,
+  DIVORCE_CERTIFICATION,
+  CHILDREN_CUSTODY,
+  EDUCATION_LEVELS,
+  PRIMARY_INDUSTRIES,
+  PERSONA_CATEGORIES,
+  RELATIONSHIP_INTENT_WARNING,
+  ALTAR_TIMELINE,
+  RELOCATION_OPENNESS,
+  FAMILY_PLANNING,
+  SPIRITUAL_RHYTHMS_HOME,
+  DOCTRINAL_ALIGNMENT,
+  PROFESSIONAL_RHYTHMS,
+  FINANCIAL_STEWARDSHIP,
+  ENVIRONMENT_PREFERENCE,
+  HOSPITALITY_FLOW,
+  FAMILY_STATUS_COMPATIBILITY,
+  HOUSEHOLD_BLUEPRINT,
+  INTEREST_PILLARS,
+  CORE_FAITH_IDENTITY,
+  HOUSEHOLD_LEADERSHIP,
+  DOCTRINAL_FLEXIBILITY,
+  type Option,
+} from "@/lib/profile/create-profile";
 import { saveStep } from "./actions";
 
-type Question = {
-  id: string;
-  step: number;
-  prompt: string;
-  questionType: string;
-  options: string[] | null;
-  category: string | null;
-};
-
 type Profile = {
-  displayName: string;
-  phone: string;
+  firstName: string;
+  lastName: string;
+  gender: "man" | "woman" | "";
+  birthYear: string;
   city: string;
-  bio: string;
-  dreamDate: string;
-  gender: Gender | "";
-  genderPreference: GenderPreference[];
-  intentBadges: string[];
-  dealBreakers: string[];
+  countryOfHeritage: string;
+  familialStatus: string;
+  divorceCertified: boolean;
+  childrenCount: string;
+  childrenCustody: string;
+  educationLevel: string;
+  profession: string;
+  primaryIndustry: string;
+  personaCategory: string;
+  personaAlias: string;
+  phone: string;
+  altarTimeline: string;
+  relocationOpenness: string;
+  familyPlanningVision: string;
+  spiritualRhythmsHome: string[];
+  doctrinalAlignment: string;
+  professionalRhythm: string;
+  financialStewardship: string[];
+  environmentPreference: string;
+  hospitalityFlow: string;
+  familyStatusCompatibility: string;
+  householdBlueprint: string;
   interests: string[];
-  theologicalAlignment: string[];
+  coreFaithIdentity: string;
+  householdLeadership: string;
+  doctrinalFlexibility: string;
 };
 
-const THEOLOGICAL = [
-  "Christian — Pentecostal",
-  "Christian — Catholic",
-  "Christian — Evangelical",
-  "Christian — Orthodox",
-  "Christian — Other",
-];
+const SECTIONS = ["identity", "intent", "interests", "theological", "journey"] as const;
+const CHILDREN_PRESETS = ["0", "1", "2", "3"];
 
-const COMMON_INTERESTS = [
-  "Nature & quiet",
-  "Hiking",
-  "Cooking",
-  "Travel",
-  "Books",
-  "Fitness",
-  "Music",
-  "Faith life",
-  "Service / volunteering",
-  "Entrepreneurship",
-];
+function ChoiceList({
+  options,
+  value,
+  onSelect,
+}: {
+  options: Option[];
+  value: string;
+  onSelect: (v: string) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          onClick={() => onSelect(o.value)}
+          className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${
+            value === o.value
+              ? "border-plum-900 bg-plum-900 text-plum-100"
+              : "border-plum-900/15 bg-white text-plum-900 hover:border-plum-900/40"
+          }`}
+        >
+          <div className="font-medium">{o.label}</div>
+          {o.description && (
+            <div className="text-xs opacity-70 mt-1">{o.description}</div>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+}
 
-export function OnboardingStepper({
-  questions,
-  existingResponses,
+function MultiChoiceList({
+  options,
+  values,
+  onToggle,
+}: {
+  options: Option[];
+  values: string[];
+  onToggle: (v: string) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      {options.map((o) => {
+        const on = values.includes(o.value);
+        return (
+          <button
+            key={o.value}
+            type="button"
+            onClick={() => onToggle(o.value)}
+            className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${
+              on
+                ? "border-plum-900 bg-plum-900 text-plum-100"
+                : "border-plum-900/15 bg-white text-plum-900 hover:border-plum-900/40"
+            }`}
+          >
+            <div className="font-medium">{o.label}</div>
+            {o.description && (
+              <div className="text-xs opacity-70 mt-1">{o.description}</div>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="text-sm font-medium text-plum-900 mb-2 mt-2">{children}</div>
+  );
+}
+
+export function CreateProfileStepper({
   startAtStep,
+  email,
   profile,
 }: {
-  questions: Question[];
-  existingResponses: Array<{ questionId: string; answer: unknown }>;
   startAtStep: number;
+  email: string;
   profile: Profile;
 }) {
-  // Sections:
-  // 0: Basics, 1: Intent badges, 2: Interests, 3: Theological,
-  // 4: Deal breakers, 5+: psychometric questions, last: review & finalize.
-  const sections = [
-    "basics",
-    "intent",
-    "interests",
-    "theological",
-    "dealbreakers",
-    ...questions.map((q) => `q:${q.id}`),
-    "review",
-  ];
-  const totalSteps = sections.length;
+  const totalSteps = SECTIONS.length;
   const [step, setStep] = useState(Math.min(startAtStep, totalSteps - 1));
-  const [data, setData] = useState({
-    ...profile,
-    spendingTier: "standard",
-    answers: Object.fromEntries(
-      existingResponses.map((r) => [r.questionId, r.answer]),
-    ) as Record<string, unknown>,
-  });
+  const [data, setData] = useState<Profile>(profile);
+  const [otherChildren, setOtherChildren] = useState(
+    profile.childrenCount !== "" &&
+      !CHILDREN_PRESETS.includes(profile.childrenCount),
+  );
   const [pending, start] = useTransition();
   const [err, setErr] = useState<string | null>(null);
 
-  const contradictions = detectContradictions(data.intentBadges);
-  const nameSuggestions = useMemo(
-    () => suggestDisplayNames(data.displayName || profile.displayName, 8),
-    [data.displayName, profile.displayName],
-  );
+  const section = SECTIONS[step];
+  const hasChildren = data.childrenCount !== "" && data.childrenCount !== "0";
+
+  function set<K extends keyof Profile>(key: K, value: Profile[K]) {
+    setData((d) => ({ ...d, [key]: value }));
+  }
 
   function toggle(arr: string[], v: string) {
     return arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
@@ -115,31 +182,43 @@ export function OnboardingStepper({
     fd.set("step", String(opts.toStep ?? step));
     fd.set("totalSteps", String(totalSteps));
     if (opts.finalize) fd.set("finalize", "1");
-    fd.set("displayName", data.displayName);
-    fd.set("phone", data.phone);
-    fd.set("city", data.city);
-    fd.set("bio", data.bio);
-    fd.set("dreamDate", data.dreamDate);
-    fd.set("spendingTier", data.spendingTier);
-    fd.set("gender", data.gender);
-    fd.set("genderPreference", JSON.stringify(data.genderPreference));
-    fd.set("intentBadges", JSON.stringify(data.intentBadges));
-    fd.set("dealBreakers", JSON.stringify(data.dealBreakers));
+    const textKeys: Array<keyof Profile> = [
+      "firstName",
+      "lastName",
+      "gender",
+      "birthYear",
+      "city",
+      "countryOfHeritage",
+      "familialStatus",
+      "childrenCount",
+      "childrenCustody",
+      "educationLevel",
+      "profession",
+      "primaryIndustry",
+      "personaCategory",
+      "personaAlias",
+      "phone",
+      "altarTimeline",
+      "relocationOpenness",
+      "familyPlanningVision",
+      "doctrinalAlignment",
+      "professionalRhythm",
+      "environmentPreference",
+      "hospitalityFlow",
+      "familyStatusCompatibility",
+      "householdBlueprint",
+      "coreFaithIdentity",
+      "householdLeadership",
+      "doctrinalFlexibility",
+    ];
+    for (const k of textKeys) fd.set(k, String(data[k] ?? ""));
+    fd.set("divorceCertified", data.divorceCertified ? "1" : "0");
     fd.set("interests", JSON.stringify(data.interests));
-    fd.set(
-      "theologicalAlignment",
-      JSON.stringify(data.theologicalAlignment),
-    );
-    const answersToSave = Object.entries(data.answers).map(
-      ([questionId, answer]) => ({ questionId, answer }),
-    );
-    fd.set("answers", JSON.stringify(answersToSave));
+    fd.set("spiritualRhythmsHome", JSON.stringify(data.spiritualRhythmsHome));
+    fd.set("financialStewardship", JSON.stringify(data.financialStewardship));
     start(async () => {
       try {
-        const result = await saveStep(fd);
-        if (result.finalized) {
-          window.location.assign("/profile?onboarded=1");
-        }
+        await saveStep(fd);
       } catch (e: unknown) {
         if (isRedirectError(e)) return;
         setErr((e as Error).message ?? "Could not save.");
@@ -147,35 +226,90 @@ export function OnboardingStepper({
     });
   }
 
-  function next() {
-    const section = sections[step];
-    if (section === "basics") {
-      if (!data.gender) {
-        setErr("Please select your gender.");
-        return;
-      }
+  function validate(): string | null {
+    if (section === "identity") {
+      if (!data.firstName.trim()) return "First name is required.";
+      if (!data.lastName.trim()) return "Last name is required.";
+      if (!data.gender) return "Gender is required.";
+      if (!data.birthYear) return "Year of birth is required.";
+      if (!data.city.trim()) return "Current location is required.";
+      if (!data.countryOfHeritage.trim()) return "Country of heritage is required.";
+      if (!data.familialStatus) return "Familial status is required.";
+      if (data.familialStatus === "divorced" && !data.divorceCertified)
+        return "Please confirm the divorce certification to proceed.";
+      if (data.childrenCount === "") return "Please indicate number of children.";
+      if (hasChildren && !data.childrenCustody)
+        return "Please select your custody arrangement.";
+      if (!data.educationLevel) return "Highest education level is required.";
+      if (!data.profession.trim()) return "Profession / core expertise is required.";
+      if (!data.primaryIndustry) return "Primary industry is required.";
+      if (!data.personaCategory || !data.personaAlias)
+        return "Please choose a Community Alias.";
+      if (!data.phone.trim()) return "Phone number is required.";
+      return null;
     }
-    persist({ toStep: step + 1 });
+    if (section === "intent") {
+      if (!data.altarTimeline) return "Please select your timeline to the altar.";
+      if (!data.relocationOpenness) return "Please answer the relocation question.";
+      if (!data.familyPlanningVision) return "Please select your family planning vision.";
+      if (data.spiritualRhythmsHome.length === 0)
+        return "Please select your spiritual rhythms in the home.";
+      if (!data.doctrinalAlignment) return "Please select your doctrinal alignment.";
+      if (!data.professionalRhythm) return "Please select your professional rhythm.";
+      if (data.financialStewardship.length === 0)
+        return "Please select your financial legacy & stewardship.";
+      if (!data.environmentPreference) return "Please select your environment preference.";
+      if (!data.hospitalityFlow) return "Please select your hospitality & social flow.";
+      if (!data.familyStatusCompatibility)
+        return "Please select your family status compatibility.";
+      if (!data.householdBlueprint) return "Please select your household blueprint.";
+      return null;
+    }
+    if (section === "interests") {
+      if (data.interests.length === 0)
+        return "Please select at least one interest.";
+      return null;
+    }
+    if (section === "theological") {
+      if (!data.coreFaithIdentity) return "Please select your core faith identity.";
+      if (!data.householdLeadership)
+        return "Please select your conviction on household leadership.";
+      if (!data.doctrinalFlexibility)
+        return "Please select your doctrinal non-negotiable.";
+      return null;
+    }
+    return null;
+  }
+
+  function next() {
+    const problem = validate();
+    if (problem) {
+      setErr(problem);
+      return;
+    }
+    const finalize = section === "theological";
+    persist({ toStep: step + 1, finalize });
     setStep((s) => Math.min(s + 1, totalSteps - 1));
   }
+
   function back() {
     setStep((s) => Math.max(s - 1, 0));
   }
 
-  const currentSection = sections[step];
+  const personasForCategory =
+    PERSONA_CATEGORIES.find((c) => c.category === data.personaCategory)?.personas ??
+    [];
 
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
         <div className="text-xs text-plum-900/50 uppercase tracking-widest mb-1">
-          Psychometric onboarding · {step + 1} of {totalSteps}
+          Create Profile · {step + 1} of {totalSteps}
         </div>
         <div className="h-1.5 bg-plum-900/8 rounded-full overflow-hidden">
           <div
             className="h-full bg-plum-900 transition-all"
-            style={{
-              width: `${((step + 1) / totalSteps) * 100}%`,
-            }}
+            style={{ width: `${((step + 1) / totalSteps) * 100}%` }}
           />
         </div>
       </div>
@@ -186,76 +320,37 @@ export function OnboardingStepper({
         </Alert>
       )}
 
-      {currentSection === "basics" && (
+      {section === "identity" && (
         <div className="space-y-4">
-          <h2 className="text-display text-2xl text-plum-900">Tell us who you are</h2>
-          <div>
-            <Label htmlFor="displayName">Display name (your nickname on Evermore)</Label>
-            <p className="text-xs text-plum-900/50 mb-2">
-              This is how you appear at events and to matches — not your legal
-              name. Pick a suggestion or type your own.
-            </p>
-            <Input
-              id="displayName"
-              value={data.displayName}
-              list="display-name-suggestions"
-              onChange={(e) =>
-                setData((d) => ({ ...d, displayName: e.target.value }))
-              }
-              placeholder="e.g. The Quiet Oak"
-            />
-            <datalist id="display-name-suggestions">
-              {nameSuggestions.map((n) => (
-                <option key={n} value={n} />
-              ))}
-            </datalist>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {nameSuggestions.slice(0, 5).map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() =>
-                    setData((d) => ({ ...d, displayName: n }))
-                  }
-                  className="rounded-full bg-plum-900/5 px-3 py-1 text-xs text-plum-900 hover:bg-plum-900/10"
-                >
-                  {n}
-                </button>
-              ))}
+          <h2 className="text-display text-2xl text-plum-900">Identity</h2>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                value={data.firstName}
+                onChange={(e) => set("firstName", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                value={data.lastName}
+                onChange={(e) => set("lastName", e.target.value)}
+              />
             </div>
           </div>
+
           <div>
-            <Label htmlFor="phone">Phone number</Label>
-            <Input
-              id="phone"
-              value={data.phone}
-              onChange={(e) => setData((d) => ({ ...d, phone: e.target.value }))}
-              placeholder="+254..."
-            />
-          </div>
-          <div>
-            <Label htmlFor="city">City</Label>
-            <Input
-              id="city"
-              value={data.city}
-              onChange={(e) => setData((d) => ({ ...d, city: e.target.value }))}
-              placeholder="Nairobi"
-            />
-          </div>
-          <div>
-            <Label>I am a</Label>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {GENDER_OPTIONS.map((g) => (
+            <FieldLabel>Gender</FieldLabel>
+            <div className="flex gap-2">
+              {GENDER_CHOICES.map((g) => (
                 <button
                   key={g.value}
                   type="button"
-                  onClick={() =>
-                    setData((d) => ({
-                      ...d,
-                      gender: g.value,
-                      genderPreference: heterosexualPreference(g.value),
-                    }))
-                  }
+                  onClick={() => set("gender", g.value)}
                   className={`rounded-full px-4 py-2 text-sm transition ${
                     data.gender === g.value
                       ? "bg-plum-900 text-plum-100"
@@ -267,364 +362,465 @@ export function OnboardingStepper({
               ))}
             </div>
           </div>
-          {data.gender && (
-            <p className="text-sm text-plum-900/70">
-              Interested in meeting:{" "}
-              <strong>{genderPreferenceLabels(data.genderPreference, data.gender)}</strong>
-            </p>
-          )}
+
           <div>
-            <Label htmlFor="bio">A short bio</Label>
-            <Textarea
-              id="bio"
-              value={data.bio}
-              onChange={(e) => setData((d) => ({ ...d, bio: e.target.value }))}
+            <Label htmlFor="birthYear">Date of Birth (year)</Label>
+            <Input
+              id="birthYear"
+              type="number"
+              value={data.birthYear}
+              onChange={(e) => set("birthYear", e.target.value)}
+              placeholder="e.g. 1990"
             />
           </div>
+
           <div>
-            <Label htmlFor="dreamDate">Your dream date</Label>
-            <Textarea
-              id="dreamDate"
-              value={data.dreamDate}
-              onChange={(e) =>
-                setData((d) => ({ ...d, dreamDate: e.target.value }))
-              }
-              placeholder="A hike up Karura followed by a cooking class…"
-            />
+            <FieldLabel>Nationality &amp; Cultural Heritage</FieldLabel>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="city">Current Location</Label>
+                <Input
+                  id="city"
+                  value={data.city}
+                  onChange={(e) => set("city", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="countryOfHeritage">Country of Heritage</Label>
+                <Input
+                  id="countryOfHeritage"
+                  value={data.countryOfHeritage}
+                  onChange={(e) => set("countryOfHeritage", e.target.value)}
+                />
+              </div>
+            </div>
           </div>
+
           <div>
-            <Label>Date budget</Label>
-            <div className="flex gap-2">
-              {(
-                [
-                  { id: "standard", label: "Modest" },
-                  { id: "premium", label: "Elevated" },
-                  { id: "elite", label: "Luxury" },
-                ] as const
-              ).map((t) => (
+            <FieldLabel>Familial Status</FieldLabel>
+            <ChoiceList
+              options={FAMILIAL_STATUS}
+              value={data.familialStatus}
+              onSelect={(v) => set("familialStatus", v)}
+            />
+            {data.familialStatus === "divorced" && (
+              <label className="mt-3 flex items-start gap-2 text-sm text-plum-900/80">
+                <input
+                  type="checkbox"
+                  className="mt-1"
+                  checked={data.divorceCertified}
+                  onChange={(e) => set("divorceCertified", e.target.checked)}
+                />
+                <span>{DIVORCE_CERTIFICATION}</span>
+              </label>
+            )}
+          </div>
+
+          <div>
+            <FieldLabel>Number of children</FieldLabel>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setOtherChildren(false);
+                  set("childrenCount", "0");
+                  set("childrenCustody", "");
+                }}
+                className={`rounded-full px-4 py-2 text-sm transition ${
+                  data.childrenCount === "0" && !otherChildren
+                    ? "bg-plum-900 text-plum-100"
+                    : "bg-plum-900/5 text-plum-900"
+                }`}
+              >
+                None
+              </button>
+              {["1", "2", "3"].map((n) => (
                 <button
-                  key={t.id}
+                  key={n}
                   type="button"
-                  onClick={() =>
-                    setData((d) => ({ ...d, spendingTier: t.id }))
-                  }
-                  className={`rounded-full px-3 py-1.5 text-sm ${
-                    data.spendingTier === t.id
+                  onClick={() => {
+                    setOtherChildren(false);
+                    set("childrenCount", n);
+                  }}
+                  className={`rounded-full px-4 py-2 text-sm transition ${
+                    data.childrenCount === n && !otherChildren
                       ? "bg-plum-900 text-plum-100"
                       : "bg-plum-900/5 text-plum-900"
                   }`}
                 >
-                  {t.label}
+                  {n}
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={() => {
+                  setOtherChildren(true);
+                  set("childrenCount", "");
+                }}
+                className={`rounded-full px-4 py-2 text-sm transition ${
+                  otherChildren
+                    ? "bg-plum-900 text-plum-100"
+                    : "bg-plum-900/5 text-plum-900"
+                }`}
+              >
+                Other
+              </button>
+            </div>
+            {otherChildren && (
+              <Input
+                type="number"
+                className="mt-2 max-w-[8rem]"
+                value={data.childrenCount}
+                onChange={(e) => set("childrenCount", e.target.value)}
+                placeholder="Number"
+              />
+            )}
+            {hasChildren && (
+              <div className="mt-3">
+                <FieldLabel>Custody arrangement</FieldLabel>
+                <ChoiceList
+                  options={CHILDREN_CUSTODY}
+                  value={data.childrenCustody}
+                  onSelect={(v) => set("childrenCustody", v)}
+                />
+              </div>
+            )}
+          </div>
+
+          <div>
+            <FieldLabel>Education &amp; Profession</FieldLabel>
+            <Label htmlFor="educationLevel">Highest Level</Label>
+            <select
+              id="educationLevel"
+              value={data.educationLevel}
+              onChange={(e) => set("educationLevel", e.target.value)}
+              className="mt-1 w-full rounded-xl border border-plum-900/15 bg-white px-3 py-2 text-sm text-plum-900"
+            >
+              <option value="">Select…</option>
+              {EDUCATION_LEVELS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+            <div className="mt-3">
+              <Label htmlFor="profession">Profession / Core Expertise</Label>
+              <Input
+                id="profession"
+                value={data.profession}
+                onChange={(e) => set("profession", e.target.value)}
+              />
+            </div>
+            <div className="mt-3">
+              <FieldLabel>Primary Industry</FieldLabel>
+              <ChoiceList
+                options={PRIMARY_INDUSTRIES}
+                value={data.primaryIndustry}
+                onSelect={(v) => set("primaryIndustry", v)}
+              />
             </div>
           </div>
-        </div>
-      )}
 
-      {currentSection === "intent" && (
-        <div className="space-y-4">
-          <h2 className="text-display text-2xl text-plum-900">
-            Your relationship intent
-          </h2>
-          <p className="text-sm text-plum-900/60">
-            Pick all that apply. These weigh heavier than interests in matching.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {INTENT_BADGES.map((b) => (
-              <button
-                key={b.id}
-                type="button"
-                onClick={() =>
-                  setData((d) => ({
-                    ...d,
-                    intentBadges: toggle(d.intentBadges, b.id),
-                  }))
-                }
-                className={`rounded-2xl border px-4 py-3 text-left transition ${
-                  data.intentBadges.includes(b.id)
-                    ? "border-plum-900 bg-plum-900 text-plum-100"
-                    : "border-plum-900/15 bg-white text-plum-900 hover:border-plum-900/40"
-                }`}
-              >
-                <div className="font-medium">{b.label}</div>
-                <div className="text-xs opacity-70 mt-1">{b.description}</div>
-              </button>
-            ))}
-          </div>
-          {contradictions.length > 0 && (
-            <Alert tone="warning">
-              Heads up — you&rsquo;ve picked badges that contradict
-              ({contradictions.map((c) => `${c.a} vs ${c.b}`).join(", ")}). The
-              Concierge will review.
-            </Alert>
-          )}
-        </div>
-      )}
-
-      {currentSection === "interests" && (
-        <div className="space-y-4">
-          <h2 className="text-display text-2xl text-plum-900">Interests</h2>
-          <p className="text-sm text-plum-900/60">
-            What lights you up? Picks help fuel Date Vault suggestions.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {COMMON_INTERESTS.map((i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() =>
-                  setData((d) => ({
-                    ...d,
-                    interests: toggle(d.interests, i),
-                  }))
-                }
-                className={`rounded-full px-3 py-1.5 text-sm transition ${
-                  data.interests.includes(i)
-                    ? "bg-plum-900 text-plum-100"
-                    : "bg-plum-900/5 text-plum-900 hover:bg-plum-900/10"
-                }`}
-              >
-                {i}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {currentSection === "theological" && (
-        <div className="space-y-4">
-          <h2 className="text-display text-2xl text-plum-900">
-            Theological alignment
-          </h2>
-          <p className="text-sm text-plum-900/60">
-            Helps the engine match on shared foundations. Pick all that apply.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {THEOLOGICAL.map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() =>
-                  setData((d) => ({
-                    ...d,
-                    theologicalAlignment: toggle(d.theologicalAlignment, t),
-                  }))
-                }
-                className={`rounded-full px-3 py-1.5 text-sm transition ${
-                  data.theologicalAlignment.includes(t)
-                    ? "bg-plum-900 text-plum-100"
-                    : "bg-plum-900/5 text-plum-900"
-                }`}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {currentSection === "dealbreakers" && (
-        <div className="space-y-4">
-          <h2 className="text-display text-2xl text-plum-900">Deal-breakers</h2>
-          <p className="text-sm text-plum-900/60">
-            Faith-aligned filters for your matching pool. Pick all that apply.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {CHRISTIAN_DEAL_BREAKERS.map((d) => (
-              <button
-                key={d}
-                type="button"
-                onClick={() =>
-                  setData((prev) => ({
-                    ...prev,
-                    dealBreakers: toggle(prev.dealBreakers, d),
-                  }))
-                }
-                className={`rounded-full px-3 py-1.5 text-sm transition ${
-                  data.dealBreakers.includes(d)
-                    ? "bg-red-700 text-white"
-                    : "bg-plum-900/5 text-plum-900"
-                }`}
-              >
-                {d}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {currentSection.startsWith("q:") && (() => {
-        const q = questions.find((qq) => `q:${qq.id}` === currentSection);
-        if (!q) return null;
-        const current = data.answers[q.id];
-        return (
-          <div className="space-y-4">
-            <p className="text-xs text-plum-900/50 uppercase tracking-widest">
-              {q.category ?? "Psychometric"}
+          <div>
+            <FieldLabel>Community Alias</FieldLabel>
+            <p className="text-xs text-plum-900/50 mb-2">
+              This private name is not visible to others in the ecosystem until
+              mutual alignment is confirmed.
             </p>
-            <h2 className="text-display text-2xl text-plum-900">{q.prompt}</h2>
-            {q.questionType === "single" && (
-              <div className="flex flex-col gap-2">
-                {(q.options ?? []).map((opt) => (
+            <select
+              value={data.personaCategory}
+              onChange={(e) => {
+                set("personaCategory", e.target.value);
+                set("personaAlias", "");
+              }}
+              className="w-full rounded-xl border border-plum-900/15 bg-white px-3 py-2 text-sm text-plum-900"
+            >
+              <option value="">Select a category…</option>
+              {PERSONA_CATEGORIES.map((c) => (
+                <option key={c.category} value={c.category}>
+                  {c.category}
+                </option>
+              ))}
+            </select>
+            {personasForCategory.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {personasForCategory.map((p) => (
                   <button
-                    key={opt}
+                    key={p}
                     type="button"
-                    onClick={() =>
-                      setData((d) => ({
-                        ...d,
-                        answers: { ...d.answers, [q.id]: opt },
-                      }))
-                    }
-                    className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${
-                      current === opt
-                        ? "border-plum-900 bg-plum-900 text-plum-100"
-                        : "border-plum-900/15 bg-white"
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            )}
-            {q.questionType === "multi" && (
-              <div className="flex flex-wrap gap-2">
-                {(q.options ?? []).map((opt) => {
-                  const arr = Array.isArray(current) ? (current as string[]) : [];
-                  const on = arr.includes(opt);
-                  return (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() =>
-                        setData((d) => ({
-                          ...d,
-                          answers: {
-                            ...d.answers,
-                            [q.id]: toggle(arr, opt),
-                          },
-                        }))
-                      }
-                      className={`rounded-full px-3 py-1.5 text-sm transition ${
-                        on
-                          ? "bg-plum-900 text-plum-100"
-                          : "bg-plum-900/5 text-plum-900"
-                      }`}
-                    >
-                      {opt}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-            {q.questionType === "scale" && (
-              <div className="flex items-center gap-3">
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    onClick={() =>
-                      setData((d) => ({
-                        ...d,
-                        answers: { ...d.answers, [q.id]: n },
-                      }))
-                    }
-                    className={`h-10 w-10 rounded-full text-sm font-medium transition ${
-                      current === n
+                    onClick={() => set("personaAlias", p)}
+                    className={`rounded-full px-4 py-2 text-sm transition ${
+                      data.personaAlias === p
                         ? "bg-plum-900 text-plum-100"
                         : "bg-plum-900/5 text-plum-900"
                     }`}
                   >
-                    {n}
+                    {p}
                   </button>
                 ))}
               </div>
             )}
-            {q.questionType === "freeform" && (
-              <Textarea
-                value={(current as string) ?? ""}
-                onChange={(e) =>
-                  setData((d) => ({
-                    ...d,
-                    answers: { ...d.answers, [q.id]: e.target.value },
-                  }))
-                }
-              />
-            )}
           </div>
-        );
-      })()}
 
-      {currentSection === "review" && (
-        <div className="space-y-4">
-          <h2 className="text-display text-2xl text-plum-900">
-            Your values, summarised
-          </h2>
-          <p className="text-sm text-plum-900/60">
-            Confirm before your profile goes live. You can edit any time.
-          </p>
-          <div className="rounded-2xl bg-plum-900/5 p-4 text-sm space-y-2">
-            <p>
-              <strong>Name:</strong> {data.displayName} · <strong>Phone:</strong>{" "}
-              {data.phone || "—"} · <strong>City:</strong> {data.city || "—"}
-            </p>
-            <p>
-              <strong>Gender:</strong>{" "}
-              {GENDER_OPTIONS.find((g) => g.value === data.gender)?.label ?? "—"}{" "}
-              · <strong>Interested in:</strong>{" "}
-              {genderPreferenceLabels(data.genderPreference, data.gender)}
-            </p>
-            <p>
-              <strong>Intent:</strong>{" "}
-              <span className="flex gap-1 flex-wrap inline-flex">
-                {data.intentBadges.map((b) => (
-                  <Badge key={b} tone="mint">
-                    {INTENT_BADGES.find((x) => x.id === b)?.label ?? b}
-                  </Badge>
-                ))}
-              </span>
-            </p>
-            <p>
-              <strong>Theology:</strong>{" "}
-              {data.theologicalAlignment.join(", ") || "—"}
-            </p>
-            <p>
-              <strong>Interests:</strong> {data.interests.join(", ") || "—"}
-            </p>
-            <p>
-              <strong>Deal-breakers:</strong>{" "}
-              {data.dealBreakers.join(", ") || "—"}
-            </p>
-            <p>
-              <strong>Dream date:</strong> {data.dreamDate || "—"}
-            </p>
+          <div>
+            <Label htmlFor="email">Primary Email</Label>
+            <Input id="email" value={email} readOnly className="opacity-70" />
+          </div>
+
+          <div>
+            <Label htmlFor="phone">Phone Number</Label>
+            <Input
+              id="phone"
+              value={data.phone}
+              onChange={(e) => set("phone", e.target.value)}
+              placeholder="+254…"
+            />
           </div>
         </div>
       )}
 
-      <div className="mt-8 flex justify-between">
-        <Button
-          variant="ghost"
-          type="button"
-          onClick={back}
-          disabled={step === 0 || pending}
-        >
-          ← Back
-        </Button>
-        {currentSection === "review" ? (
+      {section === "intent" && (
+        <div className="space-y-5">
+          <h2 className="text-display text-2xl text-plum-900">
+            Relationship Intent
+          </h2>
+          <Alert tone="warning">{RELATIONSHIP_INTENT_WARNING}</Alert>
+
+          <div>
+            <FieldLabel>Your Timeline to the Altar</FieldLabel>
+            <p className="text-xs text-plum-900/50 mb-2">
+              Be completely honest about your current season.
+            </p>
+            <ChoiceList
+              options={ALTAR_TIMELINE}
+              value={data.altarTimeline}
+              onSelect={(v) => set("altarTimeline", v)}
+            />
+          </div>
+
+          <div className="border-t border-plum-900/10 pt-4">
+            <h3 className="font-medium text-plum-900">Relational Non-Negotiables</h3>
+            <p className="text-xs text-plum-900/50 mb-3">
+              Briefly anchor your expectations so our curators can protect your
+              boundaries.
+            </p>
+
+            <FieldLabel>Are you open to relocating for marriage?</FieldLabel>
+            <ChoiceList
+              options={RELOCATION_OPENNESS}
+              value={data.relocationOpenness}
+              onSelect={(v) => set("relocationOpenness", v)}
+            />
+
+            <FieldLabel>Family Planning Vision</FieldLabel>
+            <ChoiceList
+              options={FAMILY_PLANNING}
+              value={data.familyPlanningVision}
+              onSelect={(v) => set("familyPlanningVision", v)}
+            />
+
+            <FieldLabel>Spiritual Rhythms in the Home</FieldLabel>
+            <MultiChoiceList
+              options={SPIRITUAL_RHYTHMS_HOME}
+              values={data.spiritualRhythmsHome}
+              onToggle={(v) =>
+                set("spiritualRhythmsHome", toggle(data.spiritualRhythmsHome, v))
+              }
+            />
+
+            <FieldLabel>Doctrinal Alignment</FieldLabel>
+            <ChoiceList
+              options={DOCTRINAL_ALIGNMENT}
+              value={data.doctrinalAlignment}
+              onSelect={(v) => set("doctrinalAlignment", v)}
+            />
+
+            <FieldLabel>Professional Rhythms</FieldLabel>
+            <ChoiceList
+              options={PROFESSIONAL_RHYTHMS}
+              value={data.professionalRhythm}
+              onSelect={(v) => set("professionalRhythm", v)}
+            />
+
+            <FieldLabel>Financial Legacy &amp; Stewardship</FieldLabel>
+            <MultiChoiceList
+              options={FINANCIAL_STEWARDSHIP}
+              values={data.financialStewardship}
+              onToggle={(v) =>
+                set("financialStewardship", toggle(data.financialStewardship, v))
+              }
+            />
+
+            <FieldLabel>Environment Preference</FieldLabel>
+            <ChoiceList
+              options={ENVIRONMENT_PREFERENCE}
+              value={data.environmentPreference}
+              onSelect={(v) => set("environmentPreference", v)}
+            />
+
+            <FieldLabel>Hospitality &amp; Social Flow</FieldLabel>
+            <ChoiceList
+              options={HOSPITALITY_FLOW}
+              value={data.hospitalityFlow}
+              onSelect={(v) => set("hospitalityFlow", v)}
+            />
+
+            <FieldLabel>Current Family Status Compatibility</FieldLabel>
+            <ChoiceList
+              options={FAMILY_STATUS_COMPATIBILITY}
+              value={data.familyStatusCompatibility}
+              onSelect={(v) => set("familyStatusCompatibility", v)}
+            />
+
+            <FieldLabel>The Household Blueprint</FieldLabel>
+            <ChoiceList
+              options={HOUSEHOLD_BLUEPRINT}
+              value={data.householdBlueprint}
+              onSelect={(v) => set("householdBlueprint", v)}
+            />
+          </div>
+        </div>
+      )}
+
+      {section === "interests" && (
+        <div className="space-y-5">
+          <h2 className="text-display text-2xl text-plum-900">
+            Interests &amp; Lifestyle Alignment
+          </h2>
+          <p className="text-sm text-plum-900/60">
+            Select the lifestyle areas, interests, and spiritual habits that
+            describe how you spend your time and build your life.
+          </p>
+          {INTEREST_PILLARS.map((pillar) => (
+            <div key={pillar.pillar} className="border-t border-plum-900/10 pt-4">
+              <h3 className="font-medium text-plum-900 mb-2">{pillar.pillar}</h3>
+              {pillar.groups.map((group) => (
+                <div key={group.heading} className="mb-3">
+                  <div className="text-xs uppercase tracking-widest text-plum-900/50 mb-2">
+                    {group.heading}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {group.items.map((item) => (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => set("interests", toggle(data.interests, item))}
+                        className={`rounded-full px-3 py-1.5 text-sm transition ${
+                          data.interests.includes(item)
+                            ? "bg-plum-900 text-plum-100"
+                            : "bg-plum-900/5 text-plum-900 hover:bg-plum-900/10"
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {section === "theological" && (
+        <div className="space-y-5">
+          <h2 className="text-display text-2xl text-plum-900">
+            Theological Alignment
+          </h2>
+          <p className="text-sm text-plum-900/60">
+            Ensuring your runway is anchored in the same truth.
+          </p>
+
+          <div>
+            <FieldLabel>Core Faith Identity</FieldLabel>
+            <p className="text-xs text-plum-900/50 mb-2">
+              Select the description that best captures your primary Christian
+              background and current walk.
+            </p>
+            <ChoiceList
+              options={CORE_FAITH_IDENTITY}
+              value={data.coreFaithIdentity}
+              onSelect={(v) => set("coreFaithIdentity", v)}
+            />
+          </div>
+
+          <div>
+            <FieldLabel>Convictions on Household Leadership</FieldLabel>
+            <p className="text-xs text-plum-900/50 mb-2">
+              How do you believe a Christian household should be spiritually led?
+            </p>
+            <ChoiceList
+              options={HOUSEHOLD_LEADERSHIP}
+              value={data.householdLeadership}
+              onSelect={(v) => set("householdLeadership", v)}
+            />
+          </div>
+
+          <div>
+            <FieldLabel>Doctrinal Non-Negotiables</FieldLabel>
+            <p className="text-xs text-plum-900/50 mb-2">
+              Where do you stand on theological differences?
+            </p>
+            <ChoiceList
+              options={DOCTRINAL_FLEXIBILITY}
+              value={data.doctrinalFlexibility}
+              onSelect={(v) => set("doctrinalFlexibility", v)}
+            />
+          </div>
+        </div>
+      )}
+
+      {section === "journey" && (
+        <div className="space-y-5">
+          <h2 className="text-display text-2xl text-plum-900">
+            Choose Your Journey
+          </h2>
+          <p className="text-sm text-plum-900/60">
+            Your profile is saved. Select the pathway you wish to apply for —
+            applications are reviewed before you enter the ecosystem.
+          </p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardTitle>Amari · The Fellowship</CardTitle>
+              <CardSubtitle className="mt-2">
+                Vibrant community, Evermore Socials, Pulse retreats, and Match
+                Cards — complimentary entry.
+              </CardSubtitle>
+              <AppLink href="/apply/amari" className="block mt-4">
+                <Button className="w-full">Apply for Amari</Button>
+              </AppLink>
+            </Card>
+            <Card className="border-amber/40">
+              <CardTitle>Zahari · The Private Circle</CardTitle>
+              <CardSubtitle className="mt-2">
+                White-glove concierge matching for high-profile professionals
+                requiring absolute discretion.
+              </CardSubtitle>
+              <AppLink href="/apply/zahari" className="block mt-4">
+                <Button variant="outline" className="w-full">
+                  Apply for Zahari
+                </Button>
+              </AppLink>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {section !== "journey" && (
+        <div className="mt-8 flex justify-between">
           <Button
+            variant="ghost"
             type="button"
-            disabled={pending}
-            onClick={() => persist({ finalize: true })}
+            onClick={back}
+            disabled={step === 0 || pending}
           >
-            {pending ? "Finalising…" : "Take my profile live"}
+            ← Back
           </Button>
-        ) : (
           <Button type="button" disabled={pending} onClick={next}>
             {pending ? "Saving…" : "Continue →"}
           </Button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

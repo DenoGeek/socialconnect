@@ -151,6 +151,42 @@ export const profiles = pgTable(
       .$type<string[]>()
       .notNull()
       .default(sql`'[]'::jsonb`),
+    // ── Create Profile (IRL) · Step 1: Identity ──────────────────────────────
+    firstName: text("first_name"),
+    lastName: text("last_name"),
+    birthYear: integer("birth_year"),
+    countryOfHeritage: text("country_of_heritage"),
+    familialStatus: text("familial_status"), // single | divorced | widowed
+    divorceCertified: boolean("divorce_certified").notNull().default(false),
+    childrenCount: integer("children_count"),
+    childrenCustody: text("children_custody"), // joint | primary_solo
+    educationLevel: text("education_level"),
+    profession: text("profession"),
+    primaryIndustry: text("primary_industry"),
+    personaCategory: text("persona_category"),
+    personaAlias: text("persona_alias"),
+    // ── Step 2: Relationship Intent ──────────────────────────────────────────
+    altarTimeline: text("altar_timeline"), // covenant_foundations | covenant_ready
+    relocationOpenness: text("relocation_openness"),
+    familyPlanningVision: text("family_planning_vision"),
+    spiritualRhythmsHome: jsonb("spiritual_rhythms_home")
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    doctrinalAlignment: text("doctrinal_alignment"),
+    professionalRhythm: text("professional_rhythm"),
+    financialStewardship: jsonb("financial_stewardship")
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    environmentPreference: text("environment_preference"),
+    hospitalityFlow: text("hospitality_flow"),
+    familyStatusCompatibility: text("family_status_compatibility"),
+    householdBlueprint: text("household_blueprint"),
+    // ── Step 4: Theological Alignment ────────────────────────────────────────
+    coreFaithIdentity: text("core_faith_identity"),
+    householdLeadership: text("household_leadership"),
+    doctrinalFlexibility: text("doctrinal_flexibility"),
     spendingTier: text("spending_tier").notNull().default("standard"),
     onboardingProgress: integer("onboarding_progress").notNull().default(0),
     onboardingCompletedAt: timestamp("onboarding_completed_at", {

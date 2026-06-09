@@ -5,8 +5,6 @@ import { redirect } from "next/navigation";
 import { eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
-import { detectContradictions } from "@/lib/intent/badges";
-import { assignAlias } from "@/lib/alias/assign";
 import { heterosexualPreference } from "@/lib/profile/gender";
 
 export type SaveStepResult = { ok: true; finalized?: boolean };
@@ -17,52 +15,66 @@ export async function saveStep(form: FormData): Promise<SaveStepResult> {
   const totalSteps = Number(form.get("totalSteps") ?? 0);
   const finalize = form.get("finalize") === "1";
 
-  // Persist answers for this step.
-  const answers = JSON.parse(String(form.get("answers") ?? "[]")) as Array<{
-    questionId: string;
-    answer: unknown;
-  }>;
-  for (const a of answers) {
-    await db
-      .insert(schema.psychometricResponses)
-      .values({
-        userId: user.id,
-        questionId: a.questionId,
-        answer: a.answer as Record<string, unknown>,
-      })
-      .onConflictDoUpdate({
-        target: [
-          schema.psychometricResponses.userId,
-          schema.psychometricResponses.questionId,
-        ],
-        set: { answer: a.answer as Record<string, unknown>, answeredAt: new Date() },
-      });
-  }
-
-  // Persist profile bits if present.
   const profileUpdates: Record<string, unknown> = {};
+
+  // Plain text / single-select fields.
   for (const f of [
-    "displayName",
-    "phone",
+    "firstName",
+    "lastName",
     "city",
-    "bio",
-    "dreamDate",
-    "spendingTier",
+    "countryOfHeritage",
+    "familialStatus",
+    "childrenCustody",
+    "educationLevel",
+    "profession",
+    "primaryIndustry",
+    "personaCategory",
+    "personaAlias",
+    "phone",
     "gender",
+    "altarTimeline",
+    "relocationOpenness",
+    "familyPlanningVision",
+    "doctrinalAlignment",
+    "professionalRhythm",
+    "environmentPreference",
+    "hospitalityFlow",
+    "familyStatusCompatibility",
+    "householdBlueprint",
+    "coreFaithIdentity",
+    "householdLeadership",
+    "doctrinalFlexibility",
   ] as const) {
     const v = form.get(f);
     if (typeof v === "string" && v.length > 0) profileUpdates[f] = v;
   }
+
+  // Multi-select JSON arrays.
   for (const f of [
-    "intentBadges",
-    "dealBreakers",
     "interests",
-    "theologicalAlignment",
+    "spiritualRhythmsHome",
+    "financialStewardship",
   ] as const) {
     const raw = form.get(f);
     if (typeof raw === "string" && raw.length > 0) {
       profileUpdates[f] = JSON.parse(raw);
     }
+  }
+
+  // Numeric + boolean fields.
+  const birthYearRaw = form.get("birthYear");
+  if (typeof birthYearRaw === "string" && birthYearRaw.length > 0) {
+    profileUpdates.birthYear = Number(birthYearRaw);
+  }
+  const childrenCountRaw = form.get("childrenCount");
+  if (typeof childrenCountRaw === "string" && childrenCountRaw.length > 0) {
+    profileUpdates.childrenCount = Number(childrenCountRaw);
+  }
+  profileUpdates.divorceCertified = form.get("divorceCertified") === "1";
+
+  // The chosen Community Alias persona becomes the private display name.
+  if (typeof profileUpdates.personaAlias === "string") {
+    profileUpdates.displayName = profileUpdates.personaAlias;
   }
 
   const existing = await db
@@ -71,27 +83,12 @@ export async function saveStep(form: FormData): Promise<SaveStepResult> {
     .where(eq(schema.profiles.userId, user.id))
     .limit(1);
 
-  const genderPrefRaw = form.get("genderPreference");
   const genderValue = form.get("gender");
   if (typeof genderValue === "string" && (genderValue === "man" || genderValue === "woman")) {
     profileUpdates.lookingFor = {
       ...((existing[0]?.lookingFor as Record<string, unknown> | undefined) ?? {}),
       genderPreference: heterosexualPreference(genderValue),
     };
-  } else if (typeof genderPrefRaw === "string" && genderPrefRaw.length > 0) {
-    const existingLookingFor =
-      (existing[0]?.lookingFor as Record<string, unknown> | undefined) ?? {};
-    profileUpdates.lookingFor = {
-      ...existingLookingFor,
-      genderPreference: JSON.parse(genderPrefRaw),
-    };
-  }
-
-  if (
-    Array.isArray(profileUpdates.intentBadges) &&
-    detectContradictions(profileUpdates.intentBadges as string[]).length > 0
-  ) {
-    profileUpdates.flaggedForReview = true;
   }
 
   if (existing[0]) {
@@ -134,11 +131,6 @@ export async function saveStep(form: FormData): Promise<SaveStepResult> {
     });
 
   if (finalize) {
-    try {
-      await assignAlias({ userId: user.id, eventId: null });
-    } catch {
-      // Pool may be empty; admin can assign manually.
-    }
     revalidatePath("/profile");
     revalidatePath("/profile/onboarding");
     return { ok: true, finalized: true };

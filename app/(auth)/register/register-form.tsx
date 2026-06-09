@@ -40,7 +40,7 @@ export function RegisterForm() {
     }
     // Full navigation so the session cookie is on the next document request
     // (client router.push can race ahead of Set-Cookie from sign-up).
-    window.location.assign("/apply");
+    window.location.assign("/profile/onboarding");
   }
 
   return (

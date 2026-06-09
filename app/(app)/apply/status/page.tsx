@@ -1,4 +1,5 @@
 import { AppLink } from "@/components/nav/app-link";
+import { redirect } from "next/navigation";
 import { requireUser, getLatestApplication, canAccessEcosystem } from "@/lib/auth";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
@@ -26,13 +27,14 @@ export default async function ApplyStatusPage({
         <Card className="max-w-md">
           <Badge tone="mint">Approved · Amari</Badge>
           <CardTitle className="mt-2">Welcome to the Fellowship</CardTitle>
-          <CardSubtitle>Complete your psychometric profile next.</CardSubtitle>
+          <CardSubtitle>Complete your profile next.</CardSubtitle>
           <AppLink href="/profile/onboarding" className="block mt-4">
-            <Button>Continue onboarding</Button>
+            <Button>Continue your profile</Button>
           </AppLink>
         </Card>
       );
     }
+    redirect("/profile");
   }
 
   if (canAccessEcosystem(user) && user.pathway === "zahari") {

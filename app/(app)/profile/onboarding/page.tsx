@@ -1,24 +1,10 @@
-import { asc, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
-import { redirect } from "next/navigation";
-import { requireUser, canAccessEcosystem } from "@/lib/auth";
-import { OnboardingStepper } from "./stepper";
-import { genderPreferencesFromLookingFor, heterosexualPreference } from "@/lib/profile/gender";
+import { requireUser } from "@/lib/auth";
+import { CreateProfileStepper } from "./stepper";
 
 export default async function OnboardingPage() {
   const user = await requireUser();
-  if (!canAccessEcosystem(user)) redirect("/apply");
-  if (user.pathway === "zahari") redirect("/concierge");
-  const questions = await db
-    .select()
-    .from(schema.psychometricQuestions)
-    .where(eq(schema.psychometricQuestions.active, true))
-    .orderBy(asc(schema.psychometricQuestions.step));
-
-  const responses = await db
-    .select()
-    .from(schema.psychometricResponses)
-    .where(eq(schema.psychometricResponses.userId, user.id));
 
   const [progress] = await db
     .select()
@@ -33,27 +19,42 @@ export default async function OnboardingPage() {
     .limit(1);
 
   return (
-    <OnboardingStepper
-      questions={questions}
-      existingResponses={responses.map((r) => ({
-        questionId: r.questionId,
-        answer: r.answer,
-      }))}
+    <CreateProfileStepper
       startAtStep={progress?.currentStep ?? 0}
+      email={user.email}
       profile={{
-        displayName: profile?.displayName ?? user.name,
-        phone: profile?.phone ?? "",
-        city: profile?.city ?? "",
-        bio: profile?.bio ?? "",
-        dreamDate: profile?.dreamDate ?? "",
+        firstName: profile?.firstName ?? "",
+        lastName: profile?.lastName ?? "",
         gender: profile?.gender ?? "",
-        genderPreference: profile?.gender
-          ? heterosexualPreference(profile.gender)
-          : genderPreferencesFromLookingFor(profile?.lookingFor, profile?.gender),
-        intentBadges: profile?.intentBadges ?? [],
-        dealBreakers: profile?.dealBreakers ?? [],
+        birthYear: profile?.birthYear ? String(profile.birthYear) : "",
+        city: profile?.city ?? "",
+        countryOfHeritage: profile?.countryOfHeritage ?? "",
+        familialStatus: profile?.familialStatus ?? "",
+        divorceCertified: profile?.divorceCertified ?? false,
+        childrenCount:
+          profile?.childrenCount != null ? String(profile.childrenCount) : "",
+        childrenCustody: profile?.childrenCustody ?? "",
+        educationLevel: profile?.educationLevel ?? "",
+        profession: profile?.profession ?? "",
+        primaryIndustry: profile?.primaryIndustry ?? "",
+        personaCategory: profile?.personaCategory ?? "",
+        personaAlias: profile?.personaAlias ?? "",
+        phone: profile?.phone ?? "",
+        altarTimeline: profile?.altarTimeline ?? "",
+        relocationOpenness: profile?.relocationOpenness ?? "",
+        familyPlanningVision: profile?.familyPlanningVision ?? "",
+        spiritualRhythmsHome: profile?.spiritualRhythmsHome ?? [],
+        doctrinalAlignment: profile?.doctrinalAlignment ?? "",
+        professionalRhythm: profile?.professionalRhythm ?? "",
+        financialStewardship: profile?.financialStewardship ?? [],
+        environmentPreference: profile?.environmentPreference ?? "",
+        hospitalityFlow: profile?.hospitalityFlow ?? "",
+        familyStatusCompatibility: profile?.familyStatusCompatibility ?? "",
+        householdBlueprint: profile?.householdBlueprint ?? "",
         interests: profile?.interests ?? [],
-        theologicalAlignment: profile?.theologicalAlignment ?? [],
+        coreFaithIdentity: profile?.coreFaithIdentity ?? "",
+        householdLeadership: profile?.householdLeadership ?? "",
+        doctrinalFlexibility: profile?.doctrinalFlexibility ?? "",
       }}
     />
   );

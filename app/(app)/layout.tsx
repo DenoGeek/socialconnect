@@ -34,6 +34,7 @@ const NAV_ZAHARI = [
 ];
 
 const APPLY_PREFIX = "/apply";
+const CREATE_PROFILE_PREFIX = "/profile/onboarding";
 
 export default async function AppLayout({
   children,
@@ -69,9 +70,10 @@ export default async function AppLayout({
 
   const pathname = h.get("x-pathname") ?? "";
   const onApplyFlow = pathname.startsWith(APPLY_PREFIX);
+  const onCreateProfile = pathname.startsWith(CREATE_PROFILE_PREFIX);
   const ecosystemOk = canAccessEcosystem(user);
 
-  if (!ecosystemOk && !onApplyFlow && !isStaffRole(user.role)) {
+  if (!ecosystemOk && !onApplyFlow && !onCreateProfile && !isStaffRole(user.role)) {
     if (!isRouterPrefetchRequest(h)) {
       redirect("/apply");
     }
