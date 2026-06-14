@@ -5,20 +5,17 @@ import {
   CHILDREN_CUSTODY,
   EDUCATION_LEVELS,
   PRIMARY_INDUSTRIES,
+  FAMILY_PLANNING,
+  DESIRED_FUTURE_CHILDREN,
   ALTAR_TIMELINE,
   RELOCATION_OPENNESS,
-  FAMILY_PLANNING,
   SPIRITUAL_RHYTHMS_HOME,
   DOCTRINAL_ALIGNMENT,
+  HOUSEHOLD_LEADERSHIP,
   PROFESSIONAL_RHYTHMS,
   FINANCIAL_STEWARDSHIP,
   ENVIRONMENT_PREFERENCE,
-  HOSPITALITY_FLOW,
-  FAMILY_STATUS_COMPATIBILITY,
-  HOUSEHOLD_BLUEPRINT,
   CORE_FAITH_IDENTITY,
-  HOUSEHOLD_LEADERSHIP,
-  DOCTRINAL_FLEXIBILITY,
 } from "@/lib/profile/create-profile";
 import {
   genderLabel,
@@ -109,7 +106,9 @@ export function MemberProfileDetail({
                   ? `${profile.birthYear} (age ${new Date().getFullYear() - profile.birthYear})`
                   : "—"}
               </dd>
-              <dt className="text-plum-900/50">Current location</dt>
+              <dt className="text-plum-900/50">Current country</dt>
+              <dd className="text-plum-900">{profile.country ?? "—"}</dd>
+              <dt className="text-plum-900/50">Current city</dt>
               <dd className="text-plum-900">{profile.city ?? "—"}</dd>
               <dt className="text-plum-900/50">Country of heritage</dt>
               <dd className="text-plum-900">
@@ -121,6 +120,21 @@ export function MemberProfileDetail({
               </dd>
               <dt className="text-plum-900/50">Children</dt>
               <dd className="text-plum-900">{childrenSummary(profile)}</dd>
+              <dt className="text-plum-900/50">Family planning vision</dt>
+              <dd className="text-plum-900">
+                {optionLabel(FAMILY_PLANNING, profile.familyPlanningVision)}
+              </dd>
+              {profile.desiredFutureChildren && (
+                <>
+                  <dt className="text-plum-900/50">Desired future children</dt>
+                  <dd className="text-plum-900">
+                    {optionLabel(
+                      DESIRED_FUTURE_CHILDREN,
+                      profile.desiredFutureChildren,
+                    )}
+                  </dd>
+                </>
+              )}
               <dt className="text-plum-900/50">Highest education</dt>
               <dd className="text-plum-900">
                 {optionLabel(EDUCATION_LEVELS, profile.educationLevel)}
@@ -149,20 +163,20 @@ export function MemberProfileDetail({
               <dd className="text-plum-900">
                 {optionLabel(RELOCATION_OPENNESS, profile.relocationOpenness)}
               </dd>
-              <dt className="text-plum-900/50">Family planning</dt>
+              <dt className="text-plum-900/50">Spiritual rhythms in the home</dt>
               <dd className="text-plum-900">
-                {optionLabel(FAMILY_PLANNING, profile.familyPlanningVision)}
-              </dd>
-              <dt className="text-plum-900/50">Spiritual rhythms</dt>
-              <dd className="text-plum-900">
-                {optionLabels(
+                {optionLabel(
                   SPIRITUAL_RHYTHMS_HOME,
-                  profile.spiritualRhythmsHome,
+                  profile.spiritualRhythmsHome?.[0],
                 )}
               </dd>
               <dt className="text-plum-900/50">Doctrinal alignment</dt>
               <dd className="text-plum-900">
                 {optionLabel(DOCTRINAL_ALIGNMENT, profile.doctrinalAlignment)}
+              </dd>
+              <dt className="text-plum-900/50">Household leadership</dt>
+              <dd className="text-plum-900">
+                {optionLabel(HOUSEHOLD_LEADERSHIP, profile.householdLeadership)}
               </dd>
               <dt className="text-plum-900/50">Professional rhythm</dt>
               <dd className="text-plum-900">
@@ -182,26 +196,17 @@ export function MemberProfileDetail({
                   profile.environmentPreference,
                 )}
               </dd>
-              <dt className="text-plum-900/50">Hospitality</dt>
-              <dd className="text-plum-900">
-                {optionLabel(HOSPITALITY_FLOW, profile.hospitalityFlow)}
-              </dd>
-              <dt className="text-plum-900/50">Family compatibility</dt>
-              <dd className="text-plum-900">
-                {optionLabel(
-                  FAMILY_STATUS_COMPATIBILITY,
-                  profile.familyStatusCompatibility,
-                )}
-              </dd>
-              <dt className="text-plum-900/50">Household blueprint</dt>
-              <dd className="text-plum-900">
-                {optionLabel(HOUSEHOLD_BLUEPRINT, profile.householdBlueprint)}
-              </dd>
             </dl>
           </Card>
 
           <Card>
             <CardTitle>Interests &amp; Lifestyle</CardTitle>
+            <dl className="grid grid-cols-2 gap-y-3 text-sm mt-3">
+              <dt className="text-plum-900/50">Core faith identity</dt>
+              <dd className="text-plum-900">
+                {optionLabel(CORE_FAITH_IDENTITY, profile.coreFaithIdentity)}
+              </dd>
+            </dl>
             <div className="mt-3 flex flex-wrap gap-2">
               {(profile.interests ?? []).length === 0 ? (
                 <p className="text-sm text-plum-900/60">None selected.</p>
@@ -216,27 +221,6 @@ export function MemberProfileDetail({
                 ))
               )}
             </div>
-          </Card>
-
-          <Card>
-            <CardTitle>Theological Alignment</CardTitle>
-            <dl className="grid grid-cols-2 gap-y-3 text-sm mt-3">
-              <dt className="text-plum-900/50">Core faith identity</dt>
-              <dd className="text-plum-900">
-                {optionLabel(CORE_FAITH_IDENTITY, profile.coreFaithIdentity)}
-              </dd>
-              <dt className="text-plum-900/50">Household leadership</dt>
-              <dd className="text-plum-900">
-                {optionLabel(HOUSEHOLD_LEADERSHIP, profile.householdLeadership)}
-              </dd>
-              <dt className="text-plum-900/50">Doctrinal non-negotiable</dt>
-              <dd className="text-plum-900">
-                {optionLabel(
-                  DOCTRINAL_FLEXIBILITY,
-                  profile.doctrinalFlexibility,
-                )}
-              </dd>
-            </dl>
           </Card>
         </>
       )}

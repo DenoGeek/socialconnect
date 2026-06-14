@@ -13,25 +13,28 @@ import {
   FAMILIAL_STATUS,
   DIVORCE_CERTIFICATION,
   CHILDREN_CUSTODY,
+  FAMILY_PLANNING,
+  DESIRED_FUTURE_CHILDREN,
+  familyPlanningWantsMoreChildren,
   EDUCATION_LEVELS,
   PRIMARY_INDUSTRIES,
   PERSONA_CATEGORIES,
   RELATIONSHIP_INTENT_WARNING,
   ALTAR_TIMELINE,
+  COVENANT_FOUNDATIONS_SAFEGUARD,
   RELOCATION_OPENNESS,
-  FAMILY_PLANNING,
   SPIRITUAL_RHYTHMS_HOME,
   DOCTRINAL_ALIGNMENT,
+  HOUSEHOLD_LEADERSHIP,
   PROFESSIONAL_RHYTHMS,
   FINANCIAL_STEWARDSHIP,
   ENVIRONMENT_PREFERENCE,
-  HOSPITALITY_FLOW,
-  FAMILY_STATUS_COMPATIBILITY,
-  HOUSEHOLD_BLUEPRINT,
   INTEREST_PILLARS,
+  CHRISTIAN_RHYTHMS,
   CORE_FAITH_IDENTITY,
-  HOUSEHOLD_LEADERSHIP,
-  DOCTRINAL_FLEXIBILITY,
+  JOURNEY_INTRO,
+  AMARI_PATH,
+  ZAHARI_PATH,
   type Option,
 } from "@/lib/profile/create-profile";
 import { saveStep } from "./actions";
@@ -41,12 +44,15 @@ type Profile = {
   lastName: string;
   gender: "man" | "woman" | "";
   birthYear: string;
+  country: string;
   city: string;
   countryOfHeritage: string;
   familialStatus: string;
   divorceCertified: boolean;
   childrenCount: string;
   childrenCustody: string;
+  familyPlanningVision: string;
+  desiredFutureChildren: string;
   educationLevel: string;
   profession: string;
   primaryIndustry: string;
@@ -54,23 +60,19 @@ type Profile = {
   personaAlias: string;
   phone: string;
   altarTimeline: string;
+  covenantFoundationsSafeguard: boolean;
   relocationOpenness: string;
-  familyPlanningVision: string;
-  spiritualRhythmsHome: string[];
+  spiritualRhythmHome: string;
   doctrinalAlignment: string;
+  householdLeadership: string;
   professionalRhythm: string;
   financialStewardship: string[];
   environmentPreference: string;
-  hospitalityFlow: string;
-  familyStatusCompatibility: string;
-  householdBlueprint: string;
   interests: string[];
   coreFaithIdentity: string;
-  householdLeadership: string;
-  doctrinalFlexibility: string;
 };
 
-const SECTIONS = ["identity", "intent", "interests", "theological", "journey"] as const;
+const SECTIONS = ["identity", "intent", "interests", "journey"] as const;
 const CHILDREN_PRESETS = ["0", "1", "2", "3"];
 
 function ChoiceList({
@@ -172,6 +174,9 @@ export function CreateProfileStepper({
 
   const section = SECTIONS[step];
   const hasChildren = data.childrenCount !== "" && data.childrenCount !== "0";
+  const wantsMoreChildren = familyPlanningWantsMoreChildren(
+    data.familyPlanningVision,
+  );
 
   function set<K extends keyof Profile>(key: K, value: Profile[K]) {
     setData((d) => ({ ...d, [key]: value }));
@@ -192,11 +197,14 @@ export function CreateProfileStepper({
       "lastName",
       "gender",
       "birthYear",
+      "country",
       "city",
       "countryOfHeritage",
       "familialStatus",
       "childrenCount",
       "childrenCustody",
+      "familyPlanningVision",
+      "desiredFutureChildren",
       "educationLevel",
       "profession",
       "primaryIndustry",
@@ -205,21 +213,20 @@ export function CreateProfileStepper({
       "phone",
       "altarTimeline",
       "relocationOpenness",
-      "familyPlanningVision",
+      "spiritualRhythmHome",
       "doctrinalAlignment",
+      "householdLeadership",
       "professionalRhythm",
       "environmentPreference",
-      "hospitalityFlow",
-      "familyStatusCompatibility",
-      "householdBlueprint",
       "coreFaithIdentity",
-      "householdLeadership",
-      "doctrinalFlexibility",
     ];
     for (const k of textKeys) fd.set(k, String(data[k] ?? ""));
     fd.set("divorceCertified", data.divorceCertified ? "1" : "0");
+    fd.set(
+      "covenantFoundationsSafeguard",
+      data.covenantFoundationsSafeguard ? "1" : "0",
+    );
     fd.set("interests", JSON.stringify(data.interests));
-    fd.set("spiritualRhythmsHome", JSON.stringify(data.spiritualRhythmsHome));
     fd.set("financialStewardship", JSON.stringify(data.financialStewardship));
     start(async () => {
       try {
@@ -237,14 +244,19 @@ export function CreateProfileStepper({
       if (!data.lastName.trim()) return "Last name is required.";
       if (!data.gender) return "Gender is required.";
       if (!data.birthYear) return "Year of birth is required.";
-      if (!data.city.trim()) return "Current location is required.";
+      if (!data.country.trim()) return "Current country is required.";
+      if (!data.city.trim()) return "Current city is required.";
       if (!data.countryOfHeritage.trim()) return "Country of heritage is required.";
       if (!data.familialStatus) return "Familial status is required.";
       if (data.familialStatus === "divorced" && !data.divorceCertified)
         return "Please confirm the divorce certification to proceed.";
-      if (data.childrenCount === "") return "Please indicate number of children.";
+      if (data.childrenCount === "") return "Please indicate whether you have children.";
       if (hasChildren && !data.childrenCustody)
         return "Please select your custody arrangement.";
+      if (!data.familyPlanningVision)
+        return "Please select your future children & family planning vision.";
+      if (wantsMoreChildren && !data.desiredFutureChildren)
+        return "Please select your desired number of future children.";
       if (!data.educationLevel) return "Highest education level is required.";
       if (!data.profession.trim()) return "Profession / core expertise is required.";
       if (!data.primaryIndustry) return "Primary industry is required.";
@@ -258,32 +270,28 @@ export function CreateProfileStepper({
     }
     if (section === "intent") {
       if (!data.altarTimeline) return "Please select your timeline to the altar.";
+      if (
+        data.altarTimeline === "covenant_foundations" &&
+        !data.covenantFoundationsSafeguard
+      )
+        return "Please confirm the Time-Wasting Safeguard to proceed.";
       if (!data.relocationOpenness) return "Please answer the relocation question.";
-      if (!data.familyPlanningVision) return "Please select your family planning vision.";
-      if (data.spiritualRhythmsHome.length === 0)
+      if (!data.spiritualRhythmHome)
         return "Please select your spiritual rhythms in the home.";
       if (!data.doctrinalAlignment) return "Please select your doctrinal alignment.";
+      if (!data.householdLeadership)
+        return "Please select your conviction on household leadership & authority.";
       if (!data.professionalRhythm) return "Please select your professional rhythm.";
       if (data.financialStewardship.length === 0)
         return "Please select your financial legacy & stewardship.";
-      if (!data.environmentPreference) return "Please select your environment preference.";
-      if (!data.hospitalityFlow) return "Please select your hospitality & social flow.";
-      if (!data.familyStatusCompatibility)
-        return "Please select your family status compatibility.";
-      if (!data.householdBlueprint) return "Please select your household blueprint.";
+      if (!data.environmentPreference)
+        return "Please select your lifestyle & living preference.";
       return null;
     }
     if (section === "interests") {
       if (data.interests.length === 0)
-        return "Please select at least one interest.";
-      return null;
-    }
-    if (section === "theological") {
+        return "Please select at least one interest or spiritual rhythm.";
       if (!data.coreFaithIdentity) return "Please select your core faith identity.";
-      if (!data.householdLeadership)
-        return "Please select your conviction on household leadership.";
-      if (!data.doctrinalFlexibility)
-        return "Please select your doctrinal non-negotiable.";
       return null;
     }
     return null;
@@ -295,7 +303,7 @@ export function CreateProfileStepper({
       setErr(problem);
       return;
     }
-    const finalize = section === "theological";
+    const finalize = section === "interests";
     persist({ toStep: step + 1, finalize });
     setStep((s) => Math.min(s + 1, totalSteps - 1));
   }
@@ -386,21 +394,30 @@ export function CreateProfileStepper({
             <FieldLabel>Nationality &amp; Cultural Heritage</FieldLabel>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="city">Current Location</Label>
+                <Label htmlFor="country">Current Country</Label>
+                <Input
+                  id="country"
+                  value={data.country}
+                  onChange={(e) => set("country", e.target.value)}
+                  placeholder="e.g. Kenya"
+                />
+              </div>
+              <div>
+                <Label htmlFor="city">Current City</Label>
                 <Input
                   id="city"
                   value={data.city}
                   onChange={(e) => set("city", e.target.value)}
                 />
               </div>
-              <div>
-                <Label htmlFor="countryOfHeritage">Country of Heritage</Label>
-                <Input
-                  id="countryOfHeritage"
-                  value={data.countryOfHeritage}
-                  onChange={(e) => set("countryOfHeritage", e.target.value)}
-                />
-              </div>
+            </div>
+            <div className="mt-3">
+              <Label htmlFor="countryOfHeritage">Country of Heritage</Label>
+              <Input
+                id="countryOfHeritage"
+                value={data.countryOfHeritage}
+                onChange={(e) => set("countryOfHeritage", e.target.value)}
+              />
             </div>
           </div>
 
@@ -425,7 +442,7 @@ export function CreateProfileStepper({
           </div>
 
           <div>
-            <FieldLabel>Number of children</FieldLabel>
+            <FieldLabel>Do you have children?</FieldLabel>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
@@ -496,6 +513,30 @@ export function CreateProfileStepper({
           </div>
 
           <div>
+            <FieldLabel>Future Children &amp; Family Planning Vision</FieldLabel>
+            <ChoiceList
+              options={FAMILY_PLANNING}
+              value={data.familyPlanningVision}
+              onSelect={(v) => {
+                set("familyPlanningVision", v);
+                if (!familyPlanningWantsMoreChildren(v)) {
+                  set("desiredFutureChildren", "");
+                }
+              }}
+            />
+            {wantsMoreChildren && (
+              <div className="mt-3">
+                <FieldLabel>Desired Number of Future Children</FieldLabel>
+                <ChoiceList
+                  options={DESIRED_FUTURE_CHILDREN}
+                  value={data.desiredFutureChildren}
+                  onSelect={(v) => set("desiredFutureChildren", v)}
+                />
+              </div>
+            )}
+          </div>
+
+          <div>
             <FieldLabel>Education &amp; Profession</FieldLabel>
             <Label htmlFor="educationLevel">Highest Level</Label>
             <select
@@ -532,8 +573,9 @@ export function CreateProfileStepper({
           <div>
             <FieldLabel>Community Alias</FieldLabel>
             <p className="text-xs text-plum-900/50 mb-2">
-              This private name is not visible to others in the ecosystem until
-              mutual alignment is confirmed.
+              This private name is what you will use to interact with people and
+              is not visible to others in the ecosystem until mutual alignment is
+              confirmed.
             </p>
             <select
               value={data.personaCategory}
@@ -627,24 +669,43 @@ export function CreateProfileStepper({
       {section === "intent" && (
         <div className="space-y-5">
           <h2 className="text-display text-2xl text-plum-900">
-            Relationship Intent
+            Relationship &amp; Intent
           </h2>
-          <Alert tone="warning">{RELATIONSHIP_INTENT_WARNING}</Alert>
+          <Alert tone="warning">PS: {RELATIONSHIP_INTENT_WARNING}</Alert>
 
           <div>
-            <FieldLabel>Your Timeline to the Altar</FieldLabel>
+            <FieldLabel>A. Your Timeline to the Altar</FieldLabel>
             <p className="text-xs text-plum-900/50 mb-2">
-              Be completely honest about your current season.
+              Be completely honest about your current season. This forces absolute
+              transparency so nobody&apos;s time is wasted.
             </p>
             <ChoiceList
               options={ALTAR_TIMELINE}
               value={data.altarTimeline}
-              onSelect={(v) => set("altarTimeline", v)}
+              onSelect={(v) => {
+                set("altarTimeline", v);
+                if (v !== "covenant_foundations") {
+                  set("covenantFoundationsSafeguard", false);
+                }
+              }}
             />
+            {data.altarTimeline === "covenant_foundations" && (
+              <label className="mt-3 flex items-start gap-2 text-sm text-plum-900/80">
+                <input
+                  type="checkbox"
+                  className="mt-1"
+                  checked={data.covenantFoundationsSafeguard}
+                  onChange={(e) =>
+                    set("covenantFoundationsSafeguard", e.target.checked)
+                  }
+                />
+                <span>{COVENANT_FOUNDATIONS_SAFEGUARD}</span>
+              </label>
+            )}
           </div>
 
           <div className="border-t border-plum-900/10 pt-4">
-            <h3 className="font-medium text-plum-900">Relational Non-Negotiables</h3>
+            <h3 className="font-medium text-plum-900">B. Relational Non-Negotiables</h3>
             <p className="text-xs text-plum-900/50 mb-3">
               Briefly anchor your expectations so our curators can protect your
               boundaries.
@@ -657,20 +718,16 @@ export function CreateProfileStepper({
               onSelect={(v) => set("relocationOpenness", v)}
             />
 
-            <FieldLabel>Family Planning Vision</FieldLabel>
-            <ChoiceList
-              options={FAMILY_PLANNING}
-              value={data.familyPlanningVision}
-              onSelect={(v) => set("familyPlanningVision", v)}
-            />
-
             <FieldLabel>Spiritual Rhythms in the Home</FieldLabel>
-            <MultiChoiceList
+            <p className="text-xs text-plum-900/50 mb-2">
+              How do you envision cultivating and protecting the spiritual
+              atmosphere of your future home as a couple? Select the anchor that
+              best describes your required corporate rhythm.
+            </p>
+            <ChoiceList
               options={SPIRITUAL_RHYTHMS_HOME}
-              values={data.spiritualRhythmsHome}
-              onToggle={(v) =>
-                set("spiritualRhythmsHome", toggle(data.spiritualRhythmsHome, v))
-              }
+              value={data.spiritualRhythmHome}
+              onSelect={(v) => set("spiritualRhythmHome", v)}
             />
 
             <FieldLabel>Doctrinal Alignment</FieldLabel>
@@ -679,6 +736,26 @@ export function CreateProfileStepper({
               value={data.doctrinalAlignment}
               onSelect={(v) => set("doctrinalAlignment", v)}
             />
+
+            <FieldLabel>Convictions on Household Leadership &amp; Authority</FieldLabel>
+            <p className="text-xs text-plum-900/50 mb-2">
+              How do you believe a Christian household should be structurally and
+              spiritually led? Select the blueprint that you would like to abide by.
+            </p>
+            <ChoiceList
+              options={HOUSEHOLD_LEADERSHIP}
+              value={data.householdLeadership}
+              onSelect={(v) => set("householdLeadership", v)}
+            />
+          </div>
+
+          <div className="border-t border-plum-900/10 pt-4">
+            <h3 className="font-medium text-plum-900">
+              II. Career, Wealth &amp; Lifestyle Dynamics
+            </h3>
+            <p className="text-xs text-plum-900/50 mb-3">
+              Aligning how you manage time, resources, and ambition together.
+            </p>
 
             <FieldLabel>Professional Rhythms</FieldLabel>
             <ChoiceList
@@ -696,32 +773,15 @@ export function CreateProfileStepper({
               }
             />
 
-            <FieldLabel>Environment Preference</FieldLabel>
+            <FieldLabel>Lifestyle &amp; Living Preferences</FieldLabel>
+            <p className="text-xs text-plum-900/50 mb-2">
+              Setting expectations for where and how the physical household
+              operates.
+            </p>
             <ChoiceList
               options={ENVIRONMENT_PREFERENCE}
               value={data.environmentPreference}
               onSelect={(v) => set("environmentPreference", v)}
-            />
-
-            <FieldLabel>Hospitality &amp; Social Flow</FieldLabel>
-            <ChoiceList
-              options={HOSPITALITY_FLOW}
-              value={data.hospitalityFlow}
-              onSelect={(v) => set("hospitalityFlow", v)}
-            />
-
-            <FieldLabel>Current Family Status Compatibility</FieldLabel>
-            <ChoiceList
-              options={FAMILY_STATUS_COMPATIBILITY}
-              value={data.familyStatusCompatibility}
-              onSelect={(v) => set("familyStatusCompatibility", v)}
-            />
-
-            <FieldLabel>The Household Blueprint</FieldLabel>
-            <ChoiceList
-              options={HOUSEHOLD_BLUEPRINT}
-              value={data.householdBlueprint}
-              onSelect={(v) => set("householdBlueprint", v)}
             />
           </div>
         </div>
@@ -734,11 +794,27 @@ export function CreateProfileStepper({
           </h2>
           <p className="text-sm text-plum-900/60">
             Select the lifestyle areas, interests, and spiritual habits that
-            describe how you spend your time and build your life.
+            describe how you spend your time and build your life. This helps us
+            find real alignment in how you live day-to-day.
           </p>
           {INTEREST_PILLARS.map((pillar) => (
             <div key={pillar.pillar} className="border-t border-plum-900/10 pt-4">
               <h3 className="font-medium text-plum-900 mb-2">{pillar.pillar}</h3>
+              {pillar.pillar === "I. Lifestyle & Culture" && (
+                <p className="text-xs text-plum-900/50 mb-2">
+                  Select your favourite ways to unwind and explore.
+                </p>
+              )}
+              {pillar.pillar === "II. Health & Wellness" && (
+                <p className="text-xs text-plum-900/50 mb-2">
+                  Select how you take care of your body and mind.
+                </p>
+              )}
+              {pillar.pillar === "III. Impact" && (
+                <p className="text-xs text-plum-900/50 mb-2">
+                  Select the areas that drive your life.
+                </p>
+              )}
               {pillar.groups.map((group) => (
                 <div key={group.heading} className="mb-3">
                   <div className="text-xs uppercase tracking-widest text-plum-900/50 mb-2">
@@ -764,20 +840,10 @@ export function CreateProfileStepper({
               ))}
             </div>
           ))}
-        </div>
-      )}
 
-      {section === "theological" && (
-        <div className="space-y-5">
-          <h2 className="text-display text-2xl text-plum-900">
-            Theological Alignment
-          </h2>
-          <p className="text-sm text-plum-900/60">
-            Ensuring your runway is anchored in the same truth.
-          </p>
-
-          <div>
-            <FieldLabel>Core Faith Identity</FieldLabel>
+          <div className="border-t border-plum-900/10 pt-4">
+            <h3 className="font-medium text-plum-900 mb-2">IV. Spiritual Rhythms</h3>
+            <FieldLabel>A. Core Faith Identity</FieldLabel>
             <p className="text-xs text-plum-900/50 mb-2">
               Select the description that best captures your primary Christian
               background and current walk.
@@ -787,30 +853,27 @@ export function CreateProfileStepper({
               value={data.coreFaithIdentity}
               onSelect={(v) => set("coreFaithIdentity", v)}
             />
-          </div>
 
-          <div>
-            <FieldLabel>Convictions on Household Leadership</FieldLabel>
-            <p className="text-xs text-plum-900/50 mb-2">
-              How do you believe a Christian household should be spiritually led?
-            </p>
-            <ChoiceList
-              options={HOUSEHOLD_LEADERSHIP}
-              value={data.householdLeadership}
-              onSelect={(v) => set("householdLeadership", v)}
-            />
-          </div>
-
-          <div>
-            <FieldLabel>Doctrinal Non-Negotiables</FieldLabel>
-            <p className="text-xs text-plum-900/50 mb-2">
-              Where do you stand on theological differences?
-            </p>
-            <ChoiceList
-              options={DOCTRINAL_FLEXIBILITY}
-              value={data.doctrinalFlexibility}
-              onSelect={(v) => set("doctrinalFlexibility", v)}
-            />
+            <FieldLabel>B. Select what anchors your personal walk with God</FieldLabel>
+            <div className="text-xs uppercase tracking-widest text-plum-900/50 mb-2">
+              Christian Rhythms
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {CHRISTIAN_RHYTHMS.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => set("interests", toggle(data.interests, item))}
+                  className={`rounded-full px-3 py-1.5 text-sm transition ${
+                    data.interests.includes(item)
+                      ? "bg-plum-900 text-plum-100"
+                      : "bg-plum-900/5 text-plum-900 hover:bg-plum-900/10"
+                  }`}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -820,27 +883,50 @@ export function CreateProfileStepper({
           <h2 className="text-display text-2xl text-plum-900">
             Choose Your Journey
           </h2>
+          <p className="text-sm text-plum-900/60">{JOURNEY_INTRO}</p>
           <p className="text-sm text-plum-900/60">
-            Your profile is saved. Select the pathway you wish to apply for —
-            applications are reviewed before you enter the ecosystem.
+            Now, how would you like to take your next step?
+          </p>
+          <p className="text-sm text-plum-900/60">
+            To move forward, simply choose the style of journey that matches your
+            current lifestyle and schedule.
           </p>
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
-              <CardTitle>Amari · The Fellowship</CardTitle>
-              <CardSubtitle className="mt-2">
-                Vibrant community, Evermore Socials, Pulse retreats, and Match
-                Cards — complimentary entry.
-              </CardSubtitle>
+              <CardTitle>{AMARI_PATH.title}</CardTitle>
+              <CardSubtitle className="mt-1">{AMARI_PATH.meaning}</CardSubtitle>
+              <p className="text-sm text-plum-900/70 mt-3">{AMARI_PATH.description}</p>
+              <p className="text-xs font-medium text-plum-900/50 mt-4 uppercase tracking-widest">
+                What&apos;s waiting for you:
+              </p>
+              <ul className="mt-2 space-y-1 text-sm text-plum-900/70 list-disc pl-4">
+                {AMARI_PATH.benefits.map((b) => (
+                  <li key={b}>{b}</li>
+                ))}
+              </ul>
+              <p className="text-sm font-medium text-plum-900 mt-4">
+                Cost: {AMARI_PATH.cost}
+              </p>
               <AppLink href="/apply/amari" className="block mt-4">
                 <Button className="w-full">Apply for Amari</Button>
               </AppLink>
             </Card>
             <Card className="border-amber/40">
-              <CardTitle>Zahari · The Private Circle</CardTitle>
-              <CardSubtitle className="mt-2">
-                White-glove concierge matching for high-profile professionals
-                requiring absolute discretion.
-              </CardSubtitle>
+              <CardTitle>{ZAHARI_PATH.title}</CardTitle>
+              <CardSubtitle className="mt-1">{ZAHARI_PATH.meaning}</CardSubtitle>
+              <p className="text-sm text-plum-900/70 mt-3">{ZAHARI_PATH.description}</p>
+              <p className="text-xs font-medium text-plum-900/50 mt-4 uppercase tracking-widest">
+                How the Zahari journey works:
+              </p>
+              <ul className="mt-2 space-y-1 text-sm text-plum-900/70 list-disc pl-4">
+                {ZAHARI_PATH.benefits.map((b) => (
+                  <li key={b}>{b}</li>
+                ))}
+              </ul>
+              <p className="text-sm text-plum-900/70 mt-4">
+                <span className="font-medium text-plum-900">Investment: </span>
+                {ZAHARI_PATH.investment}
+              </p>
               <AppLink href="/apply/zahari" className="block mt-4">
                 <Button variant="outline" className="w-full">
                   Apply for Zahari

@@ -22,10 +22,13 @@ export async function saveStep(form: FormData): Promise<SaveStepResult> {
   for (const f of [
     "firstName",
     "lastName",
+    "country",
     "city",
     "countryOfHeritage",
     "familialStatus",
     "childrenCustody",
+    "familyPlanningVision",
+    "desiredFutureChildren",
     "educationLevel",
     "profession",
     "primaryIndustry",
@@ -35,27 +38,24 @@ export async function saveStep(form: FormData): Promise<SaveStepResult> {
     "gender",
     "altarTimeline",
     "relocationOpenness",
-    "familyPlanningVision",
     "doctrinalAlignment",
+    "householdLeadership",
     "professionalRhythm",
     "environmentPreference",
-    "hospitalityFlow",
-    "familyStatusCompatibility",
-    "householdBlueprint",
     "coreFaithIdentity",
-    "householdLeadership",
-    "doctrinalFlexibility",
   ] as const) {
     const v = form.get(f);
     if (typeof v === "string" && v.length > 0) profileUpdates[f] = v;
   }
 
+  // Spiritual rhythm home — stored as single-element jsonb array for compatibility.
+  const spiritualRhythmHome = form.get("spiritualRhythmHome");
+  if (typeof spiritualRhythmHome === "string" && spiritualRhythmHome.length > 0) {
+    profileUpdates.spiritualRhythmsHome = [spiritualRhythmHome];
+  }
+
   // Multi-select JSON arrays.
-  for (const f of [
-    "interests",
-    "spiritualRhythmsHome",
-    "financialStewardship",
-  ] as const) {
+  for (const f of ["interests", "financialStewardship"] as const) {
     const raw = form.get(f);
     if (typeof raw === "string" && raw.length > 0) {
       profileUpdates[f] = JSON.parse(raw);
@@ -72,6 +72,8 @@ export async function saveStep(form: FormData): Promise<SaveStepResult> {
     profileUpdates.childrenCount = Number(childrenCountRaw);
   }
   profileUpdates.divorceCertified = form.get("divorceCertified") === "1";
+  profileUpdates.covenantFoundationsSafeguard =
+    form.get("covenantFoundationsSafeguard") === "1";
 
   // The chosen Community Alias becomes the private display name (must be unique).
   if (typeof profileUpdates.personaAlias === "string") {

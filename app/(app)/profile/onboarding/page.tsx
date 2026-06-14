@@ -18,6 +18,8 @@ export default async function OnboardingPage() {
     .where(eq(schema.profiles.userId, user.id))
     .limit(1);
 
+  const spiritualRhythmHome = profile?.spiritualRhythmsHome?.[0] ?? "";
+
   return (
     <CreateProfileStepper
       startAtStep={progress?.currentStep ?? 0}
@@ -27,6 +29,7 @@ export default async function OnboardingPage() {
         lastName: profile?.lastName ?? "",
         gender: profile?.gender ?? "",
         birthYear: profile?.birthYear ? String(profile.birthYear) : "",
+        country: profile?.country ?? "",
         city: profile?.city ?? "",
         countryOfHeritage: profile?.countryOfHeritage ?? "",
         familialStatus: profile?.familialStatus ?? "",
@@ -34,6 +37,8 @@ export default async function OnboardingPage() {
         childrenCount:
           profile?.childrenCount != null ? String(profile.childrenCount) : "",
         childrenCustody: profile?.childrenCustody ?? "",
+        familyPlanningVision: profile?.familyPlanningVision ?? "",
+        desiredFutureChildren: profile?.desiredFutureChildren ?? "",
         educationLevel: profile?.educationLevel ?? "",
         profession: profile?.profession ?? "",
         primaryIndustry: profile?.primaryIndustry ?? "",
@@ -41,20 +46,16 @@ export default async function OnboardingPage() {
         personaAlias: profile?.personaAlias ?? "",
         phone: profile?.phone ?? "",
         altarTimeline: profile?.altarTimeline ?? "",
+        covenantFoundationsSafeguard: profile?.covenantFoundationsSafeguard ?? false,
         relocationOpenness: profile?.relocationOpenness ?? "",
-        familyPlanningVision: profile?.familyPlanningVision ?? "",
-        spiritualRhythmsHome: profile?.spiritualRhythmsHome ?? [],
+        spiritualRhythmHome,
         doctrinalAlignment: profile?.doctrinalAlignment ?? "",
+        householdLeadership: profile?.householdLeadership ?? "",
         professionalRhythm: profile?.professionalRhythm ?? "",
         financialStewardship: profile?.financialStewardship ?? [],
         environmentPreference: profile?.environmentPreference ?? "",
-        hospitalityFlow: profile?.hospitalityFlow ?? "",
-        familyStatusCompatibility: profile?.familyStatusCompatibility ?? "",
-        householdBlueprint: profile?.householdBlueprint ?? "",
         interests: profile?.interests ?? [],
         coreFaithIdentity: profile?.coreFaithIdentity ?? "",
-        householdLeadership: profile?.householdLeadership ?? "",
-        doctrinalFlexibility: profile?.doctrinalFlexibility ?? "",
       }}
     />
   );

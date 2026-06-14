@@ -2,7 +2,6 @@ const SECTION_LABELS = [
   "Identity",
   "Relationship Intent",
   "Interests",
-  "Theological Alignment",
   "Choose Journey",
 ] as const;
 

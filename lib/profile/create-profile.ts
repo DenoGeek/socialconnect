@@ -1,6 +1,6 @@
 /**
  * Create Profile workflow — option sets transcribed verbatim from
- * "IRL App Copy.md" (Steps 1–4). Slugs are stable storage keys; labels and
+ * "IRL App Copy 2.md" (Steps 1–4). Slugs are stable storage keys; labels and
  * descriptions match the source document exactly.
  */
 
@@ -21,6 +21,13 @@ export function optionLabels(
   return values
     .map((v) => options.find((o) => o.value === v)?.label ?? v)
     .join(", ");
+}
+
+/** Family planning visions that require a desired future children count. */
+export function familyPlanningWantsMoreChildren(vision?: string | null) {
+  return (
+    vision === "desires_to_have_family" || vision === "desires_to_expand_family"
+  );
 }
 
 // ── Step 1: Identity ─────────────────────────────────────────────────────────
@@ -52,6 +59,42 @@ export const CHILDREN_CUSTODY: Option[] = [
     label: "Primary / Solo Custody",
     description:
       "My children reside primarily with me, and a future partner will be fully stepping into their daily household upbringing.",
+  },
+];
+
+export const FAMILY_PLANNING: Option[] = [
+  {
+    value: "desires_to_have_family",
+    label: "Desires to have a Family",
+    description:
+      "I don't have a child and want children (whether biologically or through adoption).",
+  },
+  {
+    value: "desires_to_expand_family",
+    label: "Desires to Expand a Family",
+    description:
+      "I have a child(ren) and want more children (whether biologically or through adoption).",
+  },
+  {
+    value: "family_already_complete",
+    label: "My Family is Already Complete",
+    description:
+      "I have a child(ren) and do not want to have or raise any more new children.",
+  },
+  {
+    value: "content_without_children",
+    label: "Content Without Children",
+    description: "I do not have children and do not want to have any.",
+  },
+];
+
+export const DESIRED_FUTURE_CHILDREN: Option[] = [
+  { value: "one_to_two", label: "1 to 2 children" },
+  { value: "three_to_four", label: "3 to 4 children" },
+  { value: "five_or_more", label: "5 or more children" },
+  {
+    value: "gods_hands",
+    label: "Leaving it entirely in God's hands / Open to discussion",
   },
 ];
 
@@ -109,7 +152,7 @@ export const PERSONA_CATEGORIES: Array<{ category: string; personas: string[] }>
   },
 ];
 
-// ── Step 2: Relationship Intent ───────────────────────────────────────────────
+// ── Step 2: Relationship & Intent ───────────────────────────────────────────
 
 export const RELATIONSHIP_INTENT_WARNING =
   "Agano Evermore is a sanctuary built exclusively for those ready to transition from singlehood into holy matrimony.";
@@ -129,39 +172,30 @@ export const ALTAR_TIMELINE: Option[] = [
   },
 ];
 
+export const COVENANT_FOUNDATIONS_SAFEGUARD =
+  "The Time-Wasting Safeguard: By selecting this track, I commit to a deliberate, non-casual and intentional exploration that will transition into a definitive decision regarding a formal courtship within 3 to 6 months. I am not here to engage in open-ended or modern casual dating.";
+
 export const RELOCATION_OPENNESS: Option[] = [
   { value: "global", label: "Yes, globally" },
   { value: "regional", label: "Yes, regionally / within the continent" },
   { value: "rooted", label: "No, I am rooted in my current city" },
 ];
 
-export const FAMILY_PLANNING: Option[] = [
-  { value: "desires_children_soon", label: "Desires children in the near future" },
-  {
-    value: "open_focus_foundation",
-    label: "Open to children, but focusing on the marital foundation first",
-  },
-  {
-    value: "family_complete_blended",
-    label: "My family is already complete/open to blended family dynamics",
-  },
-];
-
 export const SPIRITUAL_RHYTHMS_HOME: Option[] = [
   {
-    value: "daily_prayer_fasting",
+    value: "daily_prayer_corporate",
     label:
-      "Daily family prayer, devotion, and consistent fasting rhythms are essential to me.",
+      "Daily prayer together, shared devotionals, and consistent corporate fasting rhythms are absolute, non-negotiable pillars for my future home.",
   },
   {
-    value: "weekly_service_fellowship",
+    value: "rooted_in_ministry",
     label:
-      "Active, weekly service and fellowship in a local church body are essential to me.",
+      "Rooted in ministry; active, weekly service, leadership, and visible fellowship within a local church body are the primary ways we must express our faith together.",
   },
   {
-    value: "personal_walk",
+    value: "quiet_intellectual_devotion",
     label:
-      "A quiet, deeply personal walk with God that focuses on individual study and reflection.",
+      "Centred on intellectual and quiet devotion, I value a home characterised by deep individual scripture study, personal reflection, and quiet walks with God, rather than highly rigid or public religious structures.",
   },
 ];
 
@@ -174,6 +208,24 @@ export const DOCTRINAL_ALIGNMENT: Option[] = [
     value: "slight_differences",
     label:
       "I am comfortable with slight theological differences, as long as Christ is our absolute centre.",
+  },
+];
+
+export const HOUSEHOLD_LEADERSHIP: Option[] = [
+  {
+    value: "egalitarian_peers",
+    label:
+      "I believe God calls husbands and wives to share spiritual authority and leadership. All major decisions, career paths, financial management, and household responsibilities are co-managed side-by-side as true peers, without gender-based hierarchy.",
+  },
+  {
+    value: "biblical_complementarian",
+    label:
+      "I believe in a biblical order where the husband is called to the highest standard of sacrificial, Christ-like leadership, protection, and ultimate accountability for the home, while the wife holds a powerful role of wise counsel, honour, and active co-management, not suppressed.",
+  },
+  {
+    value: "strict_traditional_hierarchy",
+    label:
+      "I believe in a strict, traditional hierarchy where the husband holds absolute governing authority and final decision-making power over all aspects, and the wife's primary assignment is the quiet cultivation of the domestic sphere.",
   },
 ];
 
@@ -199,12 +251,12 @@ export const FINANCIAL_STEWARDSHIP: Option[] = [
   {
     value: "traditional_division",
     label:
-      "I prefer a traditional division of financial stewardship and household management.",
+      "I prefer a traditional division of financial stewardship and household management. One partner focuses on economic security/expansion, while the other focuses on household management.",
   },
   {
-    value: "kingdom_giving",
+    value: "structural_independence",
     label:
-      "Active Kingdom giving, tithing, and institutional philanthropy must be a joint priority.",
+      "I value structural independence. While we completely support a shared household budget and shared family goals, we maintain distinct professional careers and independently managed asset portfolios.",
   },
 ];
 
@@ -218,44 +270,6 @@ export const ENVIRONMENT_PREFERENCE: Option[] = [
     value: "countryside_coastal",
     label:
       "I prefer or plan to transition to a quieter, countryside or coastal estate rhythm.",
-  },
-];
-
-export const HOSPITALITY_FLOW: Option[] = [
-  {
-    value: "hearth_hospitality",
-    label:
-      "The Hearth & Hospitality: I want a home that is an open sanctuary, frequently hosting close friends, family, and fellowship gatherings.",
-  },
-  {
-    value: "private_sanctuary",
-    label:
-      "The Private Sanctuary: I protect a quiet, highly private domestic space reserved almost exclusively for the immediate family.",
-  },
-];
-
-export const FAMILY_STATUS_COMPATIBILITY: Option[] = [
-  {
-    value: "open_to_children",
-    label:
-      "I am open to a partner who already has children (blended family dynamics).",
-  },
-  {
-    value: "no_previous_children",
-    label: "I am only looking for a partner with no previous children.",
-  },
-];
-
-export const HOUSEHOLD_BLUEPRINT: Option[] = [
-  {
-    value: "traditional_structured",
-    label:
-      "I value a highly structured, traditional family dynamic with clear, distinct roles for husband and wife.",
-  },
-  {
-    value: "collaborative_egalitarian",
-    label:
-      "I value a fully collaborative, egalitarian approach to managing the home and career.",
   },
 ];
 
@@ -311,7 +325,7 @@ export const INTEREST_PILLARS: InterestPillar[] = [
           "Whole foods & clean nutrition",
           "Mindful fasting & wellness routines",
           "Plant-based & botanical infusions",
-          "GFDF Diet",
+          "GFDF (Gluten-free Dairy-free) Diet",
         ],
       },
       {
@@ -356,27 +370,18 @@ export const INTEREST_PILLARS: InterestPillar[] = [
       },
     ],
   },
-  {
-    pillar: "IV. Spiritual Rhythms",
-    groups: [
-      {
-        heading: "Christian Rhythms",
-        items: [
-          "Studying scripture",
-          "Reading Christian books",
-          "Dedicating time to prayer",
-          "Devotion",
-          "Fasting",
-          "Faith-focused gatherings",
-          "Worship events",
-          "Church ministry",
-        ],
-      },
-    ],
-  },
 ];
 
-// ── Step 4: Theological Alignment ─────────────────────────────────────────────
+export const CHRISTIAN_RHYTHMS: string[] = [
+  "Studying scripture",
+  "Reading Christian books",
+  "Dedicating time to prayer",
+  "Devotion",
+  "Fasting",
+  "Faith-focused gatherings",
+  "Worship events",
+  "Church ministry",
+];
 
 export const CORE_FAITH_IDENTITY: Option[] = [
   {
@@ -406,32 +411,39 @@ export const CORE_FAITH_IDENTITY: Option[] = [
   { value: "other", label: "Other Bible-Based Christian" },
 ];
 
-export const HOUSEHOLD_LEADERSHIP: Option[] = [
-  {
-    value: "complementarian",
-    label: "Traditional Complementarian",
-    description:
-      "I believe God calls the husband to be the spiritual head, provider, and protector of the home, while the wife lovingly supports, nurtures, and co-leads the household.",
-  },
-  {
-    value: "egalitarian",
-    label: "Collaborative Egalitarian",
-    description:
-      "I believe God calls husbands and wives to share spiritual authority and leadership equally, co-managing all decisions, career paths, and household responsibilities side-by-side.",
-  },
-];
+// ── Step 4: Choose Your Journey ───────────────────────────────────────────────
 
-export const DOCTRINAL_FLEXIBILITY: Option[] = [
-  {
-    value: "strict_alignment",
-    label: "Strict Alignment",
-    description:
-      "I need a partner who shares my exact theological views, church background, and doctrinal interpretations.",
-  },
-  {
-    value: "grounded_unity",
-    label: "Grounded Unity",
-    description:
-      "I am comfortable with minor theological differences, provided we agree on the essentials (the Gospel, the authority of Scripture, and Jesus as Lord).",
-  },
-];
+export const JOURNEY_INTRO =
+  "Your profile is safe with us. No one can browse your name or look up your job. You are completely anonymous.";
+
+export const AMARI_PATH = {
+  title: "The Amari Path",
+  meaning: 'Amari ~ "Promised by God"',
+  description:
+    "Dive into a vibrant community of intentional, like-minded believers, attend beautiful curated gatherings, and get support through your relationship journey once matched up.",
+  benefits: [
+    "Real-World Curated Gatherings",
+    "Exclusive Ecosystem Member Discounts",
+    "Relationship & Marriage Preparation Cohorts",
+    "Hearth & Marrow Stays (Connection Boxes)",
+    "Lifetime Support Ecosystem (Christian therapists, counsellors, and marital/parental classes)",
+  ],
+  cost: "Absolutely free!",
+};
+
+export const ZAHARI_PATH = {
+  title: "The Zahari Path",
+  meaning: 'Zahari ~ "God Has Remembered"',
+  description:
+    "This path is hands-on and deeply personal, designed for high-profile leaders and executives who are not in a position to attend social mixers. You will have access to our human matching team to do all the heavy lifting.",
+  benefits: [
+    "100% Social Shielding & Total Privacy",
+    "The Private Matching Concierge Package",
+    "Hand-Curated Introductions",
+    "Bespoke Date Concierge Services",
+    "All-Inclusive Amari Access",
+    "Priority access to The Master Table (exclusive married retreats, destination trips, and premium date nights)",
+  ],
+  investment:
+    "Zahari is a premium, deeply personal service. We don't accept payments upfront. Your journey begins with a relaxed, private 20-minute video chat with one of our lead matchmakers so we can truly understand where you are. Payment options will be shared only after we ensure we are a perfect fit for what you need.",
+};

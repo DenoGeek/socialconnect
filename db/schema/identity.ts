@@ -167,8 +167,12 @@ export const profiles = pgTable(
     personaAlias: text("persona_alias"),
     // ── Step 2: Relationship Intent ──────────────────────────────────────────
     altarTimeline: text("altar_timeline"), // covenant_foundations | covenant_ready
+    covenantFoundationsSafeguard: boolean("covenant_foundations_safeguard")
+      .notNull()
+      .default(false),
     relocationOpenness: text("relocation_openness"),
     familyPlanningVision: text("family_planning_vision"),
+    desiredFutureChildren: text("desired_future_children"),
     spiritualRhythmsHome: jsonb("spiritual_rhythms_home")
       .$type<string[]>()
       .notNull()
