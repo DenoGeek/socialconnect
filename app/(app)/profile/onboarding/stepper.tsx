@@ -13,9 +13,6 @@ import {
   FAMILIAL_STATUS,
   DIVORCE_CERTIFICATION,
   CHILDREN_CUSTODY,
-  FAMILY_PLANNING,
-  DESIRED_FUTURE_CHILDREN,
-  familyPlanningWantsMoreChildren,
   EDUCATION_LEVELS,
   PRIMARY_INDUSTRIES,
   PERSONA_CATEGORIES,
@@ -23,6 +20,7 @@ import {
   ALTAR_TIMELINE,
   COVENANT_FOUNDATIONS_SAFEGUARD,
   RELOCATION_OPENNESS,
+  SPIRITUAL_RHYTHMS_HOME_PROMPT,
   SPIRITUAL_RHYTHMS_HOME,
   DOCTRINAL_ALIGNMENT,
   HOUSEHOLD_LEADERSHIP,
@@ -37,6 +35,10 @@ import {
   ZAHARI_PATH,
   type Option,
 } from "@/lib/profile/create-profile";
+import {
+  formatPersonaAliasDisplay,
+  parsePersonaAliasBase,
+} from "@/lib/profile/persona-alias";
 import { saveStep } from "./actions";
 
 type Profile = {
@@ -51,13 +53,12 @@ type Profile = {
   divorceCertified: boolean;
   childrenCount: string;
   childrenCustody: string;
-  familyPlanningVision: string;
-  desiredFutureChildren: string;
   educationLevel: string;
   profession: string;
   primaryIndustry: string;
   personaCategory: string;
   personaAlias: string;
+  personaAliasCode: string;
   phone: string;
   altarTimeline: string;
   covenantFoundationsSafeguard: boolean;
@@ -165,18 +166,24 @@ export function CreateProfileStepper({
     profile.childrenCount !== "" &&
       !CHILDREN_PRESETS.includes(profile.childrenCount),
   );
-  const [customAliasMode, setCustomAliasMode] = useState(
-    !!profile.personaAlias &&
-      !allPresetPersonas.includes(profile.personaAlias),
-  );
+  const [customAliasMode, setCustomAliasMode] = useState(() => {
+    const base = parsePersonaAliasBase(profile.personaAlias);
+    return !!base && !allPresetPersonas.includes(base);
+  });
   const [pending, start] = useTransition();
   const [err, setErr] = useState<string | null>(null);
 
   const section = SECTIONS[step];
   const hasChildren = data.childrenCount !== "" && data.childrenCount !== "0";
-  const wantsMoreChildren = familyPlanningWantsMoreChildren(
-    data.familyPlanningVision,
-  );
+
+  function setChildrenCount(count: string, opts?: { other?: boolean }) {
+    if (opts?.other !== undefined) setOtherChildren(opts.other);
+    setData((d) => ({
+      ...d,
+      childrenCount: count,
+      ...(count === "0" ? { childrenCustody: "" } : {}),
+    }));
+  }
 
   function set<K extends keyof Profile>(key: K, value: Profile[K]) {
     setData((d) => ({ ...d, [key]: value }));
@@ -203,8 +210,6 @@ export function CreateProfileStepper({
       "familialStatus",
       "childrenCount",
       "childrenCustody",
-      "familyPlanningVision",
-      "desiredFutureChildren",
       "educationLevel",
       "profession",
       "primaryIndustry",
@@ -230,7 +235,10 @@ export function CreateProfileStepper({
     fd.set("financialStewardship", JSON.stringify(data.financialStewardship));
     start(async () => {
       try {
-        await saveStep(fd);
+        const result = await saveStep(fd);
+        if (result.personaAliasCode != null) {
+          set("personaAliasCode", String(result.personaAliasCode));
+        }
       } catch (e: unknown) {
         if (isRedirectError(e)) return;
         setErr((e as Error).message ?? "Could not save.");
@@ -244,7 +252,7 @@ export function CreateProfileStepper({
       if (!data.lastName.trim()) return "Last name is required.";
       if (!data.gender) return "Gender is required.";
       if (!data.birthYear) return "Year of birth is required.";
-      if (!data.country.trim()) return "Current country is required.";
+      if (!data.country.trim()) return "Current location is required.";
       if (!data.city.trim()) return "Current city is required.";
       if (!data.countryOfHeritage.trim()) return "Country of heritage is required.";
       if (!data.familialStatus) return "Familial status is required.";
@@ -253,10 +261,6 @@ export function CreateProfileStepper({
       if (data.childrenCount === "") return "Please indicate whether you have children.";
       if (hasChildren && !data.childrenCustody)
         return "Please select your custody arrangement.";
-      if (!data.familyPlanningVision)
-        return "Please select your future children & family planning vision.";
-      if (wantsMoreChildren && !data.desiredFutureChildren)
-        return "Please select your desired number of future children.";
       if (!data.educationLevel) return "Highest education level is required.";
       if (!data.profession.trim()) return "Profession / core expertise is required.";
       if (!data.primaryIndustry) return "Primary industry is required.";
@@ -265,6 +269,8 @@ export function CreateProfileStepper({
         return "Please choose or create a Community Alias.";
       if (data.personaAlias.trim().length < 2)
         return "Community Alias must be at least 2 characters.";
+      if (/#\d+$/.test(data.personaAlias.trim()))
+        return "Enter only your alias name — a unique number is added automatically.";
       if (!data.phone.trim()) return "Phone number is required.";
       return null;
     }
@@ -394,7 +400,7 @@ export function CreateProfileStepper({
             <FieldLabel>Nationality &amp; Cultural Heritage</FieldLabel>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="country">Current Country</Label>
+                <Label htmlFor="country">Current Location</Label>
                 <Input
                   id="country"
                   value={data.country}
@@ -446,11 +452,7 @@ export function CreateProfileStepper({
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={() => {
-                  setOtherChildren(false);
-                  set("childrenCount", "0");
-                  set("childrenCustody", "");
-                }}
+                onClick={() => setChildrenCount("0", { other: false })}
                 className={`rounded-full px-4 py-2 text-sm transition ${
                   data.childrenCount === "0" && !otherChildren
                     ? "bg-plum-900 text-plum-100"
@@ -463,10 +465,7 @@ export function CreateProfileStepper({
                 <button
                   key={n}
                   type="button"
-                  onClick={() => {
-                    setOtherChildren(false);
-                    set("childrenCount", n);
-                  }}
+                  onClick={() => setChildrenCount(n, { other: false })}
                   className={`rounded-full px-4 py-2 text-sm transition ${
                     data.childrenCount === n && !otherChildren
                       ? "bg-plum-900 text-plum-100"
@@ -480,7 +479,7 @@ export function CreateProfileStepper({
                 type="button"
                 onClick={() => {
                   setOtherChildren(true);
-                  set("childrenCount", "");
+                  setChildrenCount("");
                 }}
                 className={`rounded-full px-4 py-2 text-sm transition ${
                   otherChildren
@@ -496,8 +495,9 @@ export function CreateProfileStepper({
                 type="number"
                 className="mt-2 max-w-[8rem]"
                 value={data.childrenCount}
-                onChange={(e) => set("childrenCount", e.target.value)}
+                onChange={(e) => setChildrenCount(e.target.value)}
                 placeholder="Number"
+                min={1}
               />
             )}
             {hasChildren && (
@@ -507,30 +507,6 @@ export function CreateProfileStepper({
                   options={CHILDREN_CUSTODY}
                   value={data.childrenCustody}
                   onSelect={(v) => set("childrenCustody", v)}
-                />
-              </div>
-            )}
-          </div>
-
-          <div>
-            <FieldLabel>Future Children &amp; Family Planning Vision</FieldLabel>
-            <ChoiceList
-              options={FAMILY_PLANNING}
-              value={data.familyPlanningVision}
-              onSelect={(v) => {
-                set("familyPlanningVision", v);
-                if (!familyPlanningWantsMoreChildren(v)) {
-                  set("desiredFutureChildren", "");
-                }
-              }}
-            />
-            {wantsMoreChildren && (
-              <div className="mt-3">
-                <FieldLabel>Desired Number of Future Children</FieldLabel>
-                <ChoiceList
-                  options={DESIRED_FUTURE_CHILDREN}
-                  value={data.desiredFutureChildren}
-                  onSelect={(v) => set("desiredFutureChildren", v)}
                 />
               </div>
             )}
@@ -605,7 +581,8 @@ export function CreateProfileStepper({
                         set("personaAlias", p);
                       }}
                       className={`rounded-full px-4 py-2 text-sm transition ${
-                        !customAliasMode && data.personaAlias === p
+                        !customAliasMode &&
+                        parsePersonaAliasBase(data.personaAlias) === p
                           ? "bg-plum-900 text-plum-100"
                           : "bg-plum-900/5 text-plum-900"
                       }`}
@@ -640,10 +617,26 @@ export function CreateProfileStepper({
                       className="mt-1"
                     />
                     <p className="text-xs text-plum-900/50 mt-1">
-                      Aliases are unique across the community — no two members
-                      can share the same name.
+                      A unique number is added automatically so members can share
+                      the same alias name (e.g. The Steward#514).
                     </p>
                   </div>
+                )}
+                {data.personaAlias.trim() && (
+                  <p className="text-sm text-plum-900">
+                    <span className="font-medium">Your Public Display Identity: </span>
+                    {formatPersonaAliasDisplay(
+                      data.personaAlias,
+                      data.personaAliasCode
+                        ? Number(data.personaAliasCode)
+                        : null,
+                    )}
+                    {!data.personaAliasCode && (
+                      <span className="text-plum-900/50 text-xs block mt-1">
+                        Your unique number is assigned when you continue.
+                      </span>
+                    )}
+                  </p>
                 )}
               </div>
             )}
@@ -669,7 +662,7 @@ export function CreateProfileStepper({
       {section === "intent" && (
         <div className="space-y-5">
           <h2 className="text-display text-2xl text-plum-900">
-            Relationship &amp; Intent
+            Relationship and Intent
           </h2>
           <Alert tone="warning">PS: {RELATIONSHIP_INTENT_WARNING}</Alert>
 
@@ -690,17 +683,19 @@ export function CreateProfileStepper({
               }}
             />
             {data.altarTimeline === "covenant_foundations" && (
-              <label className="mt-3 flex items-start gap-2 text-sm text-plum-900/80">
-                <input
-                  type="checkbox"
-                  className="mt-1"
-                  checked={data.covenantFoundationsSafeguard}
-                  onChange={(e) =>
-                    set("covenantFoundationsSafeguard", e.target.checked)
-                  }
-                />
-                <span>{COVENANT_FOUNDATIONS_SAFEGUARD}</span>
-              </label>
+              <Alert tone="warning" className="mt-3">
+                <label className="flex items-start gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    className="mt-1"
+                    checked={data.covenantFoundationsSafeguard}
+                    onChange={(e) =>
+                      set("covenantFoundationsSafeguard", e.target.checked)
+                    }
+                  />
+                  <span>{COVENANT_FOUNDATIONS_SAFEGUARD}</span>
+                </label>
+              </Alert>
             )}
           </div>
 
@@ -718,11 +713,8 @@ export function CreateProfileStepper({
               onSelect={(v) => set("relocationOpenness", v)}
             />
 
-            <FieldLabel>Spiritual Rhythms in the Home</FieldLabel>
-            <p className="text-xs text-plum-900/50 mb-2">
-              How do you envision cultivating and protecting the spiritual
-              atmosphere of your future home as a couple? Select the anchor that
-              best describes your required corporate rhythm.
+            <p className="text-sm text-plum-900/80 mb-3">
+              {SPIRITUAL_RHYTHMS_HOME_PROMPT}
             </p>
             <ChoiceList
               options={SPIRITUAL_RHYTHMS_HOME}

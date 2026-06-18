@@ -11,8 +11,6 @@ const DEAL_BREAKER_PENALTY = -100; // if either is a deal-breaker for the other
 const ALTAR_TIMELINE_WEIGHT = 30;
 const FAITH_IDENTITY_WEIGHT = 25;
 const LEADERSHIP_WEIGHT = 25;
-const FAMILY_PLANNING_WEIGHT = 15;
-const DESIRED_CHILDREN_WEIGHT = 10;
 const DOCTRINAL_ALIGNMENT_WEIGHT = 15;
 const RELOCATION_WEIGHT = 10;
 const ENVIRONMENT_WEIGHT = 10;
@@ -70,10 +68,6 @@ export async function scoreCompatibility(userAId: string, userBId: string) {
     alignmentScore += FAITH_IDENTITY_WEIGHT;
   if (sameNonEmpty(a.householdLeadership, b.householdLeadership))
     alignmentScore += LEADERSHIP_WEIGHT;
-  if (sameNonEmpty(a.familyPlanningVision, b.familyPlanningVision))
-    alignmentScore += FAMILY_PLANNING_WEIGHT;
-  if (sameNonEmpty(a.desiredFutureChildren, b.desiredFutureChildren))
-    alignmentScore += DESIRED_CHILDREN_WEIGHT;
   if (sameNonEmpty(a.doctrinalAlignment, b.doctrinalAlignment))
     alignmentScore += DOCTRINAL_ALIGNMENT_WEIGHT;
   if (sameNonEmpty(a.relocationOpenness, b.relocationOpenness))

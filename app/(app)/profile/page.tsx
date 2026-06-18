@@ -19,8 +19,6 @@ import {
   PRIMARY_INDUSTRIES,
   ALTAR_TIMELINE,
   RELOCATION_OPENNESS,
-  FAMILY_PLANNING,
-  DESIRED_FUTURE_CHILDREN,
   SPIRITUAL_RHYTHMS_HOME,
   DOCTRINAL_ALIGNMENT,
   HOUSEHOLD_LEADERSHIP,
@@ -29,6 +27,7 @@ import {
   ENVIRONMENT_PREFERENCE,
   CORE_FAITH_IDENTITY,
 } from "@/lib/profile/create-profile";
+import { formatPersonaAliasDisplay } from "@/lib/profile/persona-alias";
 import {
   getOpenMatchCardEvents,
   hasSubmittedMatchCard,
@@ -183,7 +182,10 @@ export default async function ProfilePage() {
             Your private persona. Not visible until mutual alignment is confirmed.
           </CardSubtitle>
           <p className="mt-4 text-display text-2xl text-plum-900">
-            {profile?.personaAlias ?? "—"}
+            {formatPersonaAliasDisplay(
+              profile?.personaAlias,
+              profile?.personaAliasCode,
+            )}
           </p>
           {profile?.personaCategory && (
             <p className="text-xs text-plum-900/50 mt-1">
@@ -216,7 +218,7 @@ export default async function ProfilePage() {
               ? `${profile.birthYear} (age ${new Date().getFullYear() - profile.birthYear})`
               : "—"}
           </dd>
-          <dt className="text-plum-900/50">Current country</dt>
+          <dt className="text-plum-900/50">Current location</dt>
           <dd className="text-plum-900">{profile?.country ?? "—"}</dd>
           <dt className="text-plum-900/50">Current city</dt>
           <dd className="text-plum-900">{profile?.city ?? "—"}</dd>
@@ -228,21 +230,6 @@ export default async function ProfilePage() {
           </dd>
           <dt className="text-plum-900/50">Children</dt>
           <dd className="text-plum-900">{childrenSummary(profile)}</dd>
-          <dt className="text-plum-900/50">Family planning vision</dt>
-          <dd className="text-plum-900">
-            {optionLabel(FAMILY_PLANNING, profile?.familyPlanningVision)}
-          </dd>
-          {profile?.desiredFutureChildren && (
-            <>
-              <dt className="text-plum-900/50">Desired future children</dt>
-              <dd className="text-plum-900">
-                {optionLabel(
-                  DESIRED_FUTURE_CHILDREN,
-                  profile.desiredFutureChildren,
-                )}
-              </dd>
-            </>
-          )}
           <dt className="text-plum-900/50">Highest education</dt>
           <dd className="text-plum-900">
             {optionLabel(EDUCATION_LEVELS, profile?.educationLevel)}
@@ -273,7 +260,7 @@ export default async function ProfilePage() {
       </Card>
 
       <Card>
-        <CardTitle>Relationship Intent</CardTitle>
+        <CardTitle>Relationship and Intent</CardTitle>
         <dl className="grid grid-cols-2 gap-y-3 text-sm mt-3">
           <dt className="text-plum-900/50">Timeline to the altar</dt>
           <dd className="text-plum-900">

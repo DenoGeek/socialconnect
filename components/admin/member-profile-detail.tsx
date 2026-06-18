@@ -5,8 +5,6 @@ import {
   CHILDREN_CUSTODY,
   EDUCATION_LEVELS,
   PRIMARY_INDUSTRIES,
-  FAMILY_PLANNING,
-  DESIRED_FUTURE_CHILDREN,
   ALTAR_TIMELINE,
   RELOCATION_OPENNESS,
   SPIRITUAL_RHYTHMS_HOME,
@@ -17,6 +15,7 @@ import {
   ENVIRONMENT_PREFERENCE,
   CORE_FAITH_IDENTITY,
 } from "@/lib/profile/create-profile";
+import { formatPersonaAliasDisplay } from "@/lib/profile/persona-alias";
 import {
   genderLabel,
   genderPreferenceLabels,
@@ -69,7 +68,10 @@ export function MemberProfileDetail({
           <Card>
             <CardTitle>Community Alias</CardTitle>
             <p className="mt-3 text-display text-2xl text-plum-900">
-              {profile.personaAlias ?? "—"}
+              {formatPersonaAliasDisplay(
+                profile.personaAlias,
+                profile.personaAliasCode,
+              )}
             </p>
             {profile.personaCategory && (
               <p className="text-xs text-plum-900/50 mt-1">
@@ -106,7 +108,7 @@ export function MemberProfileDetail({
                   ? `${profile.birthYear} (age ${new Date().getFullYear() - profile.birthYear})`
                   : "—"}
               </dd>
-              <dt className="text-plum-900/50">Current country</dt>
+              <dt className="text-plum-900/50">Current location</dt>
               <dd className="text-plum-900">{profile.country ?? "—"}</dd>
               <dt className="text-plum-900/50">Current city</dt>
               <dd className="text-plum-900">{profile.city ?? "—"}</dd>
@@ -120,21 +122,6 @@ export function MemberProfileDetail({
               </dd>
               <dt className="text-plum-900/50">Children</dt>
               <dd className="text-plum-900">{childrenSummary(profile)}</dd>
-              <dt className="text-plum-900/50">Family planning vision</dt>
-              <dd className="text-plum-900">
-                {optionLabel(FAMILY_PLANNING, profile.familyPlanningVision)}
-              </dd>
-              {profile.desiredFutureChildren && (
-                <>
-                  <dt className="text-plum-900/50">Desired future children</dt>
-                  <dd className="text-plum-900">
-                    {optionLabel(
-                      DESIRED_FUTURE_CHILDREN,
-                      profile.desiredFutureChildren,
-                    )}
-                  </dd>
-                </>
-              )}
               <dt className="text-plum-900/50">Highest education</dt>
               <dd className="text-plum-900">
                 {optionLabel(EDUCATION_LEVELS, profile.educationLevel)}
@@ -153,7 +140,7 @@ export function MemberProfileDetail({
           </Card>
 
           <Card>
-            <CardTitle>Relationship Intent</CardTitle>
+            <CardTitle>Relationship and Intent</CardTitle>
             <dl className="grid grid-cols-2 gap-y-3 text-sm mt-3">
               <dt className="text-plum-900/50">Timeline to the altar</dt>
               <dd className="text-plum-900">

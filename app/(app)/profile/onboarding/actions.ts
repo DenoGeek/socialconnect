@@ -6,9 +6,13 @@ import { eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { heterosexualPreference } from "@/lib/profile/gender";
-import { assertPersonaAliasAvailable } from "@/lib/profile/persona-alias";
+import { resolvePersonaAliasForSave } from "@/lib/profile/persona-alias";
 
-export type SaveStepResult = { ok: true; finalized?: boolean };
+export type SaveStepResult = {
+  ok: true;
+  finalized?: boolean;
+  personaAliasCode?: number;
+};
 
 export async function saveStep(form: FormData): Promise<SaveStepResult> {
   const user = await requireUser();
@@ -17,6 +21,7 @@ export async function saveStep(form: FormData): Promise<SaveStepResult> {
   const finalize = form.get("finalize") === "1";
 
   const profileUpdates: Record<string, unknown> = {};
+  let assignedPersonaAliasCode: number | undefined;
 
   // Plain text / single-select fields.
   for (const f of [
@@ -27,8 +32,6 @@ export async function saveStep(form: FormData): Promise<SaveStepResult> {
     "countryOfHeritage",
     "familialStatus",
     "childrenCustody",
-    "familyPlanningVision",
-    "desiredFutureChildren",
     "educationLevel",
     "profession",
     "primaryIndustry",
@@ -75,20 +78,23 @@ export async function saveStep(form: FormData): Promise<SaveStepResult> {
   profileUpdates.covenantFoundationsSafeguard =
     form.get("covenantFoundationsSafeguard") === "1";
 
-  // The chosen Community Alias becomes the private display name (must be unique).
-  if (typeof profileUpdates.personaAlias === "string") {
-    profileUpdates.personaAlias = await assertPersonaAliasAvailable(
-      profileUpdates.personaAlias,
-      user.id,
-    );
-    profileUpdates.displayName = profileUpdates.personaAlias;
-  }
-
   const existing = await db
     .select()
     .from(schema.profiles)
     .where(eq(schema.profiles.userId, user.id))
     .limit(1);
+
+  // Community Alias: base name + auto-generated unique code (e.g. The Steward#514).
+  if (typeof profileUpdates.personaAlias === "string") {
+    const resolved = await resolvePersonaAliasForSave(
+      profileUpdates.personaAlias,
+      existing[0]?.personaAliasCode,
+    );
+    profileUpdates.personaAlias = resolved.base;
+    profileUpdates.personaAliasCode = resolved.code;
+    profileUpdates.displayName = resolved.display;
+    assignedPersonaAliasCode = resolved.code;
+  }
 
   const genderValue = form.get("gender");
   if (typeof genderValue === "string" && (genderValue === "man" || genderValue === "woman")) {
@@ -153,10 +159,10 @@ export async function saveStep(form: FormData): Promise<SaveStepResult> {
   if (finalize) {
     revalidatePath("/profile");
     revalidatePath("/profile/onboarding");
-    return { ok: true, finalized: true };
+    return { ok: true, finalized: true, personaAliasCode: assignedPersonaAliasCode };
   }
 
-  return { ok: true };
+  return { ok: true, personaAliasCode: assignedPersonaAliasCode };
 }
 
 export async function switchMode(form: FormData) {

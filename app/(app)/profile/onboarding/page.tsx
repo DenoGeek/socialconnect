@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { CreateProfileStepper } from "./stepper";
+import { parsePersonaAliasBase } from "@/lib/profile/persona-alias";
 
 export default async function OnboardingPage() {
   const user = await requireUser();
@@ -37,13 +38,16 @@ export default async function OnboardingPage() {
         childrenCount:
           profile?.childrenCount != null ? String(profile.childrenCount) : "",
         childrenCustody: profile?.childrenCustody ?? "",
-        familyPlanningVision: profile?.familyPlanningVision ?? "",
-        desiredFutureChildren: profile?.desiredFutureChildren ?? "",
         educationLevel: profile?.educationLevel ?? "",
         profession: profile?.profession ?? "",
         primaryIndustry: profile?.primaryIndustry ?? "",
         personaCategory: profile?.personaCategory ?? "",
-        personaAlias: profile?.personaAlias ?? "",
+        personaAlias: profile?.personaAlias
+          ? parsePersonaAliasBase(profile.personaAlias)
+          : "",
+        personaAliasCode: profile?.personaAliasCode
+          ? String(profile.personaAliasCode)
+          : "",
         phone: profile?.phone ?? "",
         altarTimeline: profile?.altarTimeline ?? "",
         covenantFoundationsSafeguard: profile?.covenantFoundationsSafeguard ?? false,

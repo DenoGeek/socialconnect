@@ -23,13 +23,6 @@ export function optionLabels(
     .join(", ");
 }
 
-/** Family planning visions that require a desired future children count. */
-export function familyPlanningWantsMoreChildren(vision?: string | null) {
-  return (
-    vision === "desires_to_have_family" || vision === "desires_to_expand_family"
-  );
-}
-
 // ── Step 1: Identity ─────────────────────────────────────────────────────────
 
 /** Doc presents Female / Male; stored against the existing gender enum. */
@@ -59,42 +52,6 @@ export const CHILDREN_CUSTODY: Option[] = [
     label: "Primary / Solo Custody",
     description:
       "My children reside primarily with me, and a future partner will be fully stepping into their daily household upbringing.",
-  },
-];
-
-export const FAMILY_PLANNING: Option[] = [
-  {
-    value: "desires_to_have_family",
-    label: "Desires to have a Family",
-    description:
-      "I don't have a child and want children (whether biologically or through adoption).",
-  },
-  {
-    value: "desires_to_expand_family",
-    label: "Desires to Expand a Family",
-    description:
-      "I have a child(ren) and want more children (whether biologically or through adoption).",
-  },
-  {
-    value: "family_already_complete",
-    label: "My Family is Already Complete",
-    description:
-      "I have a child(ren) and do not want to have or raise any more new children.",
-  },
-  {
-    value: "content_without_children",
-    label: "Content Without Children",
-    description: "I do not have children and do not want to have any.",
-  },
-];
-
-export const DESIRED_FUTURE_CHILDREN: Option[] = [
-  { value: "one_to_two", label: "1 to 2 children" },
-  { value: "three_to_four", label: "3 to 4 children" },
-  { value: "five_or_more", label: "5 or more children" },
-  {
-    value: "gods_hands",
-    label: "Leaving it entirely in God's hands / Open to discussion",
   },
 ];
 
@@ -180,6 +137,9 @@ export const RELOCATION_OPENNESS: Option[] = [
   { value: "regional", label: "Yes, regionally / within the continent" },
   { value: "rooted", label: "No, I am rooted in my current city" },
 ];
+
+export const SPIRITUAL_RHYTHMS_HOME_PROMPT =
+  "How do you envision cultivating and protecting the spiritual atmosphere of your future home as a couple? Select the anchor that best describes your required corporate rhythm.";
 
 export const SPIRITUAL_RHYTHMS_HOME: Option[] = [
   {

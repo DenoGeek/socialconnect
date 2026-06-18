@@ -165,7 +165,8 @@ export const profiles = pgTable(
     primaryIndustry: text("primary_industry"),
     personaCategory: text("persona_category"),
     personaAlias: text("persona_alias"),
-    // ── Step 2: Relationship Intent ──────────────────────────────────────────
+    personaAliasCode: integer("persona_alias_code"),
+    // ── Step 2: Relationship and Intent ──────────────────────────────────────
     altarTimeline: text("altar_timeline"), // covenant_foundations | covenant_ready
     covenantFoundationsSafeguard: boolean("covenant_foundations_safeguard")
       .notNull()
@@ -209,9 +210,7 @@ export const profiles = pgTable(
   (t) => [
     index("profiles_city_idx").on(t.city),
     index("profiles_silent_idx").on(t.silentMode),
-    uniqueIndex("profiles_persona_alias_lower_uniq").on(
-      sql`lower(${t.personaAlias})`,
-    ),
+    uniqueIndex("profiles_persona_alias_code_uniq").on(t.personaAliasCode),
   ],
 );
 
