@@ -193,7 +193,13 @@ export function CreateProfileStepper({
     return arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
   }
 
-  function persist(opts: { finalize?: boolean; toStep?: number } = {}) {
+  function persist(
+    opts: {
+      finalize?: boolean;
+      toStep?: number;
+      onSuccess?: () => void;
+    } = {},
+  ) {
     setErr(null);
     const fd = new FormData();
     fd.set("step", String(opts.toStep ?? step));
@@ -239,6 +245,7 @@ export function CreateProfileStepper({
         if (result.personaAliasCode != null) {
           set("personaAliasCode", String(result.personaAliasCode));
         }
+        opts.onSuccess?.();
       } catch (e: unknown) {
         if (isRedirectError(e)) return;
         setErr((e as Error).message ?? "Could not save.");
@@ -310,8 +317,12 @@ export function CreateProfileStepper({
       return;
     }
     const finalize = section === "interests";
-    persist({ toStep: step + 1, finalize });
-    setStep((s) => Math.min(s + 1, totalSteps - 1));
+    const nextStep = Math.min(step + 1, totalSteps - 1);
+    persist({
+      toStep: nextStep,
+      finalize,
+      onSuccess: () => setStep(nextStep),
+    });
   }
 
   function back() {
