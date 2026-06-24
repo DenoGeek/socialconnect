@@ -6,7 +6,7 @@ import { eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { heterosexualPreference } from "@/lib/profile/gender";
-import { resolvePersonaAliasForSave } from "@/lib/profile/persona-alias";
+import { resolvePersonaAliasForSave } from "@/lib/profile/persona-alias.server";
 
 export type SaveStepResult = {
   ok: true;
