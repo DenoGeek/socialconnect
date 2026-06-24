@@ -50,6 +50,13 @@
       "when": 1781289881820,
       "tag": "0006_persona_alias_code",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1781389881820,
+      "tag": "0007_ensure_onboarding_schema",
+      "breakpoints": true
     }
   ]
 }

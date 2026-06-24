@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
+import type { Profile } from "@/db/schema/identity";
 import { requireUser } from "@/lib/auth";
 import { CreateProfileStepper } from "./stepper";
 import { parsePersonaAliasBase } from "@/lib/profile/persona-alias";
@@ -7,17 +8,45 @@ import { parsePersonaAliasBase } from "@/lib/profile/persona-alias";
 export default async function OnboardingPage() {
   const user = await requireUser();
 
-  const [progress] = await db
-    .select()
-    .from(schema.onboardingProgress)
-    .where(eq(schema.onboardingProgress.userId, user.id))
-    .limit(1);
+  let progress:
+    | typeof schema.onboardingProgress.$inferSelect
+    | undefined;
+  let profile: Profile | undefined;
 
-  const [profile] = await db
-    .select()
-    .from(schema.profiles)
-    .where(eq(schema.profiles.userId, user.id))
-    .limit(1);
+  try {
+    [progress] = await db
+      .select()
+      .from(schema.onboardingProgress)
+      .where(eq(schema.onboardingProgress.userId, user.id))
+      .limit(1);
+
+    [profile] = await db
+      .select()
+      .from(schema.profiles)
+      .where(eq(schema.profiles.userId, user.id))
+      .limit(1);
+  } catch (err) {
+    // #region agent log
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[onboarding] db load failed:", message);
+    fetch("http://127.0.0.1:7405/ingest/eb375903-b24c-4ad4-9d65-edd096cd3d7f", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "851db9",
+      },
+      body: JSON.stringify({
+        sessionId: "851db9",
+        location: "onboarding/page.tsx:dbLoad",
+        message: "onboarding page db load failed",
+        data: { error: message },
+        timestamp: Date.now(),
+        hypothesisId: "A",
+      }),
+    }).catch(() => {});
+    // #endregion
+    throw err;
+  }
 
   const spiritualRhythmHome = profile?.spiritualRhythmsHome?.[0] ?? "";
 
