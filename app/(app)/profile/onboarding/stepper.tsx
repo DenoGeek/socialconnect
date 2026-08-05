@@ -13,6 +13,9 @@ import {
   FAMILIAL_STATUS,
   DIVORCE_CERTIFICATION,
   CHILDREN_CUSTODY,
+  FAMILY_PLANNING_VISION,
+  DESIRED_FUTURE_CHILDREN,
+  FAMILY_PLANNING_NEEDS_COUNT,
   EDUCATION_LEVELS,
   PRIMARY_INDUSTRIES,
   PERSONA_CATEGORIES,
@@ -53,6 +56,8 @@ type Profile = {
   divorceCertified: boolean;
   childrenCount: string;
   childrenCustody: string;
+  familyPlanningVision: string;
+  desiredFutureChildren: string;
   educationLevel: string;
   profession: string;
   primaryIndustry: string;
@@ -216,6 +221,8 @@ export function CreateProfileStepper({
       "familialStatus",
       "childrenCount",
       "childrenCustody",
+      "familyPlanningVision",
+      "desiredFutureChildren",
       "educationLevel",
       "profession",
       "primaryIndustry",
@@ -259,7 +266,7 @@ export function CreateProfileStepper({
       if (!data.lastName.trim()) return "Last name is required.";
       if (!data.gender) return "Gender is required.";
       if (!data.birthYear) return "Year of birth is required.";
-      if (!data.country.trim()) return "Current location is required.";
+      if (!data.country.trim()) return "Current country is required.";
       if (!data.city.trim()) return "Current city is required.";
       if (!data.countryOfHeritage.trim()) return "Country of heritage is required.";
       if (!data.familialStatus) return "Familial status is required.";
@@ -268,6 +275,13 @@ export function CreateProfileStepper({
       if (data.childrenCount === "") return "Please indicate whether you have children.";
       if (hasChildren && !data.childrenCustody)
         return "Please select your custody arrangement.";
+      if (!data.familyPlanningVision)
+        return "Please select your future children & family planning vision.";
+      if (
+        FAMILY_PLANNING_NEEDS_COUNT.has(data.familyPlanningVision) &&
+        !data.desiredFutureChildren
+      )
+        return "Please select your desired number of future children.";
       if (!data.educationLevel) return "Highest education level is required.";
       if (!data.profession.trim()) return "Profession / core expertise is required.";
       if (!data.primaryIndustry) return "Primary industry is required.";
@@ -411,7 +425,7 @@ export function CreateProfileStepper({
             <FieldLabel>Nationality &amp; Cultural Heritage</FieldLabel>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="country">Current Location</Label>
+                <Label htmlFor="country">Current Country</Label>
                 <Input
                   id="country"
                   value={data.country}
@@ -524,6 +538,30 @@ export function CreateProfileStepper({
           </div>
 
           <div>
+            <FieldLabel>Future Children &amp; Family Planning Vision</FieldLabel>
+            <ChoiceList
+              options={FAMILY_PLANNING_VISION}
+              value={data.familyPlanningVision}
+              onSelect={(v) => {
+                set("familyPlanningVision", v);
+                if (!FAMILY_PLANNING_NEEDS_COUNT.has(v)) {
+                  set("desiredFutureChildren", "");
+                }
+              }}
+            />
+            {FAMILY_PLANNING_NEEDS_COUNT.has(data.familyPlanningVision) && (
+              <div className="mt-3">
+                <FieldLabel>Desired Number of Future Children</FieldLabel>
+                <ChoiceList
+                  options={DESIRED_FUTURE_CHILDREN}
+                  value={data.desiredFutureChildren}
+                  onSelect={(v) => set("desiredFutureChildren", v)}
+                />
+              </div>
+            )}
+          </div>
+
+          <div>
             <FieldLabel>Education &amp; Profession</FieldLabel>
             <Label htmlFor="educationLevel">Highest Level</Label>
             <select
@@ -562,7 +600,8 @@ export function CreateProfileStepper({
             <p className="text-xs text-plum-900/50 mb-2">
               This private name is what you will use to interact with people and
               is not visible to others in the ecosystem until mutual alignment is
-              confirmed.
+              confirmed. A unique number is paired automatically (e.g. The Steward
+              #514); members who pick the same name get different numbers.
             </p>
             <select
               value={data.personaCategory}
@@ -673,7 +712,7 @@ export function CreateProfileStepper({
       {section === "intent" && (
         <div className="space-y-5">
           <h2 className="text-display text-2xl text-plum-900">
-            Relationship and Intent
+            Relationship &amp; Intent
           </h2>
           <Alert tone="warning">PS: {RELATIONSHIP_INTENT_WARNING}</Alert>
 

@@ -55,6 +55,48 @@ export const CHILDREN_CUSTODY: Option[] = [
   },
 ];
 
+export const FAMILY_PLANNING_VISION: Option[] = [
+  {
+    value: "desires_family",
+    label: "Desires to have a Family",
+    description:
+      "I don't have a child and want children (whether biologically or through adoption).",
+  },
+  {
+    value: "expand_family",
+    label: "Desires to Expand a Family",
+    description:
+      "I have a child(ren) and want more children (whether biologically or through adoption).",
+  },
+  {
+    value: "family_complete",
+    label: "My Family is Already Complete",
+    description:
+      "I have a child(ren) and do not want to have or raise any more new children.",
+  },
+  {
+    value: "content_without_children",
+    label: "Content Without Children",
+    description: "I do not have children and do not want to have any.",
+  },
+];
+
+/** Shown only when desires_family or expand_family is selected. */
+export const DESIRED_FUTURE_CHILDREN: Option[] = [
+  { value: "1_to_2", label: "1 to 2 children" },
+  { value: "3_to_4", label: "3 to 4 children" },
+  { value: "5_or_more", label: "5 or more children" },
+  {
+    value: "gods_hands",
+    label: "Leaving it entirely in God's hands / Open to discussion",
+  },
+];
+
+export const FAMILY_PLANNING_NEEDS_COUNT = new Set([
+  "desires_family",
+  "expand_family",
+]);
+
 export const EDUCATION_LEVELS: Option[] = [
   { value: "doctoral", label: "Doctoral" },
   { value: "executive_masters", label: "Executive Master's" },

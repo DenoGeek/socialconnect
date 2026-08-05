@@ -8,11 +8,12 @@ async function fillIdentityStep(page: import("@playwright/test").Page) {
   await page.getByLabel(/^Last Name/i).fill("Explorer");
   await page.getByRole("button", { name: /^Male$/i }).click();
   await page.getByLabel(/Date of Birth/i).fill("1990");
-  await page.getByLabel(/^Current Location/i).fill("Kenya");
+  await page.getByLabel(/^Current Country/i).fill("Kenya");
   await page.getByLabel(/^Current City/i).fill("Nairobi");
   await page.getByLabel(/Country of Heritage/i).fill("Kenya");
   await page.getByRole("button", { name: /Single \(Never Married\)/i }).click();
   await page.getByRole("button", { name: /^None$/i }).click();
+  await page.getByRole("button", { name: /Content Without Children/i }).click();
   await page.locator("#educationLevel").selectOption({ label: "Bachelor's Degree" });
   await page.getByLabel(/Profession/i).fill("Software Engineer");
   await page
@@ -92,7 +93,7 @@ test.describe("Create Profile — full flow", () => {
     await fillIdentityStep(page);
     await page.getByRole("button", { name: /Continue/i }).click();
     await expect(
-      page.getByRole("heading", { name: /Relationship and Intent/i }),
+      page.getByRole("heading", { name: /Relationship & Intent/i }),
     ).toBeVisible({ timeout: 30_000 });
     await assertNoSaveError(page);
 

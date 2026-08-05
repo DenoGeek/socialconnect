@@ -15,11 +15,12 @@ test("onboarding survives hard reload after step 1 save", async ({ page }) => {
   await page.getByLabel(/^Last Name/i).fill("Test");
   await page.getByRole("button", { name: /^Male$/i }).click();
   await page.getByLabel(/Date of Birth/i).fill("1990");
-  await page.getByLabel(/^Current Location/i).fill("Kenya");
+  await page.getByLabel(/^Current Country/i).fill("Kenya");
   await page.getByLabel(/^Current City/i).fill("Nairobi");
   await page.getByLabel(/Country of Heritage/i).fill("Kenya");
   await page.getByRole("button", { name: /Single \(Never Married\)/i }).click();
   await page.getByRole("button", { name: /^None$/i }).click();
+  await page.getByRole("button", { name: /Content Without Children/i }).click();
   await page.locator("#educationLevel").selectOption({ label: "Bachelor's Degree" });
   await page.getByLabel(/Profession/i).fill("Engineer");
   await page.getByRole("button", { name: /Technology & Digital Ecosystems/i }).click();
@@ -32,13 +33,13 @@ test("onboarding survives hard reload after step 1 save", async ({ page }) => {
   await page.getByLabel(/^Phone Number/i).fill("+254712345678");
   await page.getByRole("button", { name: /Continue/i }).click();
   await expect(
-    page.getByRole("heading", { name: /Relationship and Intent/i }),
+    page.getByRole("heading", { name: /Relationship & Intent/i }),
   ).toBeVisible({ timeout: 30_000 });
 
   const response = await page.reload({ waitUntil: "domcontentloaded" });
   expect(response?.status(), "reload should not 500").toBeLessThan(500);
   await expect(
-    page.getByRole("heading", { name: /Relationship and Intent|Identity/i }),
+    page.getByRole("heading", { name: /Relationship & Intent|Identity/i }),
   ).toBeVisible({ timeout: 30_000 });
 });
 

@@ -39,6 +39,8 @@ export async function saveStep(form: FormData): Promise<SaveStepResult> {
     "personaAlias",
     "phone",
     "gender",
+    "familyPlanningVision",
+    "desiredFutureChildren",
     "altarTimeline",
     "relocationOpenness",
     "doctrinalAlignment",
@@ -49,6 +51,16 @@ export async function saveStep(form: FormData): Promise<SaveStepResult> {
   ] as const) {
     const v = form.get(f);
     if (typeof v === "string" && v.length > 0) profileUpdates[f] = v;
+  }
+
+  // Clear desired count when vision does not require it.
+  const vision = profileUpdates.familyPlanningVision;
+  if (
+    typeof vision === "string" &&
+    vision !== "desires_family" &&
+    vision !== "expand_family"
+  ) {
+    profileUpdates.desiredFutureChildren = null;
   }
 
   // Spiritual rhythm home — stored as single-element jsonb array for compatibility.

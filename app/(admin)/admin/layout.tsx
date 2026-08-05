@@ -18,6 +18,7 @@ const NAV = [
   { href: "/admin/properties", label: "Hearth" },
   { href: "/admin/concierge", label: "Concierge" },
   { href: "/admin/payments", label: "Payments" },
+  { href: "/admin/activity", label: "Activity" },
   { href: "/admin/flags", label: "Safety" },
   { href: "/admin/kill-switch", label: "Kill switch" },
 ];

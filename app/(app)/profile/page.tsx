@@ -15,6 +15,8 @@ import {
   optionLabels,
   FAMILIAL_STATUS,
   CHILDREN_CUSTODY,
+  FAMILY_PLANNING_VISION,
+  DESIRED_FUTURE_CHILDREN,
   EDUCATION_LEVELS,
   PRIMARY_INDUSTRIES,
   ALTAR_TIMELINE,
@@ -218,7 +220,7 @@ export default async function ProfilePage() {
               ? `${profile.birthYear} (age ${new Date().getFullYear() - profile.birthYear})`
               : "—"}
           </dd>
-          <dt className="text-plum-900/50">Current location</dt>
+          <dt className="text-plum-900/50">Current country</dt>
           <dd className="text-plum-900">{profile?.country ?? "—"}</dd>
           <dt className="text-plum-900/50">Current city</dt>
           <dd className="text-plum-900">{profile?.city ?? "—"}</dd>
@@ -230,6 +232,14 @@ export default async function ProfilePage() {
           </dd>
           <dt className="text-plum-900/50">Children</dt>
           <dd className="text-plum-900">{childrenSummary(profile)}</dd>
+          <dt className="text-plum-900/50">Family planning vision</dt>
+          <dd className="text-plum-900">
+            {optionLabel(FAMILY_PLANNING_VISION, profile?.familyPlanningVision)}
+          </dd>
+          <dt className="text-plum-900/50">Desired future children</dt>
+          <dd className="text-plum-900">
+            {optionLabel(DESIRED_FUTURE_CHILDREN, profile?.desiredFutureChildren)}
+          </dd>
           <dt className="text-plum-900/50">Highest education</dt>
           <dd className="text-plum-900">
             {optionLabel(EDUCATION_LEVELS, profile?.educationLevel)}

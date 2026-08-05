@@ -29,6 +29,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, matched: false });
   }
 
+  // Persist webhook payload for admin payment feed / reconciliation.
+  await db
+    .update(schema.payments)
+    .set({ rawWebhook: body })
+    .where(eq(schema.payments.id, pay.id));
+
   if (status === "succeeded" || status === "ok") {
     await markPaymentSucceeded(pay.id, providerRef);
     await notifyPaymentReceived({
