@@ -10,6 +10,7 @@ import {
   isEliteExperience,
 } from "@/lib/auth";
 import { isRouterPrefetchRequest } from "@/lib/auth/request-kind";
+import { isZahariSubscriptionActive } from "@/lib/membership/zahari-status";
 import { AppLink } from "@/components/nav/app-link";
 import { SignOutButton } from "@/components/nav/sign-out-button";
 import { MobileNavDrawer } from "@/components/nav/mobile-nav-drawer";
@@ -19,6 +20,7 @@ export const dynamic = "force-dynamic";
 
 const NAV_AMARI = [
   { href: "/profile", label: "Profile" },
+  { href: "/account", label: "Account" },
   { href: "/events", label: "Pulse Hub" },
   { href: "/matches", label: "Matches" },
   { href: "/date-vault", label: "Date Vault" },
@@ -35,6 +37,19 @@ const NAV_ZAHARI = [
 
 const APPLY_PREFIX = "/apply";
 const CREATE_PROFILE_PREFIX = "/profile/onboarding";
+const ZAHARI_PRE_DASHBOARD_PREFIXES = [
+  "/apply",
+  "/account",
+  "/concierge/zahari",
+  "/payments",
+  "/profile",
+];
+
+function isZahariPreDashboardPath(pathname: string) {
+  return ZAHARI_PRE_DASHBOARD_PREFIXES.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
+  );
+}
 
 export default async function AppLayout({
   children,
@@ -88,6 +103,26 @@ export default async function AppLayout({
       if (profileComplete && !onApplyFlow && !onCreateProfile) {
         redirect("/apply");
       }
+    }
+  }
+
+  // Zahari: interview → pay → dashboard. Unpaid members stay on journey rails.
+  if (
+    ecosystemOk &&
+    user.pathway === "zahari" &&
+    !isStaffRole(user.role) &&
+    !isRouterPrefetchRequest(h)
+  ) {
+    const [eng] = await db
+      .select()
+      .from(schema.zahariEngagements)
+      .where(eq(schema.zahariEngagements.userId, user.id))
+      .limit(1);
+    if (!isZahariSubscriptionActive(eng) && !isZahariPreDashboardPath(pathname)) {
+      if (eng?.status === "pending_payment") {
+        redirect("/concierge/zahari/pay");
+      }
+      redirect("/apply/status");
     }
   }
 

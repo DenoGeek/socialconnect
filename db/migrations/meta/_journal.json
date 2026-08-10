@@ -57,6 +57,13 @@
       "when": 1781389881820,
       "tag": "0007_ensure_onboarding_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1781489881820,
+      "tag": "0008_account_billing_zahari",
+      "breakpoints": true
     }
   ]
 }

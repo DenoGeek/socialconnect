@@ -199,6 +199,19 @@ export const profiles = pgTable(
     }),
     isPublic: boolean("is_public").notNull().default(true),
     silentMode: boolean("silent_mode").notNull().default(false),
+    matchmakingVisible: boolean("matchmaking_visible").notNull().default(true),
+    notificationPrefs: jsonb("notification_prefs")
+      .$type<{
+        email?: boolean;
+        sms?: boolean;
+        inApp?: boolean;
+        matches?: boolean;
+        events?: boolean;
+        community?: boolean;
+      }>()
+      .notNull()
+      .default(sql`'{"email":true,"sms":true,"inApp":true,"matches":true,"events":true,"community":true}'::jsonb`),
+    locationPreferences: text("location_preferences"),
     flaggedForReview: boolean("flagged_for_review").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()

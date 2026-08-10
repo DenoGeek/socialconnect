@@ -158,10 +158,24 @@ export const applicationStatusEnum = pgEnum("application_status", [
 ]);
 
 export const zahariEngagementStatusEnum = pgEnum("zahari_engagement_status", [
+  "pending_interview",
+  "interview_scheduled",
+  "interview_rejected",
   "pending_payment",
   "active",
   "matched",
   "completed",
+  "cancelled",
+  "expired",
+]);
+
+export const zahariPlanEnum = pgEnum("zahari_plan", ["6_months", "1_year"]);
+
+export const paymentMethodKindEnum = pgEnum("payment_method_kind", [
+  "mpesa_phone",
+  "tinypesa",
+  "paybill",
+  "card",
 ]);
 
 export const introductionStatusEnum = pgEnum("introduction_status", [

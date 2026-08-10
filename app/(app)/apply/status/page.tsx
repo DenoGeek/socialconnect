@@ -6,6 +6,10 @@ import { db, schema } from "@/db";
 import { Card, CardTitle, CardSubtitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  isZahariSubscriptionActive,
+  zahariJourneyLabel,
+} from "@/lib/membership/zahari-status";
 
 export default async function ApplyStatusPage({
   searchParams,
@@ -43,14 +47,28 @@ export default async function ApplyStatusPage({
       .from(schema.zahariEngagements)
       .where(eq(schema.zahariEngagements.userId, user.id))
       .limit(1);
-    if (!eng?.sovereignPaidAt) {
+
+    if (isZahariSubscriptionActive(eng)) {
       return (
         <Card className="max-w-md">
-          <Badge tone="amber">Approved · Zahari</Badge>
-          <CardTitle className="mt-2">Pay sovereign search fee</CardTitle>
+          <Badge tone="amber">Zahari active</Badge>
+          <CardTitle className="mt-2">Your concierge portal</CardTitle>
+          <AppLink href="/concierge" className="block mt-4">
+            <Button>Open concierge</Button>
+          </AppLink>
+        </Card>
+      );
+    }
+
+    if (eng?.status === "pending_payment") {
+      return (
+        <Card className="max-w-md">
+          <Badge tone="amber">Interview passed</Badge>
+          <CardTitle className="mt-2">Choose your Zahari plan</CardTitle>
           <CardSubtitle>
-            USD {Number(eng?.sovereignSearchFeeUsd ?? 1500).toLocaleString()} —
-            activates your 6-month private search.
+            USD {Number(eng.sovereignSearchFeeUsd).toLocaleString()} for{" "}
+            {eng.plan === "1_year" ? "1 year" : "6 months"} — private matching,
+            date packages, and elite couples access.
           </CardSubtitle>
           <AppLink href="/concierge/zahari/pay" className="block mt-4">
             <Button>Proceed to payment</Button>
@@ -58,12 +76,49 @@ export default async function ApplyStatusPage({
         </Card>
       );
     }
+
+    if (eng?.status === "interview_scheduled") {
+      return (
+        <Card className="max-w-md">
+          <Badge tone="amber">Interview scheduled</Badge>
+          <CardTitle className="mt-2">Your matchmaker interview</CardTitle>
+          <CardSubtitle>
+            {eng.interviewScheduledAt
+              ? new Date(eng.interviewScheduledAt).toLocaleString("en-GB")
+              : "Date pending"}
+            {eng.interviewMeetingUrl ? ` · ${eng.interviewMeetingUrl}` : ""}
+          </CardSubtitle>
+          <AppLink href="/concierge/zahari/pay" className="block mt-4">
+            <Button variant="outline">View journey details</Button>
+          </AppLink>
+        </Card>
+      );
+    }
+
+    if (eng?.status === "interview_rejected") {
+      return (
+        <Card className="max-w-md">
+          <Badge tone="amber">Not a Zahari fit</Badge>
+          <CardTitle className="mt-2">You can switch to Amari</CardTitle>
+          <CardSubtitle>
+            No payment was taken. Move to the complimentary Amari pathway anytime from Account.
+          </CardSubtitle>
+          <AppLink href="/account" className="block mt-4">
+            <Button>Open Account</Button>
+          </AppLink>
+        </Card>
+      );
+    }
+
     return (
       <Card className="max-w-md">
-        <Badge tone="amber">Zahari active</Badge>
-        <CardTitle className="mt-2">Your concierge portal</CardTitle>
-        <AppLink href="/concierge" className="block mt-4">
-          <Button>Open concierge</Button>
+        <Badge tone="amber">{zahariJourneyLabel(eng)}</Badge>
+        <CardTitle className="mt-2">Awaiting interview booking</CardTitle>
+        <CardSubtitle>
+          Staff will book a private 20-minute video chat. Payment opens only after you are confirmed as a match.
+        </CardSubtitle>
+        <AppLink href="/account" className="block mt-4">
+          <Button variant="outline">Account & membership</Button>
         </AppLink>
       </Card>
     );

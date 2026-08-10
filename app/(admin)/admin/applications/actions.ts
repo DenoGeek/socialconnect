@@ -46,6 +46,7 @@ export async function approveApplication(form: FormData) {
     if (!eng) {
       await db.insert(schema.zahariEngagements).values({
         userId: app.userId,
+        status: "pending_interview",
         matchmakerUserId: matchmakerUserId ?? admin.id,
       });
     } else if (matchmakerUserId) {

@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { planBySlug } from "@/lib/membership/plans";
+import { zahariExpiryFromNow } from "@/lib/membership/zahari-plans";
 import type { PaymentRecord, StartPaymentInput } from "./provider";
 import { tinypesaStkPush } from "./tinypesa";
 
@@ -81,11 +82,19 @@ export async function markPaymentSucceeded(
     }
   }
   if (pay && pay.subjectKind === "zahari_sovereign") {
+    const [eng] = await db
+      .select()
+      .from(schema.zahariEngagements)
+      .where(eq(schema.zahariEngagements.id, pay.subjectId))
+      .limit(1);
+    const planSlug = (eng?.plan ?? "6_months") as "6_months" | "1_year";
+    const expiresAt = zahariExpiryFromNow(planSlug);
     await db
       .update(schema.zahariEngagements)
       .set({
         status: "active",
         sovereignPaidAt: new Date(),
+        expiresAt: expiresAt ?? undefined,
         updatedAt: new Date(),
       })
       .where(eq(schema.zahariEngagements.id, pay.subjectId));
@@ -109,14 +118,17 @@ export async function startZahariPayment(opts: {
   engagementId: string;
   kind: "zahari_sovereign" | "zahari_activation";
   amountUsd: number;
+  provider?: "manual" | "tinypesa" | "mpesa";
+  phone?: string;
 }) {
   return startPayment({
     userId: opts.userId,
     subjectKind: opts.kind,
     subjectId: opts.engagementId,
-    provider: "manual",
+    provider: opts.provider ?? "manual",
     currency: "USD",
     amount: opts.amountUsd,
+    phone: opts.phone,
     senderDisplayName: "Agano Evermore · Zahari",
   });
 }

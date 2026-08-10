@@ -132,5 +132,25 @@ export const matchExclusions = pgTable(
   (t) => [uniqueIndex("exclusion_pair_uniq").on(t.userAId, t.userBId)],
 );
 
+/** Member↔member chat — unlocked only after a mutual post-event match. */
+export const matchMessages = pgTable(
+  "match_messages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    matchId: uuid("match_id")
+      .notNull()
+      .references(() => matches.id, { onDelete: "cascade" }),
+    senderUserId: text("sender_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("match_msg_match_idx").on(t.matchId)],
+);
+
 export type Impression = typeof impressions.$inferSelect;
 export type Match = typeof matches.$inferSelect;
+export type MatchMessage = typeof matchMessages.$inferSelect;

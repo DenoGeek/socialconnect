@@ -5,6 +5,7 @@ import {
   uuid,
   jsonb,
   numeric,
+  boolean,
   index,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
@@ -13,7 +14,29 @@ import {
   paymentCurrencyEnum,
   paymentProviderEnum,
   paymentStatusEnum,
+  paymentMethodKindEnum,
 } from "./enums";
+
+export const paymentMethods = pgTable(
+  "payment_methods",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: paymentMethodKindEnum("kind").notNull(),
+    label: text("label").notNull(),
+    mpesaPhone: text("mpesa_phone"),
+    isDefault: boolean("is_default").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("payment_methods_user_idx").on(t.userId)],
+);
 
 export const payments = pgTable(
   "payments",
@@ -48,3 +71,4 @@ export const payments = pgTable(
 );
 
 export type Payment = typeof payments.$inferSelect;
+export type PaymentMethod = typeof paymentMethods.$inferSelect;

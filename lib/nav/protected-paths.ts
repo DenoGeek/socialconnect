@@ -2,6 +2,7 @@
 export const PROTECTED_PATH_PREFIXES = [
   "/apply",
   "/profile",
+  "/account",
   "/events",
   "/events/me",
   "/matches",
@@ -12,6 +13,7 @@ export const PROTECTED_PATH_PREFIXES = [
   "/trips",
   "/duo",
   "/date-vault",
+  "/payments",
   "/admin",
   "/facilitator",
 ] as const;
