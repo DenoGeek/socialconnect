@@ -64,6 +64,13 @@
       "when": 1781489881820,
       "tag": "0008_account_billing_zahari",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1781589881820,
+      "tag": "0009_safety_community_ops",
+      "breakpoints": true
     }
   ]
 }

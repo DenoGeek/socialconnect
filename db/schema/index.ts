@@ -13,3 +13,4 @@ export * from "./duo";
 export * from "./audit";
 export * from "./applications";
 export * from "./zahari";
+export * from "./community";

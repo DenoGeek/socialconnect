@@ -27,12 +27,17 @@ import {
   removePaymentMethod,
   cancelZahariSubscription,
   downgradeToAmari,
+  downgradeToAmariAfterCancel,
 } from "./actions";
 
 export default async function AccountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ ended?: string; downgraded?: string }>;
+  searchParams: Promise<{
+    ended?: string;
+    downgraded?: string;
+    suspended?: string;
+  }>;
 }) {
   const user = await requireUser();
   const sp = await searchParams;
@@ -80,17 +85,22 @@ export default async function AccountPage({
         </p>
       </header>
 
-      {(sp.ended || sp.downgraded) && (
+      {(sp.ended || sp.downgraded || sp.suspended) && (
         <Card className="border-mint/40 bg-mint/10">
           <CardTitle>
-            {sp.ended
-              ? "Zahari subscription ended"
-              : "Switched to Amari"}
+            {sp.suspended
+              ? "Account suspended"
+              : sp.ended
+                ? "Zahari subscription ended"
+                : "Switched to Amari"}
           </CardTitle>
           <CardSubtitle className="mt-2">
-            {sp.ended
-              ? "No refund was issued. Elite perks and curated profile views are no longer available."
-              : "You moved to Amari before payment — no consequences applied."}
+            {sp.suspended
+              ? user.suspendedReason ??
+                "You can log in, but events, matching, and most features are locked until staff lift the suspension."
+              : sp.ended
+                ? "No refund was issued. Elite perks are gone. Choose Amari below only if you want fellowship access."
+                : "You moved to Amari — complimentary pathway is active."}
           </CardSubtitle>
         </Card>
       )}
@@ -177,6 +187,11 @@ export default async function AccountPage({
                 <Button type="submit" variant="outline">
                   End Zahari (no refund)
                 </Button>
+              </form>
+            )}
+            {pathway === "zahari" && eng?.status === "cancelled" && (
+              <form action={downgradeToAmariAfterCancel}>
+                <Button type="submit">Choose Amari access</Button>
               </form>
             )}
             {pathway === "zahari" && eng?.status === "pending_payment" && (

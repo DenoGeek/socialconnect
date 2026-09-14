@@ -38,19 +38,23 @@ export async function bookZahariInterview(form: FormData) {
   const engagementId = String(form.get("engagementId"));
   const scheduledAtRaw = String(form.get("interviewScheduledAt") ?? "");
   const meetingUrl = String(form.get("interviewMeetingUrl") ?? "").trim();
+  const calendlyUrl = String(form.get("calendlyInviteUrl") ?? "").trim();
   const notes = String(form.get("interviewNotes") ?? "").trim();
 
   const scheduledAt = scheduledAtRaw ? new Date(scheduledAtRaw) : null;
-  if (!scheduledAt || Number.isNaN(scheduledAt.getTime())) {
-    throw new Error("Interview date/time is required");
+  if (!calendlyUrl && (!scheduledAt || Number.isNaN(scheduledAt.getTime()))) {
+    throw new Error("Provide a Calendly link or interview date/time");
   }
 
   await db
     .update(schema.zahariEngagements)
     .set({
       status: "interview_scheduled",
-      interviewScheduledAt: scheduledAt,
-      interviewMeetingUrl: meetingUrl || null,
+      interviewScheduledAt: scheduledAt && !Number.isNaN(scheduledAt.getTime())
+        ? scheduledAt
+        : null,
+      interviewMeetingUrl: meetingUrl || calendlyUrl || null,
+      calendlyInviteUrl: calendlyUrl || null,
       interviewNotes: notes || null,
       updatedAt: new Date(),
     })

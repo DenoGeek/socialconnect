@@ -104,12 +104,20 @@ export default async function AdminZahariPage() {
               className="grid gap-2 sm:grid-cols-2 border-t border-plum-900/8 pt-4"
             >
               <input type="hidden" name="engagementId" value={eng.id} />
+              <label className="text-xs text-plum-900/60 sm:col-span-2">
+                Calendly invite URL (preferred)
+                <input
+                  name="calendlyInviteUrl"
+                  placeholder="https://calendly.com/…"
+                  defaultValue={eng.calendlyInviteUrl ?? ""}
+                  className="mt-1 w-full rounded-2xl border px-3 py-2 text-sm"
+                />
+              </label>
               <label className="text-xs text-plum-900/60">
-                Interview date & time
+                Interview date & time (optional if Calendly)
                 <input
                   type="datetime-local"
                   name="interviewScheduledAt"
-                  required
                   defaultValue={
                     eng.interviewScheduledAt
                       ? new Date(eng.interviewScheduledAt).toISOString().slice(0, 16)
@@ -119,7 +127,7 @@ export default async function AdminZahariPage() {
                 />
               </label>
               <label className="text-xs text-plum-900/60">
-                Meeting link
+                Meeting link (optional)
                 <input
                   name="interviewMeetingUrl"
                   placeholder="https://…"

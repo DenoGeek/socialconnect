@@ -133,7 +133,31 @@ export async function cancelZahariSubscription(form: FormData) {
     })
     .where(eq(schema.zahariEngagements.id, eng.id));
 
-  // Downgrade pathway to Amari and strip elite tier.
+  // Keep pathway as zahari until they explicitly choose to downgrade to Amari.
+  await db
+    .update(schema.users)
+    .set({
+      tier: "free",
+      updatedAt: new Date(),
+    })
+    .where(eq(schema.users.id, user.id));
+
+  revalidatePath("/account");
+  redirect("/account?ended=1");
+}
+
+export async function downgradeToAmariAfterCancel() {
+  const user = await requireUser();
+  const [eng] = await db
+    .select()
+    .from(schema.zahariEngagements)
+    .where(eq(schema.zahariEngagements.userId, user.id))
+    .limit(1);
+
+  if (!eng || eng.status !== "cancelled") {
+    throw new Error("End Zahari first, then choose Amari if you want fellowship access.");
+  }
+
   await db
     .update(schema.users)
     .set({
@@ -144,7 +168,7 @@ export async function cancelZahariSubscription(form: FormData) {
     .where(eq(schema.users.id, user.id));
 
   revalidatePath("/account");
-  redirect("/account?ended=1");
+  redirect("/account?downgraded=1");
 }
 
 /** Pre-payment switch to Amari — no consequences. */

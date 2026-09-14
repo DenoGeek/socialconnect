@@ -39,6 +39,12 @@ export const users = pgTable("users", {
   banned: boolean("banned").notNull().default(false),
   banReason: text("ban_reason"),
   banExpiresAt: timestamp("ban_expires_at", { withTimezone: true }),
+  suspended: boolean("suspended").notNull().default(false),
+  suspendedReason: text("suspended_reason"),
+  suspendedAt: timestamp("suspended_at", { withTimezone: true }),
+  warningCount: integer("warning_count").notNull().default(0),
+  lastWarningAt: timestamp("last_warning_at", { withTimezone: true }),
+  lastWarningMessage: text("last_warning_message"),
   lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
@@ -117,6 +123,8 @@ export const profiles = pgTable(
       .unique(),
     displayName: text("display_name"),
     phone: text("phone"),
+    emergencyContactName: text("emergency_contact_name"),
+    emergencyContactPhone: text("emergency_contact_phone"),
     city: text("city"),
     gender: genderEnum("gender"),
     country: text("country").notNull().default("KE"),
@@ -127,6 +135,8 @@ export const profiles = pgTable(
       .$type<string[]>()
       .notNull()
       .default(sql`'[]'::jsonb`),
+    idDocumentUrl: text("id_document_url"),
+    moderationStatus: text("moderation_status").notNull().default("pending"), // pending | approved | rejected
     intentBadges: jsonb("intent_badges")
       .$type<string[]>()
       .notNull()

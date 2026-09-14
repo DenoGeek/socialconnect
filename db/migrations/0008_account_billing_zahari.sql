@@ -22,7 +22,6 @@ ALTER TABLE "zahari_engagements" ADD COLUMN IF NOT EXISTS "interview_scheduled_a
 ALTER TABLE "zahari_engagements" ADD COLUMN IF NOT EXISTS "interview_meeting_url" text;--> statement-breakpoint
 ALTER TABLE "zahari_engagements" ADD COLUMN IF NOT EXISTS "interview_notes" text;--> statement-breakpoint
 ALTER TABLE "zahari_engagements" ADD COLUMN IF NOT EXISTS "interview_completed_at" timestamp with time zone;--> statement-breakpoint
-ALTER TABLE "zahari_engagements" ALTER COLUMN "status" SET DEFAULT 'pending_interview';--> statement-breakpoint
 ALTER TABLE "profiles" ADD COLUMN IF NOT EXISTS "matchmaking_visible" boolean DEFAULT true NOT NULL;--> statement-breakpoint
 ALTER TABLE "profiles" ADD COLUMN IF NOT EXISTS "notification_prefs" jsonb DEFAULT '{"email":true,"sms":true,"inApp":true,"matches":true,"events":true,"community":true}'::jsonb NOT NULL;--> statement-breakpoint
 ALTER TABLE "profiles" ADD COLUMN IF NOT EXISTS "location_preferences" text;--> statement-breakpoint

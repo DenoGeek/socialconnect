@@ -61,6 +61,73 @@ export default async function CommandDashboard() {
       sql`${schema.payments.status} IN ('pending', 'processing')`,
     );
 
+  const dayStart = new Date();
+  dayStart.setHours(0, 0, 0, 0);
+  const [{ value: dau }] = await db
+    .select({ value: count() })
+    .from(schema.users)
+    .where(
+      and(
+        isNotNull(schema.users.lastSeenAt),
+        gte(schema.users.lastSeenAt, dayStart),
+      ),
+    );
+
+  const [{ value: impressionsCount }] = await db
+    .select({ value: count() })
+    .from(schema.impressions);
+  const [{ value: mutualCount }] = await db
+    .select({ value: count() })
+    .from(schema.matches)
+    .where(eq(schema.matches.status, "mutual"));
+  const meaningfulRate =
+    Number(impressionsCount) === 0
+      ? "—"
+      : `${Math.round((Number(mutualCount) / Number(impressionsCount)) * 1000) / 10}%`;
+
+  const [{ value: ticketHolders }] = await db
+    .select({ value: count() })
+    .from(schema.ticketPurchases)
+    .where(
+      sql`${schema.ticketPurchases.status} IN ('confirmed', 'checked_in')`,
+    );
+  const [{ value: attendeesWithImpression }] = await db
+    .select({
+      value: sql<number>`COUNT(DISTINCT ${schema.impressions.fromUserId})`,
+    })
+    .from(schema.impressions);
+  const eventToCommunity =
+    Number(ticketHolders) === 0
+      ? "—"
+      : `${Math.round((Number(attendeesWithImpression) / Number(ticketHolders)) * 1000) / 10}%`;
+
+  const [{ value: npsAvg }] = await db
+    .select({
+      value: sql<string>`COALESCE(AVG(${schema.eventNpsResponses.score}), 0)`,
+    })
+    .from(schema.eventNpsResponses);
+
+  const [{ value: ticketRevenue }] = await db
+    .select({
+      value: sql<string>`COALESCE(SUM(${schema.payments.amount}), 0)`,
+    })
+    .from(schema.payments)
+    .where(
+      and(
+        eq(schema.payments.status, "succeeded"),
+        eq(schema.payments.subjectKind, "ticket"),
+      ),
+    );
+
+  const [{ value: rsvpCount }] = await db
+    .select({ value: count() })
+    .from(schema.ticketPurchases);
+
+  const [{ value: zahariCancels }] = await db
+    .select({ value: count() })
+    .from(schema.zahariEngagements)
+    .where(eq(schema.zahariEngagements.status, "cancelled"));
+
   const upcoming = await db
     .select()
     .from(schema.events)
@@ -97,9 +164,21 @@ export default async function CommandDashboard() {
           value={Number(approvedMembers).toLocaleString()}
         />
         <KPI label="Active · 7d" value={Number(active7d).toLocaleString()} />
+        <KPI label="DAU (today)" value={Number(dau).toLocaleString()} />
         <KPI label="Gender mix" value={genderRatio} />
         <KPI label="Mutual matches" value={Number(matchCount).toLocaleString()} />
+        <KPI label="Meaningful connection rate" value={meaningfulRate} />
+        <KPI label="Event → community" value={eventToCommunity} />
+        <KPI
+          label="Post-event NPS avg"
+          value={Number(npsAvg).toFixed(1)}
+        />
         <KPI label="Tickets · 24h" value={Number(tickets24h).toLocaleString()} />
+        <KPI
+          label="Ticket revenue"
+          value={`${Number(ticketRevenue).toLocaleString()}`}
+        />
+        <KPI label="RSVPs / tickets" value={Number(rsvpCount).toLocaleString()} />
         <KPI
           label="Revenue (all-time)"
           value={`KSh ${Number(revenueRow).toLocaleString("en-KE", { maximumFractionDigits: 0 })}`}
@@ -107,6 +186,10 @@ export default async function CommandDashboard() {
         <KPI
           label="Payments awaiting"
           value={Number(paymentsPending).toLocaleString()}
+        />
+        <KPI
+          label="Zahari cancels / churn"
+          value={Number(zahariCancels).toLocaleString()}
         />
         <KPI
           label="Open red flags"

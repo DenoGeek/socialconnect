@@ -11,6 +11,7 @@ import {
 } from "@/lib/auth";
 import { isRouterPrefetchRequest } from "@/lib/auth/request-kind";
 import { isZahariSubscriptionActive } from "@/lib/membership/zahari-status";
+import { isBanned, isSuspended } from "@/lib/auth/moderation-status";
 import { AppLink } from "@/components/nav/app-link";
 import { SignOutButton } from "@/components/nav/sign-out-button";
 import { MobileNavDrawer } from "@/components/nav/mobile-nav-drawer";
@@ -21,9 +22,13 @@ export const dynamic = "force-dynamic";
 const NAV_AMARI = [
   { href: "/profile", label: "Profile" },
   { href: "/account", label: "Account" },
+  { href: "/notifications", label: "Alerts" },
   { href: "/events", label: "Pulse Hub" },
   { href: "/matches", label: "Matches" },
+  { href: "/icebreakers", label: "Icebreakers" },
+  { href: "/couples", label: "Couples" },
   { href: "/date-vault", label: "Date Vault" },
+  { href: "/safety", label: "Safety" },
   { href: "/residential", label: "Hearth" },
   { href: "/programs", label: "Ascent" },
   { href: "/professionals", label: "Professionals" },
@@ -43,10 +48,26 @@ const ZAHARI_PRE_DASHBOARD_PREFIXES = [
   "/concierge/zahari",
   "/payments",
   "/profile",
+  "/safety",
+  "/notifications",
+];
+
+const SUSPENDED_ALLOWED_PREFIXES = [
+  "/account",
+  "/safety",
+  "/notifications",
+  "/profile",
+  "/apply",
 ];
 
 function isZahariPreDashboardPath(pathname: string) {
   return ZAHARI_PRE_DASHBOARD_PREFIXES.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
+  );
+}
+
+function isSuspendedAllowedPath(pathname: string) {
+  return SUSPENDED_ALLOWED_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`),
   );
 }
@@ -138,6 +159,28 @@ export default async function AppLayout({
         </div>
       </main>
     );
+  }
+
+  if (isBanned(user) && !isStaffRole(user.role) && !isRouterPrefetchRequest(h)) {
+    return (
+      <main className="min-h-screen flex items-center justify-center p-8">
+        <div className="max-w-md text-center">
+          <h1 className="text-display text-3xl text-plum-900 mb-3">Account banned</h1>
+          <p className="text-sm text-plum-900/70">
+            {user.banReason ?? "Please contact support if you believe this is an error."}
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  if (
+    isSuspended(user) &&
+    !isStaffRole(user.role) &&
+    !isRouterPrefetchRequest(h) &&
+    !isSuspendedAllowedPath(pathname)
+  ) {
+    redirect("/account?suspended=1");
   }
 
   const isZahari = user.pathway === "zahari";

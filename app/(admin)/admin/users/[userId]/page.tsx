@@ -7,6 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MemberProfileDetail } from "@/components/admin/member-profile-detail";
 import { deleteUserAccount, grantDiscountedTicket, updateUserTier } from "../actions";
+import {
+  warnUser,
+  suspendUser,
+  unsuspendUser,
+  banUser,
+  unbanUser,
+} from "../../ops-actions";
 
 export default async function AdminUserDetail({
   params,
@@ -61,7 +68,16 @@ export default async function AdminUserDetail({
           <Badge tone={u.tier === "elite" ? "amber" : "neutral"}>{u.tier}</Badge>
           <Badge tone="neutral">{u.mode}</Badge>
           {u.banned && <Badge tone="amber">Banned</Badge>}
+          {u.suspended && <Badge tone="amber">Suspended</Badge>}
+          {u.warningCount > 0 && (
+            <Badge tone="neutral">Warnings: {u.warningCount}</Badge>
+          )}
         </div>
+        {u.lastWarningMessage && (
+          <p className="mt-2 text-sm text-amber-800">
+            Last warning: {u.lastWarningMessage}
+          </p>
+        )}
       </header>
 
       <Card>
@@ -130,6 +146,66 @@ export default async function AdminUserDetail({
               Grant ticket
             </Button>
           </form>
+
+          <form action={warnUser} className="space-y-2 border-t border-plum-900/8 pt-4">
+            <input type="hidden" name="userId" value={u.id} />
+            <label className="block text-xs uppercase tracking-widest text-plum-900/50">
+              Warn (email + in-app banner)
+            </label>
+            <textarea
+              name="message"
+              required
+              placeholder="Warning message"
+              className="w-full rounded-2xl border px-3 py-2 text-sm min-h-20"
+            />
+            <Button type="submit" size="sm" variant="outline">
+              Send warning
+            </Button>
+          </form>
+
+          <div className="flex flex-wrap gap-2 border-t border-plum-900/8 pt-4">
+            {!u.suspended ? (
+              <form action={suspendUser} className="flex flex-wrap gap-2 items-end">
+                <input type="hidden" name="userId" value={u.id} />
+                <input
+                  name="reason"
+                  placeholder="Suspend reason"
+                  className="rounded-2xl border px-3 py-2 text-sm"
+                  defaultValue="Suspended — features locked; matching hidden"
+                />
+                <Button type="submit" size="sm" variant="outline">
+                  Suspend
+                </Button>
+              </form>
+            ) : (
+              <form action={unsuspendUser}>
+                <input type="hidden" name="userId" value={u.id} />
+                <Button type="submit" size="sm">
+                  Lift suspension
+                </Button>
+              </form>
+            )}
+            {!u.banned ? (
+              <form action={banUser} className="flex flex-wrap gap-2 items-end">
+                <input type="hidden" name="userId" value={u.id} />
+                <input
+                  name="reason"
+                  placeholder="Ban reason"
+                  className="rounded-2xl border px-3 py-2 text-sm"
+                />
+                <Button type="submit" size="sm" variant="danger">
+                  Ban
+                </Button>
+              </form>
+            ) : (
+              <form action={unbanUser}>
+                <input type="hidden" name="userId" value={u.id} />
+                <Button type="submit" size="sm" variant="outline">
+                  Unban
+                </Button>
+              </form>
+            )}
+          </div>
 
           <form action={deleteUserAccount}>
             <input type="hidden" name="userId" value={u.id} />

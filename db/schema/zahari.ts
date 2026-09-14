@@ -52,6 +52,7 @@ export const zahariEngagements = pgTable(
     interviewCompletedAt: timestamp("interview_completed_at", {
       withTimezone: true,
     }),
+    calendlyInviteUrl: text("calendly_invite_url"),
     matchmakerUserId: text("matchmaker_user_id").references(() => users.id, {
       onDelete: "set null",
     }),

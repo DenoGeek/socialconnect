@@ -14,6 +14,11 @@ export const PROTECTED_PATH_PREFIXES = [
   "/duo",
   "/date-vault",
   "/payments",
+  "/account",
+  "/safety",
+  "/icebreakers",
+  "/couples",
+  "/notifications",
   "/admin",
   "/facilitator",
 ] as const;

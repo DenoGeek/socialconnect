@@ -92,7 +92,8 @@ export default async function ZahariPayPage() {
         <Card>
           <CardTitle>Choose your plan</CardTitle>
           <CardSubtitle className="mt-2">
-            Pricing is in USD. Pay via TinyPesa or M-Pesa Paybill until USD card checkout is available.
+            Pricing is in USD. After the interview, staff will share the USD Paybill /
+            payment details for your plan. TinyPesa and KES Paybill remain available as interim options.
           </CardSubtitle>
           <div className="mt-4 space-y-3">
             {ZAHARI_PLANS.map((plan) => (
@@ -117,6 +118,14 @@ export default async function ZahariPayPage() {
             </CardTitle>
             <CardSubtitle className="mt-2">
               Includes private matching, date packages, date concierge, and elite couples pool access.
+            </CardSubtitle>
+          </Card>
+
+          <Card>
+            <CardTitle>USD payment (staff-shared)</CardTitle>
+            <CardSubtitle className="mt-2">
+              After your interview, your matchmaker will send the USD Paybill / transfer
+              instructions for this membership. Use Simulate only in development.
             </CardSubtitle>
           </Card>
 

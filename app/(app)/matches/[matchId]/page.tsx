@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatMoney } from "@/lib/utils/format";
 import { MatchChat } from "./match-chat";
+import { shareContactWithMatch } from "./contact-actions";
+import { reportMember } from "@/app/(app)/safety/actions";
 
 export default async function MatchDetail({
   params,
@@ -69,6 +71,23 @@ export default async function MatchDetail({
         .where(eq(schema.matchMessages.matchId, match.id))
         .orderBy(asc(schema.matchMessages.createdAt))
     : [];
+
+  const [contactExchange] = isMutual
+    ? await db
+        .select()
+        .from(schema.matchContactExchanges)
+        .where(eq(schema.matchContactExchanges.matchId, match.id))
+        .limit(1)
+    : [null];
+
+  const isUserA = match.userAId === user.id;
+  const iShared = isUserA
+    ? Boolean(contactExchange?.userASharedAt)
+    : Boolean(contactExchange?.userBSharedAt);
+  const theyShared = isUserA
+    ? Boolean(contactExchange?.userBSharedAt)
+    : Boolean(contactExchange?.userASharedAt);
+  const bothShared = iShared && theyShared;
 
   const [me] = await db
     .select()
@@ -139,6 +158,58 @@ export default async function MatchDetail({
             currentUserId={user.id}
             messages={messages}
           />
+        </Card>
+      )}
+
+      {isMutual && (
+        <Card>
+          <CardTitle>Phone / WhatsApp exchange</CardTitle>
+          <CardSubtitle className="mt-1">
+            Share your number when ready. Numbers appear only after both of you share.
+            Concierge still helps with date planning.
+          </CardSubtitle>
+          {bothShared ? (
+            <dl className="mt-4 space-y-2 text-sm">
+              <div className="flex justify-between gap-4">
+                <dt className="text-plum-900/50">Their phone</dt>
+                <dd className="font-medium">{other?.phone ?? "Not on file"}</dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-plum-900/50">Your phone</dt>
+                <dd className="font-medium">{me?.phone ?? "Add in Account"}</dd>
+              </div>
+            </dl>
+          ) : (
+            <div className="mt-4 space-y-3">
+              <p className="text-sm text-plum-900/60">
+                You: {iShared ? "shared" : "not shared yet"} · Them:{" "}
+                {theyShared ? "shared" : "not shared yet"}
+              </p>
+              {!iShared && (
+                <form action={shareContactWithMatch}>
+                  <input type="hidden" name="matchId" value={match.id} />
+                  <Button type="submit" size="sm">
+                    Share my phone ({me?.phone ?? "set phone in Account first"})
+                  </Button>
+                </form>
+              )}
+            </div>
+          )}
+          <AppLink href="/concierge" className="mt-4 inline-block text-sm underline">
+            Ask concierge for date planning →
+          </AppLink>
+          <form action={reportMember} className="mt-4 border-t border-plum-900/8 pt-4 space-y-2">
+            <input type="hidden" name="reportedUserId" value={otherUserId} />
+            <input
+              name="reason"
+              required
+              placeholder="Report this match…"
+              className="w-full rounded-2xl border px-3 py-2 text-sm"
+            />
+            <Button type="submit" size="sm" variant="outline">
+              Report member
+            </Button>
+          </form>
         </Card>
       )}
 
